@@ -1,0 +1,32 @@
+'''[[AMOS]] sample banks''' are created with the Sample Bank Editor shipped with AMOS. They are one of AMOS's native [[AMOS file formats|file formats]].
+
+The samples can be played back with the Music extension.
+
+The format of the bank is as follows:
+
+{|class="infotable"
+!Offset!!Length!!Description
+|-
+|0||20 bytes||The regular bank header
+|-
+|20||2 bytes||the number of samples in this bank (''n'')
+|-
+|22||''n''*4 bytes||a list of offsets, each 4 bytes long, to each sample. The offset is relative to the location of the "number of samples" field above
+|-
+|22+''n''*4||? bytes||all samples, as pointed to by the offsets table. Each sample is individually sized and has this format:
+{|class="infotable"
+!Offset!!Length!!Description
+|-
+|0||8 bytes||the name for the sample, in ASCII.
+In most cases, only the first 6 bytes have ASCII data, the remaining 2 have trash.
+|-
+|8||2 bytes||the frequency of the sample in hertz
+|-
+|10||4 bytes||the length of the sample in bytes (''n'')
+|-
+|14||''n'' bytes||the sample data itself, a stream of two's complement signed 8-bit PCM samples
+|}
+|}
+
+[[Category:AMOS]]
+[[Category:File formats]]

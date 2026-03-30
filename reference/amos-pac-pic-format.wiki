@@ -1,0 +1,195 @@
+[[AMOS]] '''Pac.Pic.''' images are a compressed form of Amiga raster graphics, one of the standard [[AMOS file formats]].
+
+Pac.Pic. images are created with the <kbd style="color:blue">Pack</kbd> instruction in AMOS, for example <kbd style="color:blue">Pack 0 To 6</kbd> will compress the image on screen 0 into AMOS bank number 6. These banks can then be saved as part of the AMOS source code, or saved as individual bank files.
+
+AMOS records details about the physical hardware screen that the picture is displayed on: all the required details to re-perform the <kbd style="color:blue">Screen Open</kbd> and <kbd style="color:blue">Screen Display</kbd> instructions, if the picture is unpacked to a screen number that doesn't exist.
+
+It is also possible to only pack an area of the screen. Therefore, the Pac.Pic. format has separate headers for the dimensions of the entire screen and the dimensions of the picture data itself. The screen header is optional.
+
+In this format definition, all multi-byte integers are in big-endian format. All numbers given are in decimal, except hexadecimal numbers which are prefixed by '$'.
+
+== Overall format ==
+The overall format either includes as screen header (if a whole screen is packed), or does not (if only an area within the screen is packed).
+
+With screen header:
+
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||20 bytes||standard AMOS bank header
+|-
+|20||90 bytes||Screen header
+|-
+|110||24 bytes||Picture header
+|-
+|134||x bytes||PICDATA stream
+|}
+
+Without screen header:
+
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||20 bytes||standard AMOS bank header
+|-
+|20||24 bytes||Picture header
+|-
+|44||x bytes||PICDATA stream
+|}
+
+==Standard AMOS bank header format==
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||4 bytes||The literal ASCII text '''AmBk'''
+|-
+|4||2 bytes||AMOS bank number, between 1 and 15
+|-
+|6||2 bytes||flags
+|-
+|8||4 bytes||bits 27 to 0 are the length of the bank itself.
+|-
+|12||8 bytes||the bank type. In this case, it should always be "Pac.Pic."
+|}
+
+==Screen header format==
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||4 bytes||Fixed screen header ID of $12031990 (12-March-1990, perhaps the birth of AMOS?).
+Sometimes this is "hacked" to other values like $00031990 or $12030090 
+|-
+|4||2 bytes||Screen width in pixels, e.g. 320
+|-
+|6||2 bytes||Screen height in pixels, e.g. 200
+|-
+|8||2 bytes||Hardware top-left x coordinate, using Amiga DIWSTRT register units, e.g. $0081
+|-
+|10||2 bytes||Hardware top-left y coordinate, using Amiga DIWSTRT register units, e.g. $0032
+|-
+|12||2 bytes||Hardware screen width
+|-
+|14||2 bytes||Hardware screen height
+|-
+|16||2 bytes||Hardware X offset (for positioning when bitmap is wider than screen)
+|-
+|18||2 bytes||Hardware Y offset (for positioning when bitmap is taller than screen)
+|-
+|20||2 bytes||Value of the Amiga BPLCON0 register, which details the hardware screen mode such as HAM, hires or interlaced
+|-
+|22||2 bytes||Number of colours on screen. Either 2, 4, 8, 16, 32, 64 (EHB) or 4096 (HAM).
+|-
+|24||2 bytes||number of bitplanes, between 1 and 6
+|-
+|26||64 bytes||32 2-byte palette entries in the Amiga COLORxx register format.
+|}
+
+==Picture header format==
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||4 bytes||Fixed picture header ID, $06071963, (6-July-1963, perhaps the birth of François Lionet?)
+|-
+|4||2 bytes||The X coordinate offset in '''bytes''' of the picture within the screen itself
+|-
+|6||2 bytes||The Y coordinate offset in lines (vertical pixels) of the picture within the screen itself
+|-
+|8||2 bytes||The picture width in '''bytes'''
+|-
+|10||2 bytes||The picture height in "line lumps" (described below)
+|-
+|12||2 bytes||The number of lines in a "line lump"
+|-
+|14||2 bytes||The number of bitplanes in the picture
+|-
+|16||4 bytes||The offset to the RLEDATA stream, relative to the start of this picture header
+|-
+|20||4 bytes||The offset to the POINTS stream, relative to the start of this picture header
+|}
+
+== Stream formats ==
+There are three streams of data immediately following the headers: the PICDATA stream, the RLEDATA stream and the POINTS stream. The PICDATA stream begins immediately following the headers. The RLEDATA stream begins at the offset given in the picture header, relative to the start of the picture header itself. Finally, this is followed by the POINTS data stream, which also has its beginning defined by an entry in the picture header.
+
+The Pac.Pic. format is a form of run-length encoding. PICDATA is the actual picture data, but it is compressed. You either take a new byte from the PICDATA stream, or you repeat the previous byte. The choice you make is stored as a single bit in the RLEDATA stream. However! The RLEDATA stream is itself run-length encoded in the same way. Your stream of bits is stored as bytes in the RLEDATA stream, and you either take a new byte, or recycle the old byte, based on reading a single bit from the POINTS stream. The POINTS stream is not compressed.
+
+The bits in the RLEDATA stream and POINTS stream are stored as as bytes. The bits should be read from most significant bit in the byte to the least significant bit.
+
+== Picture data ordering ==
+[[Image:Pacpic.png|right|thumb|287px|How Pac.Pic. turns picture data into a byte stream]]
+As described above, the picture data is RLE encoded. However, the picture data is stored in a specific order to get better compression:
+* Bitplane 0 is compressed first, then bitplane 1, bitplane 2 ...
+* Within a bitplane, we compress a "lump" of complete horizontal lines. This "lump" has a specific height, which is stored in the picture header.
+* Within a lump, each byte in the picture is retrieved from top to bottom, left to right. So first we grab the pixels (0,0)-(7,0) in the first byte, the second byte is pixels (0,1)-(7,1), the third is (0,2)-(7,2), and so on up to the lump's height. Then, we grab (8,0)-(15,0), (8,1)-(15,1) ...
+
+There are an integer number of lumps in a picture, and they all have the same height. A picture has to have an overall height that is a multiple of the lump height, even if the screen height is not a multiple of the lump height.
+
+The Pac.Pic. compressor, when asked to compress a picture, will try compressing it with all possible lump heights it knows, before going on to compress the picture with the lump height found to give the best compression.
+<div style="clear:right"></div>
+
+== Compression ==
+Having defined how the raw picture data is ordered, we treat that as a stream of bytes.
+
+With that stream, we look at each byte. We always store the first picture byte to the PICDATA stream.
+
+For each picture byte, we store 1 RLE bit, to say whether this picture byte is repeated or not. The RLE bits are stored in the RLEDATA stream, from most significant to least significant bit of a byte.
+
+If a picture byte is different from the previous picture byte, we store a '1' as the RLE bit, and we output that picture byte to the PICDATA stream.
+
+If a picture byte is the same as the previous picture byte, we store a '0' as the RLE bit, and do not write anything to the PICDATA stream.
+
+Once the PICDATA and uncompressed RLEDATA streams are completed, we compress the RLEDATA by the same method as above, storing the decision bits for the compressed RLEDATA stream into the POINTS stream.
+
+== Decompression ==
+As described above, you know the way in which the picture data needs to be drawn on the screen as the picture data is uncompressed byte-by-byte: draw a vertical column of bytes within the first lump, from top to bottom, then draw the next vertical column of bytes, until you reach the width of the picture. That's one lump. Repeat for as many lumps as are defined in the picture header. The second lump starts immediately below the first lump. After completing all lumps, you have one complete bitplane. Repeat for all bitplanes.
+
+To decompress the raw picture data, you know you the first PICDATA and RLEDATA bytes are not compressed, and that the POINTS stream is not compressed. For each remaining PICDATA byte, you need to check the next bit from RLEDATA. Once you've used all the bits in the first RLEDATA byte, you need to get the MSB of the first byte of the POINTS stream to decide if you fetch a new RLEDATA byte, or if you recycle it. Here is some C code for decompressing the stream:
+<source lang="c">
+/* you supply these */
+unsigned char *bitplane_ptrs[6]; /* a selection of bitplane pointers to write to */
+int bytes_per_line; /* number of bytes required to jump forward by one vertical line */
+
+/* these come from the picture header */
+int width_bytes; /* 2-byte value at offset 8 */
+int lumps; /* 2-byte value at offset 10 */
+int lump_height; /* 2-byte value at offset 12 */
+int bitplanes; /* 2-byte value at offset 14 */
+unsigned char *picdata; /* offset of picture header + 24 */
+unsigned char *rledata; /* offset of picture header + 4-byte value at offset 16 */
+unsigned char *points; /* offset of picture header + 4-byte value at offset 20 */
+
+int i, j, k, l, rrbit, rbit, picbyte, rlebyte;
+
+int rbit = 7;
+int rrbit = 6;
+int picbyte = *picdata++;
+int rlebyte = *rledata++;
+if (*points & 0x80) rlebyte = *rledata++;
+for (i = 0; i < bitplanes; i++) {
+    unsigned char *lump_start = bitplane_ptrs[i];
+    for (j = 0; j < lumps; j++) {
+        unsigned char *lump_offset = lump_start;
+        for (k = 0; k < width_bytes; k++) {
+            unsigned char *d = lump_offset;
+            for (l = 0; l < lump_height; l++) {
+                /* if the current RLE bit is set to 1, read in a new picture byte */
+                if (rlebyte & (1 << rbit--)) picbyte = *picdata++;
+
+                /* write picture byte and move down by one line in the picture */
+                *d = picbyte;
+                d += bytes_per_line;
+
+                /* if we've run out of RLE bits, check the POINTS bits to see if a new RLE byte is needed */
+                if (rbit < 0) {
+                    rbit = 7;
+                    if (*points & (1 << rrbit--)) rlebyte = *rledata++;
+                    if (rrbit < 0)  rrbit = 7, points++;
+                }
+            }
+            lump_offset++;
+        }
+        lump_start += bytes_per_line * lump_height;
+    }
+}
+</source>
+[[Category:AMOS]]
+[[Category:File formats]]

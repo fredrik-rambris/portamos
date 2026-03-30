@@ -1,0 +1,92 @@
+'''AMOS AMAL banks''' are one of the standard [[AMOS file formats]].
+
+AMAL is the AMOS Animation Language. Complex AMAL programs can be written in the AMAL Editor and then referenced from AMOS programs, which saves space in comparison to writing the AMAL program by building up a string variable in AMOS source code. The AMAL command "PLay" can use pre-recorded animation ''movements'' with up to 2000 steps each, which again is more efficient than writing the steps in text.
+
+All multi-byte integers are in big-endian format.
+
+The format is divided into sections, a ''movements'' section and a ''programs'' sections. The format typically starts with a Standard AMOS bank header, which may be truncated or damaged depending on how it was ripped:
+
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||4 bytes||'''AmBk''' ID (0x416D426B)
+|-
+|4||2 bytes||bank number (should be 4)
+|-
+|6||2 bytes||flags
+|-
+|8||4 bytes||bank length, only in bits 27-0 
+|-
+|12||8 bytes||bank type (should be "<tt style="white-space:pre">Amal    </tt>")
+|}
+
+It's followed immediately by the '''offset''' to the "programs" section:
+
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||4 bytes||Offset from here to the "programs" section
+|}
+
+Which is then followed by the "movements" section:
+
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||2 bytes||number of movements (''n'')
+|-
+|2||''n'' * 2 bytes||offsets from the start of this section, '''divided by 2''', to the list of steps for each movement - or zero if no movement defined
+|-
+|2 + ''n'' * 2||''n'' * 2 bytes||length (in bytes) of each movement 
+|-
+|2 + ''n'' * 4||''n'' * 8 bytes||8-character ASCII names for each movement (padded with spaces)
+|-
+|2 + ''n'' * 12||?||Lists of steps, as pointed to by the offsets.
+Each list of steps has this format:
+
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||2 bytes||Time taken for each step, in 50ths of a second
+|-
+|2||2 bytes||number of steps for the X axis (''n'')
+|-
+|4||''n'' bytes||steps for the X axis
+|-
+|4 + ''n''||?||steps for the Y axis
+|}
+
+Steps are a sequence of bytes. Each byte will be one of the following values:
+
+;0: end of the list
+;1 to 127: move along the axis by this value, which is a two's complement value between -64 and 63 with the high bit cleared.
+: 1 &rarr; +1 pixel, 2 &rarr; +2 pixels, 3 &rarr; +3 pixels ...
+: 63 &rarr; +63 pixels, 64 &rarr; -64 pixels, 65 &rarr; -63 pixels, 66 &rarr; -62 pixels, ...
+: 125 &rarr; -3 pixels, 126 &rarr; -2 pixels, 127 &rarr; -1 pixels
+;128 to 255: no movement for this many steps (clear the high bit and add 1)
+:128 &rarr; 1 step, 129 &rarr; 2 steps, 130 &rarr; 3 steps ...
+
+The sequence always starts and ends with a zero byte, so movements can be played backwards and forwards.
+
+|}
+
+The ''programs'' section, as reached by the offset given at the start of the bank, has this format:
+
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||2 bytes||number of programs (''n'')
+|-
+|4||''n'' * 2 bytes||word-pointers (offsets from the start of this section, divided by 2) to each program, or zero if no program defined
+|-
+|4 + ''n'' * 2||?||The programs pointed to by the offsets.
+Each program has this format:
+
+{| class="infotable"
+!Offset!!Size!!Description
+|-
+|0||2 bytes||Length of the program (''n'')
+|-
+|2||''n'' bytes||The program, in ASCII text
+|}
+|}

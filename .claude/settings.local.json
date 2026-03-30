@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /home/boost/Data/Coding/portamos/src/main/java/dev/rambris/amos/tokenizer)",
+      "Bash(mkdir -p /home/boost/Data/Coding/portamos/src/test/java/dev/rambris/amos/tokenizer)"
+    ]
+  }
+}

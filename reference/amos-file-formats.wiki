@@ -1,0 +1,434 @@
+[[File:AMOS 1.34 Welcome.png|thumb|200px|AMOS 1.3]]
+[[File:amospro-title.png|thumb|200px|AMOS Pro]]
+'''[[AMOS]]''' is the name of a family of BASIC-like programming languages created for the Amiga by François Lionet, who is also known for ''STOS'' for the Atari ST and ''ClickPlay'' for the IBM PC.
+
+This article attempts to cover all file formats defined by AMOS itself.
+
+All multi-byte integers are stored in big-endian format (the Amiga's native format) unless otherwise specified. All numbers are decimal, except for hexadecimal numbers prefixed by '$'.
+
+== Introduction to AMOS ==
+
+AMOS is an interpreted, BASIC-like language. You work in AMOS's built-in source code editor. Your code is stored in memory as ''tokens''; each BASIC keyword is represented by a 2-byte number. You edit each line in your program as text, but once you finish editing any line in your program and move onto the next, the line is (re-)converted to tokens.
+
+=== Extensions ===
+[[File:amos13-extensions.png|thumb|200px|AMOS 1.3 extension config]]
+:''Main article: [[AMOS extensions]]''
+AMOS not only includes the core language, but allows loading '''extensions'''. These are written in assembly code, not AMOS, and they add more instructions and functions to the AMOS language. Extensions must be loaded into one of 25 "slots", each extension has a specific slot.
+
+Sometimes, two extensions want to use the same slot; they can't do this, you can only have one or the other. Your choice of extensions, along with all other global settings, are stored in AMOS's config file. This is <samp>AMOS1_3_PAL.env</samp>, <samp>AMOS1_3_NTSC.env</samp> in AMOS 1.3, or <samp>AMOSPro_Interpreter_Config</samp> in AMOS Pro.
+
+When you use extension instructions, the slot number and instruction offset gets saved into your source code. Without the correct version of the extension loaded in the correct slot, your program stops working; AMOS says "Extension Not Loaded" at you. Your source code has "Extension Z" or another letter of the alphabet where the extension's instruction once was.
+
+=== Memory Banks ===
+[[File:amospro-listbank.png|thumb|200px|AMOS Pro listing memory banks]]
+In order to work with multimedia such as pictures and music, AMOS uses the concept of '''memory banks'''. AMOS 1.x allows up to 15 banks per AMOS program, while AMOS Professional allows up to 65535.
+
+For example, you can load several pieces of music into different memory banks, and then identify which one you want to play by ''bank number'': <kbd style="color:blue">Track Play 5</kbd> will play music in bank 5. Or you could load a packed picture into bank 4 and say <kbd style="color:blue">Unpack 4 to 0</kbd> to unpack it to screen 0.
+
+While you can load anything into any bank, some instructions can only take their data from specific bank numbers. Bank 1 is used for Sprites, which are controlled with instructions beginning <kbd style="color:blue">Sprite</kbd> or <kbd style="color:blue">Bob</kbd>. Bank 2 is for Icons, which are controlled with instructions beginning <kbd style="color:blue">Icon</kbd>. Bank 3 is used for music in AMOS's native music format.
+
+If you have memory banks in use while saving your source code, the contents of the banks get saved along with them. This makes it easy to bundle your code with the data it works on.
+
+Banks can also be loaded from and saved to disk using the <kbd style="color:blue">Load</kbd> and <kbd style="color:blue">Save</kbd> commands. For example:
+
+* <kbd style="color:blue">Save "all_banks.abs"</kbd> saves all banks to disk
+* <kbd style="color:blue">Save "single_bank.abk", 6</kbd> saves a single bank to disk
+* <kbd style="color:blue">Load "single_bank.abk"</kbd> loads the file into same slot it was saved from, bank 6
+* <kbd style="color:blue">Load "single_bank.abk", 11</kbd> loads the file into slot 11
+* <kbd style="color:blue">Load "all_banks.abs"</kbd> clears existing banks from the program and loads the banks from the file
+
+== AMOS source code file format ==
+AMOS source code is normally stored in a file with the extension ".AMOS". The file on disk has this format:
+
+{| class="infotable"
+!Offset!!Length!!Description
+|-
+|0
+|16 bytes
+|ASCII text describing which version of AMOS is used, and whether the program has been tested.
+
+One of the following:
+
+* '''"<tt style="white-space:pre">AMOS Pro111V</tt>" and null byte''': Source code saved by AMOS Professional. Ignore the final 4 bytes
+* '''"<tt style="white-space:pre">AMOS Pro111v</tt>" and null byte''': Source code saved by AMOS Professional. Ignore the final 4 bytes
+* '''"<tt style="white-space:pre">AMOS Pro101V</tt>" and null byte''': Source code saved by AMOS Professional. Ignore the final 4 bytes
+* '''"<tt style="white-space:pre">AMOS Pro101v</tt>" and null byte''': Source code saved by AMOS Professional. Ignore the final 4 bytes
+* '''"<tt style="white-space:pre">AMOS Pro   V1.00</tt>"''': Source code saved by AMOS Professional
+* '''"<tt style="white-space:pre">AMOS Pro   v1.00</tt>"''': Source code saved by AMOS Professional
+* '''"<tt style="white-space:pre">AMOS Basic V134 </tt>"''': Source code saved by AMOS Professional, but is AMOS 1.3 compatible
+* '''"<tt style="white-space:pre">AMOS Basic v134 </tt>"''': Source code saved by AMOS Professional, but is AMOS 1.3 compatible
+* '''"<tt style="white-space:pre">AMOS Basic V1.3 </tt>"''': Source code saved by AMOS 1.3
+* '''"<tt style="white-space:pre">AMOS Basic v1.3 </tt>"''': Source code saved by AMOS 1.3
+* '''"<tt style="white-space:pre">AMOS Basic V1.23</tt>"''': Source code saved by AMOS 1.2
+* '''"<tt style="white-space:pre">AMOS Basic v1.23</tt>"''': Source code saved by AMOS 1.2
+* '''"<tt style="white-space:pre">AMOS Basic V1.00</tt>"''': Source code saved by AMOS 1.0 - 1.1
+* '''"<tt style="white-space:pre">AMOS Basic v1.00</tt>"''': Source code saved by AMOS 1.0 - 1.1
+
+If the 12th character is uppercase "V", the program is ''tested''.
+
+If the 12th character is lowercase "v",  the program is ''not tested''.
+|-
+|20||4 bytes||Length of tokenised BASIC code to follow (''n'')
+|-
+|24||''n'' bytes||Tokenised BASIC code, as described below
+|-
+|24+''n''||? bytes||Memory banks saved with the program
+
+This section is always present, even if the number of memory banks saved is zero.
+
+The format is always the '''AmBs''' [[#Multiple memory banks|multiple memory banks format]]
+|}
+
+The tokenised BASIC code is a sequence of lines. Each line has this format:
+
+{|class="infotable"
+!Offset!!Length!!Description
+|-
+|0||1 byte||length of this line in 2-byte words (''n'')
+|-
+|1||1 byte||indent level of this line
+|-
+|2||(''n''-1)*2 bytes||a sequence of tokens on this line, described below
+|}
+
+If the indent level is 2 or more, there are {indent level + 1} space characters as the beginning of the line.
+
+Most tokens are exactly two bytes in size. A small number of tokens have '''special size rules''' and are larger than two bytes.
+
+Token values $0000-$004E and $2B6A must be '''special printed''', all others are simply a signed offset into AMOS's internal token table.
+
+* The only negative offsets are "operator" tokens ($FF3E to $FFF6, or -$00C2 to -$000A when interpreted as signed values); AMOS 1.3 resolves these by having operator tokens before the start of its token table. AMOS Pro has a separate list of the operator tokens, as its real token table does not have any negative offsets. Extensions are not allowed to have negative offsets in their token table.
+* All offsets are even, so the highest offset is $7FFE
+
+Each line always ends with a compulsory null token ($0000).
+
+=== Specially printed tokens ===
+{|class="infotable"
+!Token!!Type!!Interpretation
+|-
+|$0000
+|null token
+|Marks the end of line. Always 2 bytes long.
+|-
+|$0006
+|Variable reference, e.g. Print '''XYZ'''
+| rowspan="4" |
+* 2 bytes: token ($0006, $000C, $0012 or $0018)
+* 2 bytes: unknown purpose
+* 1 byte: length of the string for the variable or label name (''n'')
+* 1 byte: flags, for tokens $0006, $0012 and $0018:
+**bit 1 set: this is a floating point reference, e.g. "XYZ#"
+**bit 2 set: this is a string reference, e.g. "XYZ$"
+* ''n'' bytes: the string
+
+The string is null terminated and its length is rounded up to a multiple of two bytes.
+|-
+|$000C
+|Label, e.g. '''XYZ''': or '''190''' at the start of a line
+|-
+|$0012
+|Procedure call reference, e.g. '''XYZ'''["hello"]
+|-
+|$0018
+|Label reference, e.g. Goto '''XYZ'''
+|-
+|$0026
+|String with double quotes, e.g. "'''XYZ'''"
+| rowspan="2" |
+* 2 bytes: token ($0026 or $002E)
+* 2 bytes: the length of the string (''n'')
+* ''n'' bytes: the string
+
+The string should be null terminated and its length is rounded up to a multiple of two bytes.
+But sometimes, the string isn't null terminated.
+|-
+|$002E
+|String with single quotes, e.g. <nowiki>'</nowiki>'''XYZ'''<nowiki>'</nowiki>
+|-
+|$001E
+|Binary integer value, e.g. %'''100101'''
+| rowspan="3" |
+* 2 bytes: token ($001E, $0036 or $003E)
+* 4 bytes: the integer value
+|-
+|$0036
+|Hexidecimal integer value, e.g. $'''80FAA010'''
+|-
+|$003E
+|Decimal integer value, e.g. '''1234567890'''
+|-
+|$0046
+|Floating point value, e.g. '''3.1452'''
+|
+* 2 bytes: token ($0046)
+* 4 bytes: a single-precision floating point value
+** bits 31-8: mantissa (24 bits), most significant bit is always set
+** bit 7: ignore (should be sign bit, but all AMOS floats are positive)
+** bits 6-0: exponent (from $00 to $7F)
+
+An exponent of 0 means 0.0, regardless of mantissa.
+
+Each set bit in the mantissa has the value 2<sup>''m''+''e''-88</sup> where ''m'' is from 23 (MSB) to 0 (LSB) and ''e'' is the exponent
+|-
+|$2B6A
+|Double-precision float, e.g. '''3.1415926543'''
+|
+* 2 bytes: token ($2B6A)
+* 8 bytes: a double-precision floating point value
+** bit 63: ignore (should be sign bit, but all AMOS floats are positive)
+** bits 62-51: exponent (from $000 to $7FF)
+** bits 50-0: mantissa (52 bits), most significant bit is not stored but implicitly set
+
+An exponent of 0 means 0.0, regardless of mantissa.
+
+Each set bit in the mantissa has the value 2<sup>''m''+''e''-1074</sup> where ''m'' is from 51 (implicit MSB) to 0 (LSB) and ''e'' is the exponent
+|-
+|$004E
+|Extension command
+|
+* 2 bytes: token ($004E)
+* 1 byte: extension number (1 to 26)
+* 1 byte: unused
+* 2 bytes: signed 16-bit offset into extension's token table
+
+See the [[AMOS extensions|list of AMOS extensions]] for details of extensions
+|}
+
+=== Specially sized tokens ===
+{|class="infotable"
+!Token!!Type!!Interpretation
+|-
+|$064A||Rem
+| rowspan="2" |
+Print the remark string in addition to the remark token.
+
+* 2 bytes: token ($064A or $0652)
+* 1 byte: unused
+* 1 byte: length of remark string (''n'')
+* ''n'' bytes: the remark string
+
+The remark string is null terminated and its length is rounded up to a multiple of two.
+|-
+|$0652||'
+|-
+|$023C||For
+| rowspan="8" |
+* 2 bytes: token ($023C, $0250, $0268, $027E, $02BE, $02D0, $0404 or $25A4)
+* 2 bytes: unknown purpose
+|-
+|$0250||Repeat
+|-
+|$0268||While
+|-
+|$027E||Do
+|-
+|$02BE||If
+|-
+|$02D0||Else
+|-
+|$0404||Data
+|-
+|$25A4|||Else If
+|-
+|$0290||Exit If
+| rowspan="3" |
+* 2 bytes: token ($0290, $029E or $0376)
+* 4 bytes: unknown purpose
+|-
+|$029E||Exit
+|-
+|$0316||On
+|-
+|$0376||Procedure||
+* 2 bytes: token ($0376)
+* 4 bytes: number of bytes to corresponding End Proc line
+:(start of line + 8 + above = start of End Proc line)
+:(start of line + 8 + 6 + above = line after End Proc line)
+* 2 bytes: part of seed for encryption
+* 1 byte: flags
+** bit 7: if set, procedure is folded
+** bit 6: if set, procedure is locked and shouldn't be unfolded
+** bit 5: if set, procedure is currently encrypted
+** bit 4: if set, procedure contains compiled code and not tokens
+* 1 byte: part of seed for encryption
+|-
+|$2A40||Equ
+| rowspan="4"|
+* 2 bytes: token ($2A40, 0x2A4A, 0x2A54 or 0x2A64)
+* 4 bytes: stored equate value
+* 1 byte: equate type (0-7)
+* 1 byte: unknown purpose
+|-
+|0x2A40||Lvo
+|-
+|0x2A54||Struc
+|-
+|0x2A64||Struct
+|}
+
+=== Procedure decryption ===
+If you should find a procedure token with the "is encrypted" bit set, run this C function on the code to decrypt the contents of the procedure. It comes from the [https://github.com/AMOSFactory/AMOSProfessional/blob/original/%2Bclib.s#L5327-L5362 <code>ProCode</code> routine in AMOS's source code]
+
+<syntaxhighlight lang="c">
+/* read 16-bit big-endian word from unsigned char[] */
+#define amos_deek(a) ((((a)[0])<<8)|((a)[1]))
+/* read 32-bit big-endian word from unsigned char[] */
+#define amos_leek(a) ((((a)[0])<<24)|(((a)[1])<<16)|(((a)[2])<<8)|((a)[3]))
+
+void AMOS_decrypt_procedure(unsigned char *src) {
+    unsigned char *line, *next, *endline;
+    unsigned int key, key2, key3, size;
+
+    /* src should be a pointer to a line with the PROCEDURE token on it */
+    if (amos_deek(&src[2]) != 0x0376) return;
+
+    /* do not operate on compiled procedures */
+    if (src[10] & 0x10) return;
+
+    size = amos_leek(&src[4]);
+    line = next = &src[src[0] * 2]; /* the line after PROCEDURE */
+    endline = &src[size + 8 + 6]; /* the start of the line after END PROC */
+
+    /* initialise keys */
+    key = (size << 8) | src[11];
+    key2 = 1;
+    key3 = amos_deek(&src[8]);
+
+    while (line < endline) {
+        line = next; next = &line[line[0] * 2];
+        for (line += 4; line < next;) {
+            *line++ ^= (key >> 8) & 0xFF;
+            *line++ ^=  key       & 0xFF;
+            key = (key & 0xFFFF0000) | ((key + key2) & 0xFFFF);
+            key2 = (key2 + key3) & 0xFFFF;
+            key = (key >> 1) | (key << 31); /* rotate right one bit */
+        }
+    }
+    src[10] ^= 0x20; /* toggle "is encrypted" bit */
+}
+</syntaxhighlight>
+
+== AMOS Memory Bank formats ==
+AMOS memory bank files on disk can be in one of three formats, depending on the 4-byte ASCII identifier they start with:
+
+* '''AmBs''': multiple memory banks
+* '''AmSp''' or '''AmIc''': a sprite/icon memory bank
+* '''AmBk''': a single, regular memory bank
+
+Memory banks saved inside AMOS source code are always in the "multiple memory banks" format.
+
+=== Multiple memory banks ===
+Multiple memory banks, as found following the tokenized BASIC code in an AMOS source code file, or found on disk (usually with the file extension ".abs") are several individual banks one after the other. They have this format:
+
+{| class="infotable"
+!Offset!!Length!!Description
+|-
+|0||4 bytes||ASCII identifier '''AmBs'''
+|-
+|4||2 bytes||Number of banks to follow (0-65535)
+|-
+|6||? bytes||Bank data; each bank is individually sized
+|}
+
+=== AMOS Sprite and Icon bank formats ===
+Sprite and icon banks define graphic data which can be drawn on-screen. There can only be one sprite bank and one icon bank per program. Even though it's possible to save multiple banks (e.g. create sprites, <kbd style="color:blue">Bank Swap 1,10</kbd>, create more sprites... leaving Sprites in both banks 1 and 10), loading the program will result in the later sprite banks overwriting the earlier ones.
+
+Sprite and Icon banks do not have a "normal" bank header, they have their own format:
+
+{| class="infotable"
+!Offset!!Length!!Description
+|-
+|0||4 bytes||ASCII identifier '''AmSp''' (sprites, load to bank 1) or '''AmIc''' (icons, load to bank 2)
+|-
+|4||2 bytes||the number of sprites/icons to follow
+|-
+|6
+|? bytes
+|sprite/icon data. Each sprite/icon is individually sized and has this format:
+{|class="infotable"
+!Offset!!Length!!Description
+|-
+|0||2 bytes||width of the sprite/icon, in 16-bit words rather than pixels (''w'')
+|-
+|2||2 bytes||height of the sprite/icon, in pixels (''h'')
+|-
+|4||2 bytes||depth of the sprite/icon, in bitplanes (1-5)
+|-
+|6||2 bytes||hot-spot X co-ordinate
+|-
+|8||2 bytes||hot-spot Y co-ordinate
+|-
+|10||''w''*2*''h''*''d''  bytes||planar graphic data: plane 0 data first, then planes 1, 2, 3, 4 if present
+|}
+|-
+|6+?||64||a 32-entry colour palette.
+Each entry has the Amiga COLORx hardware register format, $0RGB
+|}
+
+=== Regular memory bank format ===
+Regular memory banks, as opposed to the special-case sprite/icon banks or multiple banks, have this format:
+
+{|class="infotable"
+!Offset!!Length!!Description
+|-
+|0||4 bytes||ASCII identifier '''AmBk'''
+|-
+|4||2 bytes||bank number (1-15 for AMOS, 1-65535 for AMOS Pro)
+|-
+|6||2 bytes||flags
+* bit 0 set means the bank can be loaded into either CHIP memory or FAST memory.
+* bit 0 cleared means the bank must be loaded into CHIP memory.
+|-
+|8
+|4 bytes
+|bank length
+* bits 27-0: length of bank data + 8. Subtract 8 to get true bank length
+* bits 29-28: undefined
+* bit 30: if set, ''try'' loading bank in CHIP memory (if that fails, FAST memory is OK)
+* bit 31: if set, ''try'' loading bank in FAST memory (if that fails, CHIP memory is OK)
+|-
+|12||8 bytes||bank type: unterminated ASCII string which is padded with spaces
+|-
+|20||? bytes||bank data. What's here depends on the bank type, its length is given in the bank length field
+|}
+
+Each bank can be located in CHIP memory, which is accessible to the Amiga's custom graphics and sound processors, or FAST memory, which is only accessible to the CPU.
+
+==== Standard AMOS bank formats ====
+The following bank types are standard to AMOS:
+
+{|class="infotable"
+!Type!!Format!!Description
+|-
+|"<tt style="white-space:pre">Music   </tt>"||[[AMOS Music Bank format]]||This bank has music created with various conversion utilities shipped with AMOS
+|-
+|"<tt style="white-space:pre">Tracker </tt>"||[[Protracker]]||This bank has tracker music loaded with the <kbd style="color:blue">Track Load</kbd> instruction
+|-
+|"<tt style="white-space:pre">Amal    </tt>"||[[AMOS AMAL Bank format]]||This bank contains instructions in the AMOS Animation Language format.
+|-
+|"<tt style="white-space:pre">Menu    </tt>"||[[AMOS Menu Bank format]]||This bank contains pull-down menu definitions
+|-
+|"<tt style="white-space:pre">Datas   </tt>"||''n/a''||This bank is created in AMOS 1.x using the <kbd style="color:blue">Reserve As Data</kbd> instruction, and has no specific format.
+|-
+|"<tt style="white-space:pre">Data    </tt>"||''n/a''||This bank is created in AMOS Pro using the <kbd style="color:blue">Reserve As Data</kbd> instruction, and has no specific format.
+|-
+|"<tt style="white-space:pre">Work    </tt>"||''n/a''||This bank is created in AMOS using the <kbd style="color:blue">Reserve As Work</kbd> instruction, and has no specific format.
+As a Work bank, it is not saved as part of the source code, unlike normal data banks.
+|-
+|"<tt style="white-space:pre">Asm     </tt>"||680x0 code||This bank contains Amiga machine code that was loaded into a bank using AMOS 1.x's <kbd style="color:blue">Pload</kbd> instruction.
+It has no specific format, other than containing Motorola 680x0 binary code.
+|-
+|"<tt style="white-space:pre">Code    </tt>"||680x0 code||This bank contains Amiga machine code that was loaded into a bank using AMOS Pro's <kbd style="color:blue">Pload</kbd> instruction.
+It has no specific format, other than containing Motorola 680x0 binary code.
+|-
+|"<tt style="white-space:pre">Pac.Pic.</tt>"||[[AMOS Pac.Pic. format]]||This bank contains an image created with the Compact extension's <kbd style="color:blue">Pack</kbd> instruction
+|-
+|"<tt style="white-space:pre">Resource</tt>"||[[AMOS Resource format]]||This bank contains control buttons and icons for use with AMOS Pro's  <kbd style="color:blue">Resource</kbd> instructions
+|-
+|"<tt style="white-space:pre">Samples </tt>"||[[AMOS Samples Bank format]]||This bank is created with the Sample Bank Editor shipped with AMOS.
+The samples can be played back with the <kbd style="color:blue">Sam Play</kbd> instruction
+|}
+
+[[Category:File formats]]
+[[Category:AMOS]]
+
