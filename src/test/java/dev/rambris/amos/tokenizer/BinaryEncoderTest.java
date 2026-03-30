@@ -193,10 +193,10 @@ class BinaryEncoderTest {
 
     @Test
     void variable_odd_name() {
-        // "ab" as integer, n=strlen("ab")+1=3, odd → 1 pad byte
-        // Header(2) + token(2) + unknown(2) + len(1) + flags(1) + name+null(3) + pad(1) + EOL(2) = 14 = 7 words
+        // "ab" has strlen=2 (even) → n=2, write "ab" (2 bytes), no null
+        // Header(2) + token(2) + unknown(2) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
         assertArrayEquals(
-                hex("07 00 00 06 00 00 03 00 61 62 00 00 00 00"),
+                hex("06 00 00 06 00 00 02 00 61 62 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.Variable("ab", AmosToken.VarType.INTEGER)))
         );
     }
@@ -235,30 +235,30 @@ class BinaryEncoderTest {
 
     @Test
     void label() {
-        // Label "loop": n=strlen("loop")+1=5, odd → 1 pad byte
-        // Header(2) + token(2) + unknown(2) + len(1) + flags(1) + name+null(5) + pad(1) + EOL(2) = 16 = 8 words
+        // Label "loop": strlen=4 (even) → n=4, write "loop" (4 bytes), no null
+        // Header(2) + token(2) + unknown(2) + n(1) + flags(1) + name(4) + EOL(2) = 14 = 7 words
         assertArrayEquals(
-                hex("08 00 00 0C 00 00 05 00 6C 6F 6F 70 00 00 00 00"),
+                hex("07 00 00 0C 00 00 04 00 6C 6F 6F 70 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.Label("loop")))
         );
     }
 
     @Test
     void procRef() {
-        // ProcRef "hi": n=strlen("hi")+1=3, odd → 1 pad byte
-        // Header(2) + token(2) + unknown(2) + len(1) + flags(1) + name+null(3) + pad(1) + EOL(2) = 14 = 7 words
+        // ProcRef "hi": strlen=2 (even) → n=2, flags=0x80, write "hi" (2 bytes), no null
+        // Header(2) + token(2) + unknown(2) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
         assertArrayEquals(
-                hex("07 00 00 12 00 00 03 00 68 69 00 00 00 00"),
+                hex("06 00 00 12 00 00 02 80 68 69 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.ProcRef("hi")))
         );
     }
 
     @Test
     void labelRef() {
-        // LabelRef "go": n=strlen("go")+1=3, odd → 1 pad byte
-        // Header(2) + token(2) + unknown(2) + len(1) + flags(1) + name+null(3) + pad(1) + EOL(2) = 14 = 7 words
+        // LabelRef "go": strlen=2 (even) → n=2, flags=0x00, write "go" (2 bytes), no null
+        // Header(2) + token(2) + unknown(2) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
         assertArrayEquals(
-                hex("07 00 00 18 00 00 03 00 67 6F 00 00 00 00"),
+                hex("06 00 00 18 00 00 02 00 67 6F 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.LabelRef("go")))
         );
     }

@@ -14,7 +14,13 @@
       "Bash(xxd /home/boost/Data/Coding/portamos/**)",
       "Bash(gradle test:*)",
       "Bash(sed -i 's/^    public byte\\\\[\\\\] encodeLine\\(/    byte[] encodeLine\\(/' /home/boost/Data/Coding/portamos/src/main/java/dev/rambris/amos/tokenizer/BinaryEncoder.java)",
-      "Bash(sed -i 's/^    public byte\\\\[\\\\] write\\(/    byte[] write\\(/' /home/boost/Data/Coding/portamos/src/main/java/dev/rambris/amos/tokenizer/AmosFileWriter.java)"
+      "Bash(sed -i 's/^    public byte\\\\[\\\\] write\\(/    byte[] write\\(/' /home/boost/Data/Coding/portamos/src/main/java/dev/rambris/amos/tokenizer/AmosFileWriter.java)",
+      "Bash(ls /home/boost/Data/Coding/portamos/**)",
+      "Bash(./gradlew test:*)",
+      "Bash(echo \"PWD: $PWD\")",
+      "Bash(gradle)",
+      "Bash(gradle*)",
+      "Bash(./gradlew *)"
     ]
   }
 }

@@ -47,7 +47,12 @@ public sealed interface AmosToken permits
     record Dbl(double value) implements AmosToken {}
 
     /** Variable reference, token = $0006 */
-    record Variable(String name, VarType type) implements AmosToken {}
+    record Variable(String name, VarType type, boolean isArray, int extraFlags) implements AmosToken {
+        /** Convenience constructor for non-array variables with no extra flags. */
+        public Variable(String name, VarType type) { this(name, type, false, 0); }
+        /** Convenience constructor for non-array variables. */
+        public Variable(String name, VarType type, boolean isArray) { this(name, type, isArray, 0); }
+    }
 
     /** Label definition, token = $000C */
     record Label(String name) implements AmosToken {}

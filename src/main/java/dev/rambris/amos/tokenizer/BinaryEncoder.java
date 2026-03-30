@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Encodes a sequence of AmosTokens into the AMOS Professional binary line format.
@@ -18,6 +19,30 @@ import java.util.List;
  * All multi-byte integers are big-endian.
  */
 class BinaryEncoder {
+
+    /**
+     * Extra zero bytes written immediately after the 2-byte token value for certain
+     * control-flow keywords.  The AMOS runtime reserves these bytes for back-patch
+     * addresses, branch offsets, and similar data filled in during a second pass.
+     */
+    private static final Map<Integer, Integer> EXTRA_BYTES = Map.ofEntries(
+            Map.entry(0x023C, 2),  // For
+            Map.entry(0x0250, 2),  // Repeat
+            Map.entry(0x0268, 2),  // While
+            Map.entry(0x027E, 2),  // Do
+            Map.entry(0x02BE, 2),  // If
+            Map.entry(0x02D0, 2),  // Else
+            Map.entry(0x0404, 2),  // Data
+            Map.entry(0x25A4, 2),  // Else If
+            Map.entry(0x0290, 4),  // Exit If
+            Map.entry(0x029E, 4),  // Exit
+            Map.entry(0x0316, 4),  // On
+            Map.entry(0x0376, 8),  // Procedure
+            Map.entry(0x2A40, 6),  // Equ
+            Map.entry(0x2A4A, 6),  // Lvo
+            Map.entry(0x2A54, 6),  // Struc
+            Map.entry(0x2A64, 6)   // Struct
+    );
 
     /**
      * Encodes a single source line into AMOS binary format.
@@ -73,11 +98,11 @@ class BinaryEncoder {
             case AmosToken.BinaryInt i -> encodeInt(0x001E, i.value(), out);
             case AmosToken.Flt f -> encodeFloat(f.value(), out);
             case AmosToken.Dbl d -> encodeDouble(d.value(), out);
-            case AmosToken.Variable v -> encodeNamedToken(0x0006, v.name(), varFlags(v.type()), out);
+            case AmosToken.Variable v -> encodeNamedToken(0x0006, v.name(), varFlags(v), out);
             case AmosToken.Label l -> encodeNamedToken(0x000C, l.name(), 0x00, out);
-            case AmosToken.ProcRef p -> encodeNamedToken(0x0012, p.name(), 0x00, out);
+            case AmosToken.ProcRef p -> encodeNamedToken(0x0012, p.name(), 0x80, out);
             case AmosToken.LabelRef l -> encodeNamedToken(0x0018, l.name(), 0x00, out);
-            case AmosToken.Keyword k -> writeUint16(k.value(), out);
+            case AmosToken.Keyword k -> encodeKeyword(k.value(), out);
             case AmosToken.ExtKeyword e -> encodeExtKeyword(e.slot(), e.offset(), out);
         }
     }
@@ -168,17 +193,30 @@ class BinaryEncoder {
             throws IOException {
         String lowerName = name.toLowerCase();
         byte[] nameBytes = lowerName.getBytes(StandardCharsets.US_ASCII);
-        int n = nameBytes.length + 1; // +1 for null terminator
+        int nameLen = nameBytes.length;
+        // n = strlen rounded up to the next even number.
+        // For odd-length names, the rounding byte is a null terminator.
+        // For even-length names, no null is written (n == nameLen, already even).
+        int n = (nameLen % 2 == 0) ? nameLen : nameLen + 1;
         writeUint16(tokenValue, out);
         out.write(0x00); // unknown
         out.write(0x00); // unknown
-        out.write(n);    // length including null
+        out.write(n);
         out.write(flags);
         out.write(nameBytes);
-        out.write(0x00); // null terminator
-        if (n % 2 != 0) {
-            out.write(0x00); // padding to make n bytes even
+        if (nameLen % 2 != 0) {
+            out.write(0x00); // null / alignment pad for odd-length names
         }
+    }
+
+    /**
+     * Encodes a plain keyword token, appending extra zero bytes for tokens
+     * that require runtime back-patch space (see {@link #EXTRA_BYTES}).
+     */
+    private void encodeKeyword(int value, ByteArrayOutputStream out) throws IOException {
+        writeUint16(value, out);
+        int extra = EXTRA_BYTES.getOrDefault(value, 0);
+        for (int i = 0; i < extra; i++) out.write(0x00);
     }
 
     /**
@@ -252,11 +290,14 @@ class BinaryEncoder {
         out.write(bytes);
     }
 
-    private static int varFlags(AmosToken.VarType type) {
-        return switch (type) {
+    private static int varFlags(AmosToken.Variable v) {
+        int flags = switch (v.type()) {
             case INTEGER -> 0x00;
             case FLOAT -> 0x01;
             case STRING -> 0x02;
         };
+        if (v.isArray()) flags |= 0x40;
+        flags |= v.extraFlags();
+        return flags;
     }
 }
