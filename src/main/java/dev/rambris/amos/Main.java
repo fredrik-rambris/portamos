@@ -1,6 +1,6 @@
 package dev.rambris.amos;
 
-import dev.rambris.amos.tokenizer.AmosToken;
+import dev.rambris.amos.tokenizer.model.AmosToken;
 import dev.rambris.amos.tokenizer.Tokenizer;
 
 import java.nio.file.Path;

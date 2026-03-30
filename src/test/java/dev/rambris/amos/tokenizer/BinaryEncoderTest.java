@@ -2,6 +2,7 @@ package dev.rambris.amos.tokenizer;
 
 import org.junit.jupiter.api.Test;
 
+import dev.rambris.amos.tokenizer.model.AmosToken;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;

@@ -1,5 +1,6 @@
 package dev.rambris.amos.tokenizer;
 
+import dev.rambris.amos.tokenizer.model.AmosVersion;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -14,7 +15,7 @@ import java.util.List;
  *   Bytes 20 to 20+n-1: tokenized code (sequence of encoded lines)
  *   Bytes 20+n onwards: "AmBs" + uint16 bank count (6 bytes minimum for zero banks)
  */
-public class AmosFileWriter {
+class AmosFileWriter {
 
     /**
      * Writes all encoded lines into a complete AMOS binary file.
@@ -23,7 +24,7 @@ public class AmosFileWriter {
      * @param encodedLines the list of already-encoded lines (from BinaryEncoder.encodeLine)
      * @return the complete binary file as a byte array
      */
-    public byte[] write(AmosVersion version, List<byte[]> encodedLines) {
+    byte[] write(AmosVersion version, List<byte[]> encodedLines) {
         int codeLen = encodedLines.stream().mapToInt(l -> l.length).sum();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream(22 + codeLen + 6);

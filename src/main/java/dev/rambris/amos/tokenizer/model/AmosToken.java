@@ -1,4 +1,4 @@
-package dev.rambris.amos.tokenizer;
+package dev.rambris.amos.tokenizer.model;
 
 import java.util.List;
 

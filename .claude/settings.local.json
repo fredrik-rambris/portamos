@@ -2,7 +2,19 @@
   "permissions": {
     "allow": [
       "Bash(mkdir -p /home/boost/Data/Coding/portamos/src/main/java/dev/rambris/amos/tokenizer)",
-      "Bash(mkdir -p /home/boost/Data/Coding/portamos/src/test/java/dev/rambris/amos/tokenizer)"
+      "Bash(mkdir -p /home/boost/Data/Coding/portamos/src/test/java/dev/rambris/amos/tokenizer)",
+      "Bash(gradle compileJava)",
+      "Bash(gradle compileJava --stacktrace)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(open\\(''$f''\\)\\); print\\(len\\(d[''definitions'']\\), ''definitions''\\)\")",
+      "Bash(done)",
+      "Bash(xxd /home/boost/Data/Coding/portamos/reference/amostools/test/sources/Numbers.AMOS)",
+      "Bash(python3:*)",
+      "Bash(xxd /home/boost/Data/Coding/portamos/**)",
+      "Bash(gradle test:*)",
+      "Bash(sed -i 's/^    public byte\\\\[\\\\] encodeLine\\(/    byte[] encodeLine\\(/' /home/boost/Data/Coding/portamos/src/main/java/dev/rambris/amos/tokenizer/BinaryEncoder.java)",
+      "Bash(sed -i 's/^    public byte\\\\[\\\\] write\\(/    byte[] write\\(/' /home/boost/Data/Coding/portamos/src/main/java/dev/rambris/amos/tokenizer/AmosFileWriter.java)"
     ]
   }
 }

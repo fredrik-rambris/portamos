@@ -1,5 +1,6 @@
 package dev.rambris.amos.tokenizer;
 
+import dev.rambris.amos.tokenizer.model.AmosToken;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +17,7 @@ import java.util.List;
  *
  * All multi-byte integers are big-endian.
  */
-public class BinaryEncoder {
+class BinaryEncoder {
 
     /**
      * Encodes a single source line into AMOS binary format.
@@ -25,7 +26,7 @@ public class BinaryEncoder {
      * @param tokens the tokens on this line (not including the implicit EOL)
      * @return the complete binary representation of the line
      */
-    public byte[] encodeLine(int indent, List<AmosToken> tokens) {
+    byte[] encodeLine(int indent, List<AmosToken> tokens) {
         ByteArrayOutputStream body = new ByteArrayOutputStream();
 
         for (AmosToken token : tokens) {
