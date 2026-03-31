@@ -101,52 +101,35 @@
       "documentation": "Ink command.",
       "signatures": [
         {
-          "offset": 4164,
-          "presentation": "Ink colour",
+          "presentation": "Ink(draw color, background color, border color)",
           "parameters": [
             {
               "kind": "value",
-              "name": "colour",
+              "name": "draw color",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "background color",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "border color",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 4186
+        },
+        {
+          "presentation": "Ink",
+          "parameters": [],
+          "offset": 4164
         },
         {
           "offset": 4176,
-          "presentation": "Ink colour, background colour",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "colour",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "background colour",
-              "valueType": "integer"
-            }
-          ]
-        },
-        {
-          "offset": 4186,
-          "presentation": "Ink colour, background colour, border colour",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "colour",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "background colour",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "border colour",
-              "valueType": "integer"
-            }
-          ]
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-ink"
@@ -338,41 +321,41 @@
       "link": "https://amospromanual.dev/05-02-string-functions.html#fn-mid-dollar",
       "signatures": [
         {
-          "offset": 1310,
-          "presentation": "Mid$(string$, start)",
+          "presentation": "Mid$(source$, offset)",
           "parameters": [
             {
               "kind": "value",
-              "name": "string$",
+              "name": "source$",
               "valueType": "string"
             },
             {
               "kind": "value",
-              "name": "start",
+              "name": "offset",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 1310
         },
         {
-          "offset": 1294,
-          "presentation": "Mid$(string$, start, length)",
+          "presentation": "Mid$(source$, offset, number)",
           "parameters": [
             {
               "kind": "value",
-              "name": "string$",
+              "name": "source$",
               "valueType": "string"
             },
             {
               "kind": "value",
-              "name": "start",
+              "name": "offset",
               "valueType": "integer"
             },
             {
               "kind": "value",
-              "name": "length",
+              "name": "number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 1294
         }
       ]
     },
@@ -733,8 +716,18 @@
       "link": "https://amospromanual.dev/06-04-graphics.html#i-draw",
       "signatures": [
         {
-          "presentation": "Draw To x2, y2",
+          "presentation": "Draw x1, y1 To x2, y2",
           "parameters": [
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
             {
               "kind": "keyword",
               "keyword": "To"
@@ -753,18 +746,8 @@
           "offset": 3700
         },
         {
-          "presentation": "Draw x1, y1 To x2, y2",
+          "presentation": "Draw To x2, y2",
           "parameters": [
-            {
-              "kind": "value",
-              "name": "x1",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y1",
-              "valueType": "integer"
-            },
             {
               "kind": "keyword",
               "keyword": "To"
@@ -967,8 +950,8 @@
         },
         {
           "offset": 5144,
-          "parameters": [],
-          "commaGroups": 2
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/05-06-text.html#i-writing"
@@ -1262,8 +1245,8 @@
         },
         {
           "offset": 5526,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/05-06-text.html#i-cline"
@@ -1562,13 +1545,13 @@
         },
         {
           "offset": 4852,
-          "parameters": [],
-          "commaGroups": 6
+          "commaGroups": 6,
+          "parameters": []
         },
         {
           "offset": 4870,
-          "parameters": [],
-          "commaGroups": 6
+          "commaGroups": 7,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/05-07-windows.html#i-wind-open"
@@ -2088,17 +2071,17 @@
               "valueType": "integer"
             }
           ],
-          "offset": 7764
+          "offset": 7790
+        },
+        {
+          "offset": 7764,
+          "commaGroups": 0,
+          "parameters": []
         },
         {
           "offset": 7782,
-          "parameters": [],
-          "commaGroups": 4
-        },
-        {
-          "offset": 7790,
-          "parameters": [],
-          "commaGroups": 4
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/05-08-the-joystick-and-mouse.html#i-limit-mouse"
@@ -2382,12 +2365,12 @@
               "valueType": "integer"
             }
           ],
-          "offset": 6222
+          "offset": 6234
         },
         {
-          "offset": 6234,
-          "parameters": [],
-          "commaGroups": 3
+          "offset": 6222,
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/05-09-memory-banks.html#i-load"
@@ -2411,12 +2394,12 @@
               "valueType": "integer"
             }
           ],
-          "offset": 6200
+          "offset": 6212
         },
         {
-          "offset": 6212,
-          "parameters": [],
-          "commaGroups": 3
+          "offset": 6200,
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/05-09-memory-banks.html#i-save"
@@ -2571,31 +2554,14 @@
       "documentation": "Return the current screen number.",
       "signatures": [
         {
-          "offset": 3182,
-          "presentation": "Screen number",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "number",
-              "valueType": "integer"
-            }
-          ]
+          "presentation": "Screen",
+          "parameters": [],
+          "offset": 3196
         },
         {
-          "offset": 3196,
-          "presentation": "Screen(x, y)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "x",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y",
-              "valueType": "integer"
-            }
-          ]
+          "offset": 3182,
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-01-setting-up-screens.html#fn-screen"
@@ -2624,8 +2590,8 @@
         },
         {
           "offset": 5828,
-          "parameters": [],
-          "commaGroups": 3
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-01-setting-up-screens.html#fn-scin"
@@ -2645,12 +2611,12 @@
               "valueType": "integer"
             }
           ],
-          "offset": 2904
+          "offset": 2924
         },
         {
-          "offset": 2924,
-          "parameters": [],
-          "commaGroups": 2
+          "offset": 2904,
+          "commaGroups": 0,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-01-setting-up-screens.html#fn-screen-width"
@@ -2662,20 +2628,20 @@
       "documentation": "Return height of a screen.",
       "signatures": [
         {
-          "offset": 2932,
-          "presentation": "Screen Height",
-          "parameters": []
-        },
-        {
-          "offset": 2952,
-          "presentation": "Screen Height(screen number)",
+          "presentation": "Screen Height(number)",
           "parameters": [
             {
               "kind": "value",
-              "name": "screen number",
+              "name": "number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 2952
+        },
+        {
+          "offset": 2932,
+          "commaGroups": 0,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-01-setting-up-screens.html#fn-screen-height"
@@ -2878,12 +2844,12 @@
               "valueType": "integer"
             }
           ],
-          "offset": 2760
+          "offset": 2778
         },
         {
-          "offset": 2778,
-          "parameters": [],
-          "commaGroups": 2
+          "offset": 2760,
+          "commaGroups": 0,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-01-setting-up-screens.html#i-screen-show"
@@ -2902,12 +2868,12 @@
               "valueType": "integer"
             }
           ],
-          "offset": 2674
+          "offset": 2696
         },
         {
-          "offset": 2696,
-          "parameters": [],
-          "commaGroups": 2
+          "offset": 2674,
+          "commaGroups": 0,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-01-setting-up-screens.html#i-screen-to-front"
@@ -2918,12 +2884,6 @@
       "documentation": "Move a screen to back display priority.",
       "signatures": [
         {
-          "offset": 2704,
-          "presentation": "Screen To Back",
-          "parameters": []
-        },
-        {
-          "offset": 2726,
           "presentation": "Screen To Back number",
           "parameters": [
             {
@@ -2931,7 +2891,13 @@
               "name": "number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 2726
+        },
+        {
+          "offset": 2704,
+          "commaGroups": 0,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-01-setting-up-screens.html#i-screen-to-back"
@@ -4883,7 +4849,6 @@
       "documentation": "Set the current screen used for text and graphics operations.",
       "signatures": [
         {
-          "offset": 3182,
           "presentation": "Screen number",
           "parameters": [
             {
@@ -4891,23 +4856,13 @@
               "name": "number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 3182
         },
         {
           "offset": 3196,
-          "presentation": "Screen(x, y)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "x",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y",
-              "valueType": "integer"
-            }
-          ]
+          "commaGroups": 0,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-01-setting-up-screens.html#i-screen"
@@ -4953,11 +4908,6 @@
       "documentation": "Load Iff command.",
       "signatures": [
         {
-          "presentation": "Load Iff",
-          "parameters": [],
-          "offset": 6100
-        },
-        {
           "presentation": "Load Iff filename$",
           "parameters": [
             {
@@ -4966,7 +4916,7 @@
               "valueType": "string"
             }
           ],
-          "offset": 6116
+          "offset": 6100
         },
         {
           "presentation": "Load Iff filename$, screen number",
@@ -4981,7 +4931,12 @@
               "name": "screen number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 6116
+        },
+        {
+          "presentation": "Load Iff",
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-05-iff-animation.html#i-load-iff"
@@ -5226,13 +5181,13 @@
         },
         {
           "offset": 2472,
-          "parameters": [],
-          "commaGroups": 6
+          "commaGroups": 7,
+          "parameters": []
         },
         {
           "offset": 2494,
-          "parameters": [],
-          "commaGroups": 6
+          "commaGroups": 8,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-02-using-screens.html#i-screen-copy"
@@ -5510,11 +5465,6 @@
       "documentation": "Circle command.",
       "signatures": [
         {
-          "presentation": "Circle",
-          "parameters": [],
-          "offset": 3738
-        },
-        {
           "presentation": "Circle x, y, radius",
           "parameters": [
             {
@@ -5532,7 +5482,8 @@
               "name": "radius",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 3738
         },
         {
           "presentation": "Circle x, y, radius, colour",
@@ -5558,6 +5509,10 @@
               "valueType": "integer"
             }
           ]
+        },
+        {
+          "presentation": "Circle",
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-circle"
@@ -5567,11 +5522,6 @@
       "kind": "instruction",
       "documentation": "Ellipse command.",
       "signatures": [
-        {
-          "presentation": "Ellipse",
-          "parameters": [],
-          "offset": 3718
-        },
         {
           "presentation": "Ellipse x, y, a, b",
           "parameters": [
@@ -5595,7 +5545,8 @@
               "name": "b",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 3718
         },
         {
           "presentation": "Ellipse x, y, a, b, colour",
@@ -5626,6 +5577,10 @@
               "valueType": "integer"
             }
           ]
+        },
+        {
+          "presentation": "Ellipse",
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-ellipse"
@@ -5635,11 +5590,6 @@
       "kind": "instruction",
       "documentation": "Bar command.",
       "signatures": [
-        {
-          "presentation": "Bar",
-          "parameters": [],
-          "offset": 3784
-        },
         {
           "presentation": "Bar x1, y1 To x2, y2",
           "parameters": [
@@ -5667,7 +5617,8 @@
               "name": "y2",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 3784
         },
         {
           "presentation": "Bar x1, y1 To x2, y2, colour",
@@ -5702,6 +5653,10 @@
               "valueType": "integer"
             }
           ]
+        },
+        {
+          "presentation": "Bar",
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-bar"
@@ -5711,11 +5666,6 @@
       "kind": "instruction",
       "documentation": "Box command.",
       "signatures": [
-        {
-          "presentation": "Box",
-          "parameters": [],
-          "offset": 3800
-        },
         {
           "presentation": "Box x1, y1 To x2, y2",
           "parameters": [
@@ -5743,7 +5693,8 @@
               "name": "y2",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 3800
         },
         {
           "presentation": "Box x1, y1 To x2, y2, colour",
@@ -5778,6 +5729,10 @@
               "valueType": "integer"
             }
           ]
+        },
+        {
+          "presentation": "Box",
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-box"
@@ -5788,7 +5743,6 @@
       "documentation": "Paint command.",
       "signatures": [
         {
-          "offset": 3816,
           "presentation": "Paint x, y",
           "parameters": [
             {
@@ -5801,10 +5755,10 @@
               "name": "y",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 3816
         },
         {
-          "offset": 3832,
           "presentation": "Paint x, y, colour",
           "parameters": [
             {
@@ -5822,7 +5776,12 @@
               "name": "colour",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 3832
+        },
+        {
+          "presentation": "Paint",
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-paint"
@@ -5864,11 +5823,6 @@
       "documentation": "Set Pattern command.",
       "signatures": [
         {
-          "presentation": "Set Pattern",
-          "parameters": [],
-          "offset": 4130
-        },
-        {
           "presentation": "Set Pattern number, pattern$",
           "parameters": [
             {
@@ -5881,7 +5835,12 @@
               "name": "pattern$",
               "valueType": "string"
             }
-          ]
+          ],
+          "offset": 4130
+        },
+        {
+          "presentation": "Set Pattern",
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-set-pattern"
@@ -5892,11 +5851,6 @@
       "documentation": "Set Line command.",
       "signatures": [
         {
-          "presentation": "Set Line",
-          "parameters": [],
-          "offset": 4148
-        },
-        {
           "presentation": "Set Line style",
           "parameters": [
             {
@@ -5904,7 +5858,12 @@
               "name": "style",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 4148
+        },
+        {
+          "presentation": "Set Line",
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-set-line"
@@ -6065,8 +6024,8 @@
         },
         {
           "offset": 4228,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-03-drawing.html#fn-clip"
@@ -6103,11 +6062,6 @@
       "documentation": "Sprite command.",
       "signatures": [
         {
-          "presentation": "Sprite",
-          "parameters": [],
-          "offset": 6804
-        },
-        {
           "presentation": "Sprite number, x, y, image",
           "parameters": [
             {
@@ -6130,7 +6084,12 @@
               "name": "image",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 6804
+        },
+        {
+          "presentation": "Sprite",
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#i-sprite"
@@ -6141,11 +6100,6 @@
       "documentation": "Sprite Off command.",
       "signatures": [
         {
-          "presentation": "Sprite Off",
-          "parameters": [],
-          "offset": 6558
-        },
-        {
           "presentation": "Sprite Off number",
           "parameters": [
             {
@@ -6155,6 +6109,11 @@
             }
           ],
           "offset": 6576
+        },
+        {
+          "presentation": "Sprite Off",
+          "parameters": [],
+          "offset": 6558
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#i-sprite-off"
@@ -6706,8 +6665,8 @@
         },
         {
           "offset": 4296,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-03-screen-effects.html#i-appear"
@@ -6789,8 +6748,8 @@
         },
         {
           "offset": 3502,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 7,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-03-screen-effects.html#i-set-rainbow"
@@ -6820,8 +6779,8 @@
         },
         {
           "offset": 3540,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-03-screen-effects.html#i-rainbow-del"
@@ -6864,8 +6823,8 @@
         },
         {
           "offset": 4228,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-clip"
@@ -6876,31 +6835,14 @@
       "documentation": "Colour command.",
       "signatures": [
         {
-          "offset": 3356,
-          "presentation": "Colour colour index, RGB value",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "colour index",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "RGB value",
-              "valueType": "integer"
-            }
-          ]
+          "presentation": "Colour",
+          "parameters": [],
+          "offset": 3372
         },
         {
-          "offset": 3372,
-          "presentation": "Colour(colour index)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "colour index",
-              "valueType": "integer"
-            }
-          ]
+          "offset": 3356,
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#fn-colour",
@@ -6983,13 +6925,13 @@
         },
         {
           "offset": 4260,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         },
         {
           "offset": 4268,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-set-tempras"
@@ -7006,8 +6948,8 @@
         },
         {
           "offset": 2430,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/06-05-menus.html#fn-choice",
@@ -7400,8 +7342,8 @@
         },
         {
           "offset": 7224,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#i-del-sprite"
@@ -7431,8 +7373,8 @@
         },
         {
           "offset": 7112,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#i-get-sprite-palette"
@@ -7449,8 +7391,8 @@
         },
         {
           "offset": 7146,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 5,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#i-get-sprite"
@@ -7529,31 +7471,14 @@
       "documentation": "X Screen command.",
       "signatures": [
         {
-          "offset": 3102,
-          "presentation": "X Screen(x)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "x",
-              "valueType": "integer"
-            }
-          ]
+          "presentation": "X Screen",
+          "parameters": [],
+          "offset": 3102
         },
         {
           "offset": 3118,
-          "presentation": "X Screen(screen, x)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "screen",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "x",
-              "valueType": "integer"
-            }
-          ]
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#fn-x-screen",
@@ -7565,31 +7490,14 @@
       "documentation": "Y Screen command.",
       "signatures": [
         {
-          "offset": 3128,
-          "presentation": "Y Screen(y)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "y",
-              "valueType": "integer"
-            }
-          ]
+          "presentation": "Y Screen",
+          "parameters": [],
+          "offset": 3128
         },
         {
           "offset": 3144,
-          "presentation": "Y Screen(screen, y)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "screen",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y",
-              "valueType": "integer"
-            }
-          ]
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#fn-y-screen",
@@ -7607,8 +7515,8 @@
         },
         {
           "offset": 3068,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#fn-x-hard",
@@ -7626,8 +7534,8 @@
         },
         {
           "offset": 3092,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#fn-y-hard",
@@ -7645,8 +7553,8 @@
         },
         {
           "offset": 7586,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-01-hardware-sprites.html#i-hot-spot"
@@ -7676,8 +7584,8 @@
         },
         {
           "offset": 6838,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-02-blitter-objects.html#i-bob-off"
@@ -7736,8 +7644,8 @@
         },
         {
           "offset": 11204,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-02-blitter-objects.html#i-get-bob-palette"
@@ -7754,8 +7662,8 @@
         },
         {
           "offset": 7502,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-02-blitter-objects.html#i-no-mask"
@@ -7824,13 +7732,13 @@
         },
         {
           "offset": 7020,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         },
         {
           "offset": 7034,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 4,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-02-blitter-objects.html#i-limit-bob"
@@ -7860,8 +7768,8 @@
         },
         {
           "offset": 7188,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 5,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-02-blitter-objects.html#i-get-bob"
@@ -7904,8 +7812,8 @@
         },
         {
           "offset": 7250,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-02-blitter-objects.html#i-del-bob"
@@ -8055,8 +7963,8 @@
         },
         {
           "offset": 7480,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-04-detecting-collisions.html#i-make-mask"
@@ -8073,8 +7981,8 @@
         },
         {
           "offset": 6982,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-04-detecting-collisions.html#fn-bob-col",
@@ -8092,8 +8000,8 @@
         },
         {
           "offset": 6724,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-04-detecting-collisions.html#fn-sprite-col",
@@ -8111,8 +8019,8 @@
         },
         {
           "offset": 6694,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-04-detecting-collisions.html#fn-spritebob-col",
@@ -8130,8 +8038,8 @@
         },
         {
           "offset": 6954,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-04-detecting-collisions.html#fn-bobsprite-col",
@@ -8184,20 +8092,14 @@
       "documentation": "Reserve Zone command.",
       "signatures": [
         {
-          "offset": 5682,
           "presentation": "Reserve Zone",
-          "parameters": []
+          "parameters": [],
+          "offset": 5682
         },
         {
           "offset": 5702,
-          "presentation": "Reserve Zone number",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "number",
-              "valueType": "integer"
-            }
-          ]
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-04-detecting-collisions.html#i-reserve-zone"
@@ -8221,30 +8123,14 @@
       "documentation": "Zone command.",
       "signatures": [
         {
-          "offset": 5760,
           "presentation": "Zone",
-          "parameters": []
+          "parameters": [],
+          "offset": 5760
         },
         {
           "offset": 5774,
-          "presentation": "Zone(screen, x, y)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "screen",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "x",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y",
-              "valueType": "integer"
-            }
-          ]
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-04-detecting-collisions.html#fn-zone",
@@ -8262,8 +8148,8 @@
         },
         {
           "offset": 5802,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-04-detecting-collisions.html#fn-hzone",
@@ -8295,8 +8181,8 @@
         },
         {
           "offset": 5728,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-04-detecting-collisions.html#i-reset-zone"
@@ -8313,8 +8199,8 @@
         },
         {
           "offset": 9758,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-05-iff-animation.html#i-iff-anim"
@@ -8331,8 +8217,8 @@
         },
         {
           "offset": 9696,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-05-iff-animation.html#fn-frame-load",
@@ -8350,8 +8236,8 @@
         },
         {
           "offset": 9790,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-05-iff-animation.html#fn-frame-length",
@@ -8369,8 +8255,8 @@
         },
         {
           "offset": 9728,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-05-iff-animation.html#fn-frame-play",
@@ -8388,8 +8274,8 @@
         },
         {
           "offset": 9818,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-05-iff-animation.html#fn-frame-skip",
@@ -8808,7 +8694,7 @@
               "valueType": "integer"
             }
           ],
-          "offset": 8098
+          "offset": 8112
         },
         {
           "presentation": "Amreg(channel, number)",
@@ -8824,7 +8710,7 @@
               "valueType": "integer"
             }
           ],
-          "offset": 8112
+          "offset": 8098
         }
       ],
       "link": "https://amospromanual.dev/07-06-amal.html#resv-am-reg",
@@ -8961,8 +8847,8 @@
         },
         {
           "offset": 7834,
-          "parameters": [],
-          "commaGroups": 3
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-06-amal.html#i-move-x"
@@ -8990,8 +8876,8 @@
         },
         {
           "offset": 7862,
-          "parameters": [],
-          "commaGroups": 3
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-06-amal.html#i-move-y"
@@ -9163,8 +9049,8 @@
         },
         {
           "offset": 8032,
-          "parameters": [],
-          "commaGroups": 2
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-06-amal.html#i-anim-freeze"
@@ -9264,8 +9150,8 @@
         },
         {
           "offset": 7358,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-07-icons-and-blocks.html#i-get-icon-palette"
@@ -9414,12 +9300,12 @@
               "valueType": "integer"
             }
           ],
-          "offset": 7540
+          "offset": 7560
         },
         {
-          "offset": 7560,
-          "parameters": [],
-          "commaGroups": 2
+          "offset": 7540,
+          "commaGroups": 0,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/07-07-icons-and-blocks.html#i-no-icon-mask"
@@ -9704,17 +9590,17 @@
               "valueType": "integer"
             }
           ],
-          "offset": 9978
+          "offset": 10000
+        },
+        {
+          "offset": 9978,
+          "commaGroups": 2,
+          "parameters": []
         },
         {
           "offset": 9988,
-          "parameters": [],
-          "commaGroups": 6
-        },
-        {
-          "offset": 10000,
-          "parameters": [],
-          "commaGroups": 6
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/09-01-amos-interface.html#fn-dialog-box"
@@ -9725,77 +9611,51 @@
       "documentation": "Open a dialogue channel to an interface program.",
       "signatures": [
         {
-          "offset": 10016,
-          "presentation": "Dialog Open channel, interface$",
+          "presentation": "Dialog Open channel number, interface string",
           "parameters": [
             {
               "kind": "value",
-              "name": "channel",
+              "name": "channel number",
               "valueType": "integer"
             },
             {
               "kind": "value",
-              "name": "interface$",
+              "name": "interface string",
               "valueType": "string"
             }
-          ]
+          ],
+          "offset": 10016
+        },
+        {
+          "presentation": "Dialog Open channel number, interface string, nvar, buffer",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "channel number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "interface string",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "nvar",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "buffer",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 10050
         },
         {
           "offset": 10038,
-          "presentation": "Dialog Open channel, interface$, nvar, buffer",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "interface$",
-              "valueType": "string"
-            },
-            {
-              "kind": "value",
-              "name": "nvar",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "buffer",
-              "valueType": "integer"
-            }
-          ]
-        },
-        {
-          "offset": 10050,
-          "presentation": "Dialog Open channel, interface$, nvar, buffer, extra",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "interface$",
-              "valueType": "string"
-            },
-            {
-              "kind": "value",
-              "name": "nvar",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "buffer",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "extra",
-              "valueType": "integer"
-            }
-          ]
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/09-03-advanced-control-panels.html#i-dialog-open"
@@ -9807,72 +9667,49 @@
       "documentation": "Run a dialogue program on an open channel and return button status.",
       "signatures": [
         {
-          "offset": 10092,
-          "presentation": "Dialog Run(channel)",
+          "presentation": "Dialog Run(channel number)",
           "parameters": [
             {
               "kind": "value",
-              "name": "channel",
+              "name": "channel number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 10092
+        },
+        {
+          "presentation": "Dialog Run(channel number, label, x, y)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "channel number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "label",
+              "valueType": "string",
+              "optional": true
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer",
+              "optional": true
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer",
+              "optional": true
+            }
+          ],
+          "offset": 10120
         },
         {
           "offset": 10110,
-          "presentation": "Dialog Run(channel, label, x, y)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "label",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "x",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y",
-              "valueType": "integer"
-            }
-          ]
-        },
-        {
-          "offset": 10120,
-          "presentation": "Dialog Run(channel, label, x, y, extra)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "label",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "x",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "extra",
-              "valueType": "integer"
-            }
-          ]
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/09-03-advanced-control-panels.html#fn-dialog-run"
@@ -10034,22 +9871,6 @@
       "documentation": "Read or assign an integer variable in a dialogue channel array.",
       "signatures": [
         {
-          "presentation": "value=Vdialog(channel number, variable number)",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel number",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "variable number",
-              "valueType": "integer"
-            }
-          ],
-          "offset": 10148
-        },
-        {
           "presentation": "Vdialog(channel number, variable number)=value",
           "parameters": [
             {
@@ -10067,19 +9888,11 @@
               "name": "value",
               "valueType": "integer"
             }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/09-03-advanced-control-panels.html#fn-vdialog"
-    },
-    {
-      "name": "VDIALOG$",
-      "kind": "function",
-      "returnType": "string",
-      "documentation": "Read or assign a string variable in a dialogue channel array.",
-      "signatures": [
+          ],
+          "offset": 10148
+        },
         {
-          "presentation": "string$=Vdialog$(channel number, variable number)",
+          "presentation": "value=Vdialog(channel number, variable number)",
           "parameters": [
             {
               "kind": "value",
@@ -10091,9 +9904,17 @@
               "name": "variable number",
               "valueType": "integer"
             }
-          ],
-          "offset": 10166
-        },
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/09-03-advanced-control-panels.html#fn-vdialog"
+    },
+    {
+      "name": "VDIALOG$",
+      "kind": "function",
+      "returnType": "string",
+      "documentation": "Read or assign a string variable in a dialogue channel array.",
+      "signatures": [
         {
           "presentation": "Vdialog$(channel number, variable number)=string$",
           "parameters": [
@@ -10112,6 +9933,22 @@
               "name": "string$",
               "valueType": "string"
             }
+          ],
+          "offset": 10166
+        },
+        {
+          "presentation": "string$=Vdialog$(channel number, variable number)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "channel number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "variable number",
+              "valueType": "integer"
+            }
           ]
         }
       ],
@@ -10123,98 +9960,53 @@
       "documentation": "Force a dialogue zone to update from the main program.",
       "signatures": [
         {
-          "offset": 10276,
-          "presentation": "Dialog Update channel, zone",
+          "presentation": "Dialog Update channel number, zone number[,param1][,param2][,param3]",
           "parameters": [
             {
               "kind": "value",
-              "name": "channel",
+              "name": "channel number",
               "valueType": "integer"
             },
             {
               "kind": "value",
-              "name": "zone",
-              "valueType": "integer"
-            }
-          ]
-        },
-        {
-          "offset": 10300,
-          "presentation": "Dialog Update channel, zone, param",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "zone",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "param",
-              "valueType": "integer"
-            }
-          ]
-        },
-        {
-          "offset": 10312,
-          "presentation": "Dialog Update channel, zone, param1, param2",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "zone",
+              "name": "zone number",
               "valueType": "integer"
             },
             {
               "kind": "value",
               "name": "param1",
-              "valueType": "integer"
+              "valueType": "integer",
+              "optional": true
             },
             {
               "kind": "value",
               "name": "param2",
-              "valueType": "integer"
-            }
-          ]
-        },
-        {
-          "offset": 10326,
-          "presentation": "Dialog Update channel, zone, param1, param2, param3",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "zone",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "param1",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "param2",
-              "valueType": "integer"
+              "valueType": "integer",
+              "optional": true
             },
             {
               "kind": "value",
               "name": "param3",
-              "valueType": "integer"
+              "valueType": "integer",
+              "optional": true
             }
-          ]
+          ],
+          "offset": 10326
+        },
+        {
+          "offset": 10276,
+          "commaGroups": 2,
+          "parameters": []
+        },
+        {
+          "offset": 10300,
+          "commaGroups": 3,
+          "parameters": []
+        },
+        {
+          "offset": 10312,
+          "commaGroups": 4,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/09-03-advanced-control-panels.html#i-dialog-update"
@@ -10496,8 +10288,8 @@
         },
         {
           "offset": 1180,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-01-using-the-keyboard.html#fn-input-dollar",
@@ -10568,8 +10360,8 @@
         },
         {
           "offset": 4804,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-01-using-the-keyboard.html#fn-scan-dollar",
@@ -10600,8 +10392,8 @@
         },
         {
           "offset": 6062,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#i-dir"
@@ -10618,8 +10410,8 @@
         },
         {
           "offset": 6024,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#i-dir-w"
@@ -10636,8 +10428,8 @@
         },
         {
           "offset": 6044,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#i-ldir"
@@ -10654,8 +10446,8 @@
         },
         {
           "offset": 6004,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#i-ldir-w"
@@ -10672,8 +10464,8 @@
         },
         {
           "offset": 6084,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#i-set-dir"
@@ -10772,18 +10564,18 @@
         },
         {
           "offset": 6498,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         },
         {
           "offset": 6508,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         },
         {
           "offset": 6520,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 4,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#fn-fsel-dollar",
@@ -10827,8 +10619,8 @@
         },
         {
           "offset": 1270,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#i-run"
@@ -10933,20 +10725,14 @@
       "documentation": "Close a file",
       "signatures": [
         {
-          "offset": 6400,
           "presentation": "Close",
-          "parameters": []
+          "parameters": [],
+          "offset": 6400
         },
         {
           "offset": 6412,
-          "presentation": "Close channel",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel",
-              "valueType": "integer"
-            }
-          ]
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#i-close"
@@ -11202,14 +10988,14 @@
           "offset": 11040
         },
         {
-          "offset": 11060,
-          "parameters": [],
-          "commaGroups": 1
+          "offset": 11114,
+          "commaGroups": 1,
+          "parameters": []
         },
         {
-          "offset": 11114,
-          "parameters": [],
-          "commaGroups": 1
+          "offset": 11060,
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-06-arexx.html#i-arexx-answer"
@@ -11622,8 +11408,8 @@
         },
         {
           "offset": 10774,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/11-05-libraries-and-devices.html#sysf-lib-close",
@@ -11839,8 +11625,8 @@
         },
         {
           "offset": 10648,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/11-05-libraries-and-devices.html#i-dev-close"
@@ -12069,13 +11855,13 @@
         },
         {
           "offset": 9866,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         },
         {
           "offset": 9876,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/13-01-configuration.html#i-call-editor"
@@ -12092,13 +11878,13 @@
         },
         {
           "offset": 9906,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         },
         {
           "offset": 9916,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/13-01-configuration.html#i-ask-editor"
@@ -12141,8 +11927,8 @@
         },
         {
           "offset": 1466,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/14-appendix-a-machine-code.html#fn-bin-dollar",
@@ -12160,8 +11946,8 @@
         },
         {
           "offset": 1488,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/14-appendix-a-machine-code.html#fn-hex-dollar",
@@ -12233,8 +12019,8 @@
         },
         {
           "offset": 10430,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/14-appendix-a-machine-code.html#fn-peek-dollar",
@@ -12504,8 +12290,8 @@
         },
         {
           "offset": 8958,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 4,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/14-appendix-f-copper-lists.html#i-cop-wait"
@@ -13286,8 +13072,7 @@
       "signatures": [
         {
           "presentation": "Timer",
-          "parameters": [],
-          "offset": 4814
+          "parameters": []
         },
         {
           "presentation": "Timer=v",
@@ -13297,7 +13082,8 @@
               "name": "v",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 4814
         }
       ],
       "link": "https://amospromanual.dev/05-03-maths.html#resv-timer"
@@ -13362,8 +13148,7 @@
       "signatures": [
         {
           "presentation": "X Mouse",
-          "parameters": [],
-          "offset": 7702
+          "parameters": []
         },
         {
           "presentation": "X Mouse=x",
@@ -13373,7 +13158,8 @@
               "name": "x",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 7702
         }
       ],
       "link": "https://amospromanual.dev/05-08-the-joystick-and-mouse.html#resv-x-mouse"
@@ -13400,8 +13186,7 @@
       "signatures": [
         {
           "presentation": "Y Mouse",
-          "parameters": [],
-          "offset": 7716
+          "parameters": []
         },
         {
           "presentation": "Y Mouse=y",
@@ -13411,7 +13196,8 @@
               "name": "y",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 7716
         }
       ],
       "link": "https://amospromanual.dev/05-08-the-joystick-and-mouse.html#resv-y-mouse"

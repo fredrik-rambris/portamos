@@ -59,13 +59,13 @@
         },
         {
           "offset": 510,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 3,
+          "parameters": []
         },
         {
           "offset": 524,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 6,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#i-printer-dump"
@@ -189,8 +189,8 @@
         },
         {
           "offset": 28,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 5,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-open"
@@ -207,8 +207,8 @@
         },
         {
           "offset": 64,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 1,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-close"
@@ -225,8 +225,8 @@
         },
         {
           "offset": 134,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-speed"
@@ -496,8 +496,8 @@
         },
         {
           "offset": 850,
-          "parameters": [],
-          "commaGroups": 1
+          "commaGroups": 2,
+          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/10-05-the-parallel-port.html#fn-parallel-input-dollar",
