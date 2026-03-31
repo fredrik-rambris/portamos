@@ -1,0 +1,546 @@
+{
+  "extension": {
+    "id": "IOPorts",
+    "name": "IOPorts",
+    "filename": "AMOSPro_IOPorts.Lib",
+    "slot": 6,
+    "vendor": "François Lionet",
+    "start": 6
+  },
+  "definitions": [
+    {
+      "name": "PRINTER OPEN",
+      "kind": "instruction",
+      "documentation": "Open the standard printer device for use",
+      "signatures": [
+        {
+          "presentation": "Printer Open",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#i-printer-open",
+      "offset": 412
+    },
+    {
+      "name": "PRINTER CLOSE",
+      "kind": "instruction",
+      "documentation": "Close printer port",
+      "signatures": [
+        {
+          "presentation": "Printer Close",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#i-printer-close",
+      "offset": 430
+    },
+    {
+      "name": "PRINTER SEND",
+      "kind": "instruction",
+      "documentation": "Send a string to the printer",
+      "signatures": [
+        {
+          "presentation": "Printer Send",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#i-printer-send",
+      "offset": 450
+    },
+    {
+      "name": "PRINTER DUMP",
+      "kind": "instruction",
+      "documentation": "Print the contents of an AMOS Professional screen",
+      "signatures": [
+        {
+          "presentation": "Printer Dump",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#i-printer-dump",
+      "offset": 490
+    },
+    {
+      "name": "PRINTER OUT",
+      "kind": "instruction",
+      "documentation": "Print data from an address",
+      "signatures": [
+        {
+          "presentation": "Printer Out",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#i-printer-out",
+      "offset": 470
+    },
+    {
+      "name": "PRINTER ABORT",
+      "kind": "instruction",
+      "documentation": "Stop a printer operation",
+      "signatures": [
+        {
+          "presentation": "Printer Abort",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#i-printer-abort",
+      "offset": 544
+    },
+    {
+      "name": "PRINTER CHECK",
+      "kind": "function",
+      "documentation": "Return the status of the printer",
+      "signatures": [
+        {
+          "presentation": "Printer Check",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#fn-printer-check",
+      "returnType": "integer",
+      "offset": 564
+    },
+    {
+      "name": "PRINTER ONLINE",
+      "kind": "function",
+      "documentation": "Report if printer is on-line",
+      "signatures": [
+        {
+          "presentation": "Printer Online",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#fn-printer-online",
+      "returnType": "integer",
+      "offset": 584
+    },
+    {
+      "name": "PRINTER ERROR",
+      "kind": "function",
+      "documentation": "Check for an error in printing operation",
+      "signatures": [
+        {
+          "presentation": "Printer Error",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#fn-printer-error",
+      "returnType": "integer",
+      "offset": 622
+    },
+    {
+      "name": "PRINTER BASE",
+      "kind": "function",
+      "documentation": "Get the address of printer base",
+      "signatures": [
+        {
+          "presentation": "Printer Base",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#fn-printer-base",
+      "returnType": "integer",
+      "offset": 604
+    },
+    {
+      "name": "OPEN PORT",
+      "kind": "instruction",
+      "documentation": "Open a channel to an I/O port",
+      "signatures": [
+        {
+          "presentation": "Open Port",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#i-open-port"
+    },
+    {
+      "name": "PORT",
+      "kind": "function",
+      "documentation": "Test readiness of device",
+      "signatures": [
+        {
+          "presentation": "Port",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-03-accessing-a-printer.html#fn-port",
+      "returnType": "integer"
+    },
+    {
+      "name": "SERIAL OPEN",
+      "kind": "instruction",
+      "documentation": "Open a channel for Serial Input/Output",
+      "signatures": [
+        {
+          "presentation": "Serial Open",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-open",
+      "offset": 6
+    },
+    {
+      "name": "SERIAL CLOSE",
+      "kind": "instruction",
+      "documentation": "Close one or more Serial channels",
+      "signatures": [
+        {
+          "presentation": "Serial Close",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-close",
+      "offset": 44
+    },
+    {
+      "name": "SERIAL SPEED",
+      "kind": "instruction",
+      "documentation": "Set transfer rate for a serial channel",
+      "signatures": [
+        {
+          "presentation": "Serial Speed",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-speed",
+      "offset": 72
+    },
+    {
+      "name": "SERIAL BITS",
+      "kind": "instruction",
+      "documentation": "Set the number of bits for transmission of characters",
+      "signatures": [
+        {
+          "presentation": "Serial Bits",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-bits",
+      "offset": 156
+    },
+    {
+      "name": "SERIAL PARITY",
+      "kind": "instruction",
+      "documentation": "Set parity checking for a serial channel",
+      "signatures": [
+        {
+          "presentation": "Serial Parity",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-parity",
+      "offset": 216
+    },
+    {
+      "name": "SERIAL X",
+      "kind": "instruction",
+      "documentation": "Set handshaking system of serial channel",
+      "signatures": [
+        {
+          "presentation": "Serial X",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-x",
+      "offset": 178
+    },
+    {
+      "name": "SERIAL SEND",
+      "kind": "instruction",
+      "documentation": "Output a string via a serial channel",
+      "signatures": [
+        {
+          "presentation": "Serial Send",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-send",
+      "offset": 114
+    },
+    {
+      "name": "SERIAL OUT",
+      "kind": "instruction",
+      "documentation": "Output a block of raw data via a serial channel",
+      "signatures": [
+        {
+          "presentation": "Serial Out",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-out",
+      "offset": 332
+    },
+    {
+      "name": "SERIAL GET",
+      "kind": "function",
+      "documentation": "Get a byte from a serial device",
+      "signatures": [
+        {
+          "presentation": "Serial Get",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#fn-serial-get",
+      "returnType": "integer",
+      "offset": 238
+    },
+    {
+      "name": "SERIAL INPUT$",
+      "kind": "function",
+      "documentation": "Get a string from the Serial Port",
+      "signatures": [
+        {
+          "presentation": "Serial Input$",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#fn-serial-input-dollar",
+      "returnType": "string",
+      "offset": 256
+    },
+    {
+      "name": "SERIAL BUF",
+      "kind": "instruction",
+      "documentation": "Set the size of the serial buffer",
+      "signatures": [
+        {
+          "presentation": "Serial Buf",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-buf",
+      "offset": 196
+    },
+    {
+      "name": "SERIAL FAST",
+      "kind": "instruction",
+      "documentation": "Engage fast mode for data transfer",
+      "signatures": [
+        {
+          "presentation": "Serial Fast",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-fast",
+      "offset": 276
+    },
+    {
+      "name": "SERIAL SLOW",
+      "kind": "instruction",
+      "documentation": "Re-set slow mode for data transfer",
+      "signatures": [
+        {
+          "presentation": "Serial Slow",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-slow",
+      "offset": 294
+    },
+    {
+      "name": "SERIAL CHECK",
+      "kind": "function",
+      "documentation": "Report current serial device activity",
+      "signatures": [
+        {
+          "presentation": "Serial Check",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#fn-serial-check",
+      "returnType": "integer",
+      "offset": 94
+    },
+    {
+      "name": "SERIAL STATUS",
+      "kind": "function",
+      "documentation": "Report status of the serial port",
+      "signatures": [
+        {
+          "presentation": "Serial Status",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#fn-serial-status",
+      "returnType": "integer",
+      "offset": 354
+    },
+    {
+      "name": "SERIAL ERROR",
+      "kind": "function",
+      "documentation": "Report success of the last data transfer",
+      "signatures": [
+        {
+          "presentation": "Serial Error",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#fn-serial-error",
+      "returnType": "integer",
+      "offset": 312
+    },
+    {
+      "name": "SERIAL ABORT",
+      "kind": "instruction",
+      "documentation": "Stop current data transfer",
+      "signatures": [
+        {
+          "presentation": "Serial Abort",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#i-serial-abort",
+      "offset": 392
+    },
+    {
+      "name": "SERIAL BASE",
+      "kind": "function",
+      "documentation": "Get the address of the serial base",
+      "signatures": [
+        {
+          "presentation": "Serial Base",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-04-accessing-a-serial-port.html#fn-serial-base",
+      "returnType": "integer",
+      "offset": 374
+    },
+    {
+      "name": "PARALLEL OPEN",
+      "kind": "instruction",
+      "documentation": "Open the Parallel Port for reading or writing",
+      "signatures": [
+        {
+          "presentation": "Parallel Open",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#i-parallel-open",
+      "offset": 642
+    },
+    {
+      "name": "PARALLEL CLOSE",
+      "kind": "instruction",
+      "documentation": "Close the parallel port",
+      "signatures": [
+        {
+          "presentation": "Parallel Close",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#i-parallel-close",
+      "offset": 662
+    },
+    {
+      "name": "PARALLEL SEND",
+      "kind": "instruction",
+      "documentation": "Send a string of characters to the Parallel Port",
+      "signatures": [
+        {
+          "presentation": "Parallel Send",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#i-parallel-send",
+      "offset": 682
+    },
+    {
+      "name": "PARALLEL OUT",
+      "kind": "instruction",
+      "documentation": "Send data from memory to the Parallel Port",
+      "signatures": [
+        {
+          "presentation": "Parallel Out",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#i-parallel-out",
+      "offset": 702
+    },
+    {
+      "name": "PARALLEL INPUT$",
+      "kind": "function",
+      "documentation": "Read a string from the Parallel Port",
+      "signatures": [
+        {
+          "presentation": "Parallel Input$",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#fn-parallel-input-dollar",
+      "returnType": "string",
+      "offset": 826
+    },
+    {
+      "name": "PARALLEL ABORT",
+      "kind": "instruction",
+      "documentation": "Stop a parallel operation",
+      "signatures": [
+        {
+          "presentation": "Parallel Abort",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#i-parallel-abort",
+      "offset": 724
+    },
+    {
+      "name": "PARALLEL CHECK",
+      "kind": "function",
+      "documentation": "Report the availability of the Parallel Port",
+      "signatures": [
+        {
+          "presentation": "Parallel Check",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#fn-parallel-check",
+      "returnType": "integer",
+      "offset": 744
+    },
+    {
+      "name": "PARALLEL ERROR",
+      "kind": "function",
+      "documentation": "Check for an error in transmission via the Parallel Port",
+      "signatures": [
+        {
+          "presentation": "Parallel Error",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#fn-parallel-error",
+      "returnType": "integer",
+      "offset": 806
+    },
+    {
+      "name": "PARALLEL STATUS",
+      "kind": "function",
+      "documentation": "Return the current status of the Parallel Port",
+      "signatures": [
+        {
+          "presentation": "Parallel Status",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#fn-parallel-status",
+      "returnType": "integer",
+      "offset": 764
+    },
+    {
+      "name": "PARALLEL BASE",
+      "kind": "function",
+      "documentation": "Get the base address of the Parallel Port",
+      "signatures": [
+        {
+          "presentation": "Parallel Base",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/10-05-the-parallel-port.html#fn-parallel-base",
+      "returnType": "integer",
+      "offset": 786
+    }
+  ]
+}

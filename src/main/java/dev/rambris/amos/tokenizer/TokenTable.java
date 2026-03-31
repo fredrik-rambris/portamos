@@ -1,33 +1,81 @@
 package dev.rambris.amos.tokenizer;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Loads and indexes the AMOS token tables from the Amiga hunk-format extension binaries.
+ * Loads and indexes the AMOS token tables from the JSON definition files.
  *
  * Key format: (slot << 16) | offset
- *   - slot 0 = core (00base.bin), loaded with start=-194 to include operator tokens
- *   - slot 1+ = extension libraries, loaded with start=6
+ *   - slot 0 = core, operators start at offset 0xFF3E (start=-194)
+ *   - slot 1+ = extension libraries (start=6)
  *
  * For encoding:
  *   - slot 0 token: write key & 0xFFFF as uint16 directly
- *   - slot N token: write 0x004E + slot byte + 0x00 + (key & 0xFFFF) as uint16
+ *   - slot N token: emit as ExtKeyword(slot, offset)
  */
 class TokenTable {
+
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     /** Maps normalized uppercase keyword name → encoding key. */
     private final Map<String, Integer> nameToKey = new HashMap<>();
 
+    /** Maps encoding key → extra zero bytes to write after the token (back-patch space). */
+    private final Map<Integer, Integer> keyToExtraBytes = new HashMap<>();
+
+    /**
+     * Maps primary key → alternate key for keywords that have two forms.
+     * The alternate form is used when the keyword is followed by '(' or a numeric literal,
+     * e.g. "Screen Hide 3" (with screen number) vs "Screen Hide" (current screen),
+     * or "Colour(n)" (function returning colour) vs "Colour ink,rgb" (command setting colour).
+     */
+    private final Map<Integer, Integer> keyToAltKey = new HashMap<>();
+
+    /**
+     * Core operator and punctuation tokens. These live at fixed offsets in the core
+     * token table (slot 0) and are not present in the JSON definition files.
+     * Keys are the raw uint16 offset values used directly for encoding (slot 0 → no prefix).
+     */
+    private static final Map<String, Integer> CORE_OPERATORS = Map.ofEntries(
+            Map.entry("XOR",  0xFF3E),
+            Map.entry("<>",   0xFF66),
+            Map.entry("><",   0xFF70),
+            Map.entry("<=",   0xFF7A),
+            Map.entry("=<",   0xFF84),
+            Map.entry(">=",   0xFF8E),
+            Map.entry("=>",   0xFF98),
+            Map.entry("=",    0xFFA2),
+            Map.entry("<",    0xFFAC),
+            Map.entry(">",    0xFFB6),
+            Map.entry("+",    0xFFC0),
+            Map.entry("-",    0xFFCA),
+            Map.entry("MOD",  0xFFD4),
+            Map.entry("*",    0xFFE2),
+            Map.entry("/",    0xFFEC),
+            Map.entry("^",    0xFFF6),
+            Map.entry(":",    0x0054),
+            Map.entry(",",    0x005C),
+            Map.entry(";",    0x0064),
+            Map.entry("#",    0x006C),
+            Map.entry("(",    0x0074),
+            Map.entry(")",    0x007C),
+            Map.entry("[",    0x0084),
+            Map.entry("]",    0x008C)
+    );
+
     TokenTable() {
-        loadResource("/amos/extensions/core.bin", 0, -194);
-        loadResource("/amos/extensions/music.bin", 1, 6);
-        loadResource("/amos/extensions/compact.bin", 2, 6);
-        loadResource("/amos/extensions/request.bin", 3, 6);
-        loadResource("/amos/extensions/ioports.bin", 6, 6);
+        nameToKey.putAll(CORE_OPERATORS);
+        loadResource("/amos/definitions/core.json");
+        loadResource("/amos/definitions/music.json");
+        loadResource("/amos/definitions/compact.json");
+        loadResource("/amos/definitions/request.json");
+        loadResource("/amos/definitions/ioports.json");
     }
 
     /** Returns the encoding key for the given keyword, or null if not found. */
@@ -35,113 +83,63 @@ class TokenTable {
         return nameToKey.get(name.toUpperCase());
     }
 
-    private void loadResource(String path, int slot, int start) {
+    /**
+     * Returns the alternate encoding key for the given keyword, or the primary key if there is
+     * no alternate form.  The alternate form is used when the keyword is followed by '(' or a
+     * numeric literal (digit, '$', '%').
+     */
+    Integer lookupAlt(String name) {
+        Integer primary = nameToKey.get(name.toUpperCase());
+        if (primary == null) return null;
+        return keyToAltKey.getOrDefault(primary, primary);
+    }
+
+    /** Returns the number of extra zero bytes to emit after the given token key, or 0. */
+    int extraBytesFor(int key) {
+        return keyToExtraBytes.getOrDefault(key, 0);
+    }
+
+    private void loadResource(String path) {
         try (InputStream is = TokenTable.class.getResourceAsStream(path)) {
-            if (is == null) return;
-            byte[] data = is.readAllBytes();
-            parseExtension(data, slot, start);
+            if (is == null) throw new RuntimeException("Missing resource: " + path);
+            JsonNode root = JSON.readTree(is);
+            parseDefinitions(root);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load token table from " + path, e);
         }
     }
 
-    private void parseExtension(byte[] src, int slot, int start) {
-        if (src.length < 54) return;
-        // Verify Amiga hunk header
-        if (leek(src, 0) != 0x3F3L) return;  // HUNK_HEADER
-        if (leek(src, 24) != 0x3E9L) return; // HUNK_CODE
+    private void parseDefinitions(JsonNode root) {
+        JsonNode ext = root.path("extension");
+        int slot  = ext.path("slot").asInt(0);
+        // start is not needed at read time — offsets are already stored per-definition
 
-        // Compute token table base offset
-        int tkoff = (int) leek(src, 32) + 32 + 18;
-        if (leek(src, 32 + 18) == 0x41503230L) tkoff += 4; // AP20 tag
+        JsonNode definitions = root.path("definitions");
+        for (JsonNode defn : definitions) {
+            JsonNode offsetNode = defn.path("offset");
+            if (offsetNode.isMissingNode()) continue; // no binary offset — skip
 
-        String lastName = null;
-        int pos = tkoff + start;
+            int offset = offsetNode.asInt();
+            int key = (slot << 16) | (offset & 0xFFFF);
 
-        while (pos + 4 <= src.length) {
-            // Compute encoding key: slot in upper 16 bits, offset from tkoff in lower 16
-            int offset = (pos - tkoff) & 0xFFFF;
-            int key = (slot << 16) | offset;
+            String name = defn.path("name").asText("").strip().toUpperCase();
+            if (name.isEmpty()) continue;
 
-            // End marker: instruction pointer = 0
-            if (deek(src, pos) == 0) break;
-            pos += 4; // skip instruction + function pointers
+            nameToKey.putIfAbsent(name, key);
 
-            // Read name bytes; last byte has its high bit set as terminator
-            int nameStart = pos;
-            while (pos < src.length && (src[pos] & 0x80) == 0) pos++;
-            if (pos >= src.length) break;
-            pos++; // include the high-bit terminator byte
-            byte[] nameBytes = Arrays.copyOfRange(src, nameStart, pos);
-
-            // Read type parameter (terminated by 0xFD, 0xFE, or 0xFF)
-            while (pos < src.length && (src[pos] & 0xFF) < 0xFD) pos++;
-            if (pos >= src.length) break;
-            pos++; // skip type terminator
-
-            // Word-align position
-            if ((pos & 1) != 0) pos++;
-
-            // Decode the display name
-            String name = decodeName(nameBytes);
-            if (name == null) {
-                name = lastName; // 0x80 prefix: reuse previous name
-            } else if (name.startsWith("!")) {
-                lastName = name.substring(1); // save for subsequent reuse
-                name = lastName;
+            JsonNode extraNode = defn.path("extraBytes");
+            if (!extraNode.isMissingNode()) {
+                keyToExtraBytes.putIfAbsent(key, extraNode.asInt());
             }
 
-            if (name == null || name.isBlank()) continue;
-
-            // Normalize: strip leading/trailing spaces, uppercase
-            String normalized = name.strip().toUpperCase();
-            if (!normalized.isEmpty()) {
-                nameToKey.putIfAbsent(normalized, key);
+            JsonNode altNode = defn.path("altOffset");
+            if (!altNode.isMissingNode()) {
+                int altOffset = altNode.asInt();
+                int altKey = (slot << 16) | (altOffset & 0xFFFF);
+                keyToAltKey.putIfAbsent(key, altKey);
+                // Also register the alt name→key mapping so extraBytesFor works on alt keys
+                nameToKey.putIfAbsent(name + "\u0000alt", altKey);
             }
         }
-    }
-
-    /**
-     * Decodes a raw name byte array from the binary token table into a display string.
-     *
-     * The Amiga hunk binary stores names as ASCII bytes with the high bit set on
-     * the last character. Spaces within the name cause the next letter to be capitalized.
-     * A leading 0x80 byte means "use the previous entry's name" (returns null).
-     */
-    private static String decodeName(byte[] raw) {
-        if (raw.length == 0) return null;
-        int first = raw[0] & 0xFF;
-        if (first == 0x80) return null; // sentinel: reuse lastName
-
-        StringBuilder sb = new StringBuilder();
-        boolean capitalizeNext = true;
-        for (byte b : raw) {
-            char c = (char) (b & 0x7F);
-            if (capitalizeNext && c >= 'a' && c <= 'z') {
-                c = (char) (c - ('a' - 'A'));
-            }
-            capitalizeNext = (c == ' ');
-            sb.append(c);
-        }
-
-        // Remove trailing space (marks this token as a multi-word keyword prefix)
-        String s = sb.toString();
-        if (s.endsWith(" ")) {
-            s = s.substring(0, s.length() - 1);
-        }
-        return s;
-    }
-
-    // -------------------------------------------------------------------------
-    // Binary read helpers (big-endian)
-    // -------------------------------------------------------------------------
-
-    private static long leek(byte[] d, int o) {
-        return ((d[o] & 0xFFL) << 24) | ((d[o + 1] & 0xFFL) << 16)
-                | ((d[o + 2] & 0xFFL) << 8) | (d[o + 3] & 0xFFL);
-    }
-
-    private static int deek(byte[] d, int o) {
-        return ((d[o] & 0xFF) << 8) | (d[o + 1] & 0xFF);
     }
 }

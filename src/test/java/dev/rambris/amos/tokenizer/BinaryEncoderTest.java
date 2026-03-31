@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class BinaryEncoderTest {
 
-    private final BinaryEncoder encoder = new BinaryEncoder();
+    private final BinaryEncoder encoder = new BinaryEncoder(new TokenTable());
 
     private static byte[] hex(String hex) {
         String[] parts = hex.trim().split("\\s+");
@@ -154,8 +154,8 @@ class BinaryEncoderTest {
 
     @Test
     void variable_integer() {
-        // "debug" as integer, n=strlen("debug")+1=6, flags=0x00
-        // Header(2) + token(2) + unknown(2) + len(1) + flags(1) + name+null(6) + EOL(2) = 16 = 8 words
+        // "debug": nameLen=5 (odd) → n=6, unk2=n+2=8, flags=0x00
+        // Header(2) + token(2) + 00(1) + 08(1) + n(1) + flags(1) + name+null(6) + EOL(2) = 16 = 8 words
         assertArrayEquals(
                 hex("08 00 00 06 00 00 06 00 64 65 62 75 67 00 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.Variable("debug", AmosToken.VarType.INTEGER)))
@@ -164,7 +164,7 @@ class BinaryEncoderTest {
 
     @Test
     void variable_integer_uppercase() {
-        // "DEBUG" should be stored as lowercase "debug"
+        // "DEBUG" stored as lowercase "debug" — same encoding
         assertArrayEquals(
                 hex("08 00 00 06 00 00 06 00 64 65 62 75 67 00 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.Variable("DEBUG", AmosToken.VarType.INTEGER)))
@@ -173,8 +173,8 @@ class BinaryEncoderTest {
 
     @Test
     void variable_string() {
-        // "d" as string ($), flags=0x02, n=strlen("d")+1=2, even
-        // Header(2) + token(2) + unknown(2) + len(1) + flags(1) + name+null(2) + EOL(2) = 12 = 6 words
+        // "d": nameLen=1 (odd) → n=2, unk2=n+2=4, flags=0x02
+        // Header(2) + token(2) + 00(1) + 04(1) + n(1) + flags(1) + name+null(2) + EOL(2) = 12 = 6 words
         assertArrayEquals(
                 hex("06 00 00 06 00 00 02 02 64 00 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.Variable("d", AmosToken.VarType.STRING)))
@@ -183,8 +183,8 @@ class BinaryEncoderTest {
 
     @Test
     void variable_float() {
-        // "x" as float (#), flags=0x01, n=strlen("x")+1=2, even
-        // Header(2) + token(2) + unknown(2) + len(1) + flags(1) + name+null(2) + EOL(2) = 12 = 6 words
+        // "x": nameLen=1 (odd) → n=2, unk2=0x00, flags=0x01
+        // Header(2) + token(2) + 00(1) + 00(1) + n(1) + flags(1) + name+null(2) + EOL(2) = 12 = 6 words
         assertArrayEquals(
                 hex("06 00 00 06 00 00 02 01 78 00 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.Variable("x", AmosToken.VarType.FLOAT)))
@@ -193,8 +193,8 @@ class BinaryEncoderTest {
 
     @Test
     void variable_odd_name() {
-        // "ab" has strlen=2 (even) → n=2, write "ab" (2 bytes), no null
-        // Header(2) + token(2) + unknown(2) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
+        // "ab": nameLen=2 (even) → n=2, unk2=0x00, no null written
+        // Header(2) + token(2) + 00(1) + 00(1) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
         assertArrayEquals(
                 hex("06 00 00 06 00 00 02 00 61 62 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.Variable("ab", AmosToken.VarType.INTEGER)))
@@ -235,8 +235,8 @@ class BinaryEncoderTest {
 
     @Test
     void label() {
-        // Label "loop": strlen=4 (even) → n=4, write "loop" (4 bytes), no null
-        // Header(2) + token(2) + unknown(2) + n(1) + flags(1) + name(4) + EOL(2) = 14 = 7 words
+        // Label "loop": nameLen=4 (even) → n=4, unk2=n+2=6, flags=0x00, no null
+        // Header(2) + token(2) + 00(1) + 06(1) + n(1) + flags(1) + name(4) + EOL(2) = 14 = 7 words
         assertArrayEquals(
                 hex("07 00 00 0C 00 00 04 00 6C 6F 6F 70 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.Label("loop")))
@@ -245,8 +245,8 @@ class BinaryEncoderTest {
 
     @Test
     void procRef() {
-        // ProcRef "hi": strlen=2 (even) → n=2, flags=0x80, write "hi" (2 bytes), no null
-        // Header(2) + token(2) + unknown(2) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
+        // ProcRef "hi": nameLen=2 (even) → n=2, unk2=n+2=4, flags=0x80, no null
+        // Header(2) + token(2) + 00(1) + 04(1) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
         assertArrayEquals(
                 hex("06 00 00 12 00 00 02 80 68 69 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.ProcRef("hi")))
@@ -255,8 +255,8 @@ class BinaryEncoderTest {
 
     @Test
     void labelRef() {
-        // LabelRef "go": strlen=2 (even) → n=2, flags=0x00, write "go" (2 bytes), no null
-        // Header(2) + token(2) + unknown(2) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
+        // LabelRef "go": nameLen=2 (even) → n=2, unk2=n+2=4, flags=0x00, no null
+        // Header(2) + token(2) + 00(1) + 04(1) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
         assertArrayEquals(
                 hex("06 00 00 18 00 00 02 00 67 6F 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.LabelRef("go")))

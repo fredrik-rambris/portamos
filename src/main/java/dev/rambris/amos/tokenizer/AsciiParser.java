@@ -214,6 +214,19 @@ class AsciiParser {
             Integer key = tokenTable.lookup(candidate);
             if (key != null) {
                 end[0] = wordEnds[n - 1];
+                // Use the alternate token form when the next non-whitespace character
+                // is '(' (function call) or starts a numeric literal (optional numeric arg).
+                // Example: "Screen Hide 3" → alt form; "Screen Hide" alone → primary form.
+                // Example: "Colour(n)" → alt form; "Colour ink,rgb" → primary form.
+                int nextPos = wordEnds[n - 1];
+                while (nextPos < text.length() && text.charAt(nextPos) == ' ') nextPos++;
+                if (nextPos < text.length()) {
+                    char next = text.charAt(nextPos);
+                    if (next == '(' || next == '$' || next == '%' || Character.isDigit(next)) {
+                        Integer altKey = tokenTable.lookupAlt(candidate);
+                        if (altKey != null) key = altKey;
+                    }
+                }
                 AmosToken tok = keyToToken(key);
                 // Track context for the next identifier token
                 if (tok instanceof AmosToken.Keyword kw) {

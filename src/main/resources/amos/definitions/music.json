@@ -1,0 +1,908 @@
+{
+  "extension": {
+    "id": "Music",
+    "name": "Music extension",
+    "filename": "AMOSPro_Music.Lib",
+    "slot": 1,
+    "vendor": "François Lionet",
+    "start": 6
+  },
+  "definitions": [
+    {
+      "name": "MUSIC",
+      "kind": "instruction",
+      "documentation": "Play a piece of AMOS Professional music.",
+      "signatures": [
+        {
+          "presentation": "Music number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-music",
+      "offset": 88
+    },
+    {
+      "name": "MUSIC STOP",
+      "kind": "instruction",
+      "documentation": "Stop the current music passage and resume stacked music if any.",
+      "signatures": [
+        {
+          "presentation": "Music Stop",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-music-stop",
+      "offset": 60
+    },
+    {
+      "name": "MUSIC OFF",
+      "kind": "instruction",
+      "documentation": "Turn off all AMOS Professional music.",
+      "signatures": [
+        {
+          "presentation": "Music Off",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-music-off",
+      "offset": 44
+    },
+    {
+      "name": "MVOLUME",
+      "kind": "instruction",
+      "documentation": "Set the volume of the current music.",
+      "signatures": [
+        {
+          "presentation": "Mvolume level",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "level",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-mvolume",
+      "offset": 406
+    },
+    {
+      "name": "TEMPO",
+      "kind": "instruction",
+      "documentation": "Change the speed of the current music.",
+      "signatures": [
+        {
+          "presentation": "Tempo speed",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "speed",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-tempo",
+      "offset": 76
+    },
+    {
+      "name": "TRACK LOAD",
+      "kind": "instruction",
+      "documentation": "Load a tracker module into a bank.",
+      "signatures": [
+        {
+          "presentation": "Track Load \"modulename\", bank number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "modulename",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-load",
+      "offset": 698
+    },
+    {
+      "name": "TRACK PLAY",
+      "kind": "instruction",
+      "documentation": "Play a tracker module from a bank and optional pattern.",
+      "signatures": [
+        {
+          "presentation": "Track Play",
+          "parameters": []
+        },
+        {
+          "presentation": "Track Play bank number, pattern number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "pattern number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-play",
+      "offset": 662
+    },
+    {
+      "name": "TRACK LOOP ON",
+      "kind": "instruction",
+      "documentation": "Enable tracker looping.",
+      "signatures": [
+        {
+          "presentation": "Track Loop On",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-loop-on",
+      "offset": 622
+    },
+    {
+      "name": "TRACK LOOP OFF",
+      "kind": "instruction",
+      "documentation": "Disable tracker looping.",
+      "signatures": [
+        {
+          "presentation": "Track Loop Off",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-loop-off"
+    },
+    {
+      "name": "TRACK STOP",
+      "kind": "instruction",
+      "documentation": "Stop all tracker music.",
+      "signatures": [
+        {
+          "presentation": "Track Stop",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-stop",
+      "offset": 606
+    },
+    {
+      "name": "MED LOAD",
+      "kind": "instruction",
+      "documentation": "Load a MED module into a bank.",
+      "signatures": [
+        {
+          "presentation": "Med Load \"module name\", bank number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "module name",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-load",
+      "offset": 820
+    },
+    {
+      "name": "MED PLAY",
+      "kind": "instruction",
+      "documentation": "Play a loaded MED module.",
+      "signatures": [
+        {
+          "presentation": "Med Play",
+          "parameters": []
+        },
+        {
+          "presentation": "Med Play bank number, song number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "song number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-play",
+      "offset": 838
+    },
+    {
+      "name": "MED STOP",
+      "kind": "instruction",
+      "documentation": "Stop the current MED module.",
+      "signatures": [
+        {
+          "presentation": "Med Stop",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-stop",
+      "offset": 872
+    },
+    {
+      "name": "MED CONT",
+      "kind": "instruction",
+      "documentation": "Continue a MED module after Med Stop.",
+      "signatures": [
+        {
+          "presentation": "Med Cont",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-cont",
+      "offset": 886
+    },
+    {
+      "name": "MED MIDI ON",
+      "kind": "instruction",
+      "documentation": "Enable MIDI instructions in MED modules.",
+      "signatures": [
+        {
+          "presentation": "Med Midi On",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-midi-on",
+      "offset": 900
+    },
+    {
+      "name": "BOOM",
+      "kind": "instruction",
+      "documentation": "Generate an explosive sound effect.",
+      "signatures": [
+        {
+          "presentation": "Boom",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-boom",
+      "offset": 116
+    },
+    {
+      "name": "SHOOT",
+      "kind": "instruction",
+      "documentation": "Generate a percussive sound effect.",
+      "signatures": [
+        {
+          "presentation": "Shoot",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-shoot",
+      "offset": 126
+    },
+    {
+      "name": "BELL",
+      "kind": "instruction",
+      "documentation": "Generate a pure tone.",
+      "signatures": [
+        {
+          "presentation": "Bell",
+          "parameters": []
+        },
+        {
+          "presentation": "Bell pitch",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "pitch",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-bell",
+      "offset": 280
+    },
+    {
+      "name": "VOLUME",
+      "kind": "instruction",
+      "documentation": "Control sound volume globally or per voice mask.",
+      "signatures": [
+        {
+          "presentation": "Volume level",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "level",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "presentation": "Volume voice, level",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voice",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "level",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-volume",
+      "offset": 420
+    },
+    {
+      "name": "VOICE",
+      "kind": "instruction",
+      "documentation": "Activate voices using a bit-mask.",
+      "signatures": [
+        {
+          "presentation": "Voice bit-mask",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bit-mask",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-voice",
+      "offset": 32
+    },
+    {
+      "name": "PLAY",
+      "kind": "instruction",
+      "documentation": "Play a note with pitch and delay, optionally for selected voices.",
+      "signatures": [
+        {
+          "presentation": "Play pitch, delay",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "pitch",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "delay",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "presentation": "Play voice, pitch, delay",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voice",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "pitch",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "delay",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-play",
+      "offset": 324
+    },
+    {
+      "name": "PLAY OFF",
+      "kind": "instruction",
+      "documentation": "Stop voices started with Play.",
+      "signatures": [
+        {
+          "presentation": "Play Off",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-play-off",
+      "offset": 300
+    },
+    {
+      "name": "SET WAVE",
+      "kind": "instruction",
+      "documentation": "Define a custom wave form.",
+      "signatures": [
+        {
+          "presentation": "Set Wave number, shape$",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shape$",
+              "valueType": "string"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-set-wave",
+      "offset": 350
+    },
+    {
+      "name": "WAVE",
+      "kind": "instruction",
+      "documentation": "Assign a wave to one or more voices.",
+      "signatures": [
+        {
+          "presentation": "Wave number To voices",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "voices",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-wave",
+      "offset": 444
+    },
+    {
+      "name": "NOISE TO",
+      "kind": "instruction",
+      "documentation": "Assign noise wave form to selected voices.",
+      "signatures": [
+        {
+          "presentation": "Noise To voices",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voices",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-noise-to",
+      "offset": 100
+    },
+    {
+      "name": "SAMPLE",
+      "kind": "instruction",
+      "documentation": "Assign a sample to one or more voices.",
+      "signatures": [
+        {
+          "presentation": "Sample number To voices",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "voices",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-sample",
+      "offset": 206
+    },
+    {
+      "name": "DEL WAVE",
+      "kind": "instruction",
+      "documentation": "Delete a user-defined wave.",
+      "signatures": [
+        {
+          "presentation": "Del Wave number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-del-wave",
+      "offset": 368
+    },
+    {
+      "name": "SET ENVEL",
+      "kind": "instruction",
+      "documentation": "Define an envelope phase for a wave.",
+      "signatures": [
+        {
+          "presentation": "Set Envel wave number, phase number To duration, volume",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "wave number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "phase number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "duration",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "volume",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-set-envel",
+      "offset": 384
+    },
+    {
+      "name": "LED ON",
+      "kind": "instruction",
+      "documentation": "Enable the audio LED filter.",
+      "signatures": [
+        {
+          "presentation": "Led On",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-led-on",
+      "offset": 458
+    },
+    {
+      "name": "LED OFF",
+      "kind": "instruction",
+      "documentation": "Disable the audio LED filter.",
+      "signatures": [
+        {
+          "presentation": "Led Off",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#i-led-off",
+      "offset": 470
+    },
+    {
+      "name": "VUMETER",
+      "kind": "function",
+      "documentation": "Return the current volume level of a voice.",
+      "signatures": [
+        {
+          "presentation": "Vumeter(voice)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voice",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#fn-vumeter",
+      "returnType": "integer",
+      "offset": 18
+    },
+    {
+      "name": "SAM PLAY",
+      "kind": "instruction",
+      "documentation": "Play a sample from the current sample bank.",
+      "signatures": [
+        {
+          "presentation": "Sam Play sample number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "sample number",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "presentation": "Sam Play voice, sample number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voice",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "sample number",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "presentation": "Sam Play voice, sample number, frequency",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voice",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "sample number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "frequency",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-play",
+      "offset": 222
+    },
+    {
+      "name": "SAM STOP",
+      "kind": "instruction",
+      "documentation": "Stop all samples or selected voices.",
+      "signatures": [
+        {
+          "presentation": "Sam Stop",
+          "parameters": []
+        },
+        {
+          "presentation": "Sam Stop voices",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voices",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-stop",
+      "offset": 582
+    },
+    {
+      "name": "SAM BANK",
+      "kind": "instruction",
+      "documentation": "Select the sample bank used by Sam Play.",
+      "signatures": [
+        {
+          "presentation": "Sam Bank bank number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-bank",
+      "offset": 138
+    },
+    {
+      "name": "SAM RAW",
+      "kind": "instruction",
+      "documentation": "Play a raw sample from memory.",
+      "signatures": [
+        {
+          "presentation": "Sam Raw voice, address, length, frequency",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voice",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "address",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "length",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "frequency",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-raw",
+      "offset": 260
+    },
+    {
+      "name": "SAM LOOP ON",
+      "kind": "instruction",
+      "documentation": "Enable looping for subsequent sample playback.",
+      "signatures": [
+        {
+          "presentation": "Sam Loop On",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-loop-on",
+      "offset": 154
+    },
+    {
+      "name": "SAM LOOP OFF",
+      "kind": "instruction",
+      "documentation": "Disable looping for subsequent sample playback.",
+      "signatures": [
+        {
+          "presentation": "Sam Loop Off",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-loop-off",
+      "offset": 180
+    },
+    {
+      "name": "SLOAD",
+      "kind": "instruction",
+      "documentation": "Load a chunk of a file into memory.",
+      "signatures": [
+        {
+          "presentation": "Sload channel number To address, length",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "channel number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "address",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "length",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sload",
+      "offset": 528
+    },
+    {
+      "name": "SSAVE",
+      "kind": "instruction",
+      "documentation": "Save a memory chunk into an open file.",
+      "signatures": [
+        {
+          "presentation": "Ssave channel number, start To end",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "channel number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#i-ssave",
+      "offset": 804
+    },
+    {
+      "name": "SAM SWAP",
+      "kind": "instruction",
+      "documentation": "Activate sample swapping for double-buffered playback.",
+      "signatures": [
+        {
+          "presentation": "Sam Swap voices, address, length",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voices",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "address",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "length",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-swap",
+      "offset": 562
+    },
+    {
+      "name": "SAM SWAPPED",
+      "kind": "function",
+      "documentation": "Report whether a sample swap occurred on a voice.",
+      "signatures": [
+        {
+          "presentation": "Sam Swapped(voice number)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voice number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/08-02-samples.html#fn-sam-swapped",
+      "returnType": "integer",
+      "offset": 544
+    }
+  ]
+}

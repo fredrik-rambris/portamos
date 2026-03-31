@@ -1,0 +1,51 @@
+{
+  "extension": {
+    "id": "Request",
+    "name": "Request",
+    "filename": "AMOSPro_Request.Lib",
+    "slot": 3,
+    "vendor": "François Lionet",
+    "start": 6
+  },
+  "definitions": [
+    {
+      "name": "REQUEST WB",
+      "kind": "instruction",
+      "documentation": "Use the Workbench system requester",
+      "signatures": [
+        {
+          "presentation": "Request Wb",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/11-05-libraries-and-devices.html#i-request-wb",
+      "offset": 40
+    },
+    {
+      "name": "REQUEST ON",
+      "kind": "instruction",
+      "documentation": "Use the AMOS Professional requester routine",
+      "signatures": [
+        {
+          "presentation": "Request On",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/11-05-libraries-and-devices.html#i-request-on",
+      "offset": 6
+    },
+    {
+      "name": "REQUEST OFF",
+      "kind": "instruction",
+      "documentation": "Cancel the requester",
+      "signatures": [
+        {
+          "presentation": "Request Off",
+          "parameters": []
+        }
+      ],
+      "link": "https://amospromanual.dev/11-05-libraries-and-devices.html#i-request-off",
+      "offset": 22
+    }
+  ]
+}

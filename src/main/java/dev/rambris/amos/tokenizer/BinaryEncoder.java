@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Encodes a sequence of AmosTokens into the AMOS Professional binary line format.
@@ -20,29 +19,11 @@ import java.util.Map;
  */
 class BinaryEncoder {
 
-    /**
-     * Extra zero bytes written immediately after the 2-byte token value for certain
-     * control-flow keywords.  The AMOS runtime reserves these bytes for back-patch
-     * addresses, branch offsets, and similar data filled in during a second pass.
-     */
-    private static final Map<Integer, Integer> EXTRA_BYTES = Map.ofEntries(
-            Map.entry(0x023C, 2),  // For
-            Map.entry(0x0250, 2),  // Repeat
-            Map.entry(0x0268, 2),  // While
-            Map.entry(0x027E, 2),  // Do
-            Map.entry(0x02BE, 2),  // If
-            Map.entry(0x02D0, 2),  // Else
-            Map.entry(0x0404, 2),  // Data
-            Map.entry(0x25A4, 2),  // Else If
-            Map.entry(0x0290, 4),  // Exit If
-            Map.entry(0x029E, 4),  // Exit
-            Map.entry(0x0316, 4),  // On
-            Map.entry(0x0376, 8),  // Procedure
-            Map.entry(0x2A40, 6),  // Equ
-            Map.entry(0x2A4A, 6),  // Lvo
-            Map.entry(0x2A54, 6),  // Struc
-            Map.entry(0x2A64, 6)   // Struct
-    );
+    private final TokenTable tokenTable;
+
+    BinaryEncoder(TokenTable tokenTable) {
+        this.tokenTable = tokenTable;
+    }
 
     /**
      * Encodes a single source line into AMOS binary format.
@@ -184,9 +165,12 @@ class BinaryEncoder {
     /**
      * Encodes a named token: Variable, Label, ProcRef, or LabelRef.
      *
-     * Format: [token:2] [unknown:00 00] [len:1] [flags:1] [name+null:n] [pad if n odd:00]
+     * Format: [token:2] [00:1] [n+2:1] [n:1] [flags:1] [name:nameLen] [null if nameLen odd]
      *
-     * n = strlen(name) + 1 (includes null terminator in the byte count)
+     * n = nameLen rounded up to even (null terminator for odd-length names, else nameLen).
+     * The second byte (n+2) is the byte count from itself to the end of the record,
+     * i.e. 1 (n byte) + 1 (flags byte) + n (name bytes) = n+2. AMOS uses this to skip
+     * over the variable record without knowing the name length upfront.
      * Name is stored in lowercase.
      */
     private void encodeNamedToken(int tokenValue, String name, int flags, ByteArrayOutputStream out)
@@ -194,13 +178,13 @@ class BinaryEncoder {
         String lowerName = name.toLowerCase();
         byte[] nameBytes = lowerName.getBytes(StandardCharsets.US_ASCII);
         int nameLen = nameBytes.length;
-        // n = strlen rounded up to the next even number.
-        // For odd-length names, the rounding byte is a null terminator.
-        // For even-length names, no null is written (n == nameLen, already even).
+        // n = nameLen rounded up to the next even number.
+        // For odd-length names the rounding byte doubles as the null terminator.
+        // For even-length names no null is written (n == nameLen).
         int n = (nameLen % 2 == 0) ? nameLen : nameLen + 1;
         writeUint16(tokenValue, out);
-        out.write(0x00); // unknown
-        out.write(0x00); // unknown
+        out.write(0x00);    // unk1: unused
+        out.write(0x00);    // unk2: symbol-table slot offset (filled by AMOS at load time; we write 0)
         out.write(n);
         out.write(flags);
         out.write(nameBytes);
@@ -211,11 +195,11 @@ class BinaryEncoder {
 
     /**
      * Encodes a plain keyword token, appending extra zero bytes for tokens
-     * that require runtime back-patch space (see {@link #EXTRA_BYTES}).
+     * that require runtime back-patch space (back-patch counts come from the token table).
      */
     private void encodeKeyword(int value, ByteArrayOutputStream out) throws IOException {
         writeUint16(value, out);
-        int extra = EXTRA_BYTES.getOrDefault(value, 0);
+        int extra = tokenTable.extraBytesFor(value);
         for (int i = 0; i < extra; i++) out.write(0x00);
     }
 

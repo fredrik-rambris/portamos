@@ -1,0 +1,302 @@
+{
+  "extension": {
+    "id": "Compact",
+    "name": "Picture compactor extension",
+    "filename": "AMOSPro_Compact.Lib",
+    "slot": 2,
+    "vendor": "François Lionet",
+    "start": 6
+  },
+  "definitions": [
+    {
+      "name": "SPACK",
+      "kind": "instruction",
+      "documentation": "Pack an entire screen or selected area into a compacted memory bank.",
+      "signatures": [
+        {
+          "presentation": "Spack screen number To bank number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "screen number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "presentation": "Spack screen number To bank number x1, y1, x2, y2",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "screen number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x2",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y2",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/06-02-using-screens.html#picoext-spack",
+      "offset": 38
+    },
+    {
+      "name": "PACK",
+      "kind": "instruction",
+      "documentation": "Pack screen image data only into a compacted memory bank.",
+      "signatures": [
+        {
+          "presentation": "Pack screen number To bank number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "screen number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "presentation": "Pack screen number To bank number x1, y1, x2, y2",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "screen number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x2",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y2",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/06-02-using-screens.html#picoext-pack",
+      "offset": 6
+    },
+    {
+      "name": "UNPACK",
+      "kind": "instruction",
+      "documentation": "Unpack compacted screen data from a memory bank back to a screen.",
+      "signatures": [
+        {
+          "presentation": "Unpack bank number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "presentation": "Unpack bank number, x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "presentation": "Unpack bank number To screen number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "screen number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/06-02-using-screens.html#picoext-unpack",
+      "offset": 72
+    },
+    {
+      "name": "GET CBLOCK",
+      "kind": "instruction",
+      "documentation": "Save and compact a rectangular screen block.",
+      "signatures": [
+        {
+          "presentation": "Get Cblock number, x, y, width, height",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "width",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "height",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/07-07-icons-and-blocks.html#i-get-cblock"
+    },
+    {
+      "name": "PUT CBLOCK",
+      "kind": "instruction",
+      "documentation": "Display a compacted block at its original or a new position.",
+      "signatures": [
+        {
+          "presentation": "Put Cblock number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "presentation": "Put Cblock number, x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/07-07-icons-and-blocks.html#i-put-cblock"
+    },
+    {
+      "name": "DEL CBLOCK",
+      "kind": "instruction",
+      "documentation": "Delete one or all compacted blocks.",
+      "signatures": [
+        {
+          "presentation": "Del Cblock",
+          "parameters": []
+        },
+        {
+          "presentation": "Del Cblock number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ],
+      "link": "https://amospromanual.dev/07-07-icons-and-blocks.html#i-del-cblock"
+    }
+  ]
+}

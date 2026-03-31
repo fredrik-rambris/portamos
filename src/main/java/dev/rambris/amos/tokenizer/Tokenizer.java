@@ -48,7 +48,7 @@ public class Tokenizer {
         this.version = version;
         TokenTable tokenTable = new TokenTable();
         this.parser  = new AsciiParser(tokenTable);
-        this.encoder = new BinaryEncoder();
+        this.encoder = new BinaryEncoder(tokenTable);
         this.writer  = new AmosFileWriter();
     }
 
