@@ -31,7 +31,7 @@ The immediate milestone is the tokenizer: given an AMOS Professional ASCII sourc
 
 ```
 src/main/java/dev/rambris/amos/
-  Main.java                          CLI entry point (tokenize or --gen-ext-json)
+  Main.java                          CLI entry point
   tokenizer/
     Tokenizer.java                   Public API: parse() + encode()
     AsciiParser.java                 ASCII source line → List<AmosToken>
@@ -39,11 +39,12 @@ src/main/java/dev/rambris/amos/
     AmosFileWriter.java              List<line-bytes> → complete .AMOS file
     TokenTable.java                  JSON definitions → name→key lookup table
     ExtJsonGenerator.java            .Lib binary → JSON skeleton generator
+    AmosDump.java                    Token-level dump and diff tool (use instead of xxd/diff)
     model/
       AmosFile.java                  In-memory program: version + List<AmosLine>
       AmosLine.java                  record(int indent, List<AmosToken> tokens)
       AmosToken.java                 Sealed interface with all token variants
-      AmosVersion.java               enum: PRO_101 / BASIC_13
+      AmosVersion.java               enum: PRO_101 / BASIC_134 / BASIC_13
 
 src/main/resources/amos/
   definitions/                       JSON token definitions (enriched with offsets)
@@ -52,15 +53,15 @@ src/main/resources/amos/
     compact.json                     Compact extension (slot 2, start 6)
     request.json                     Request extension (slot 3, start 6)
     ioports.json                     IOPorts extension (slot 6, start 6)
-  extensions/                        Original binary .bin files (kept for reference / generator)
-    core.bin, music.bin, compact.bin, request.bin, ioports.bin
 
 src/test/resources/
-  Numbers.Asc / Numbers.AMOS        Integration test pair
-  PaletteEditor.Asc / PaletteEditor.AMOS  Integration test pair
+  Numbers.Asc / Numbers.AMOS           Integration test pair (BASIC_13)
+  PaletteEditor.Asc / PaletteEditor.AMOS  Integration test pair (PRO_101)
+  Procedures_2.Asc / Procedures_2.AMOS Integration test pair (BASIC_134)
 
 scripts/
   enrich_definitions.py              One-time script: binary → JSON offset enrichment
+  migrate_offsets.py                 Migrates JSON definitions to per-signature offset schema
 ```
 
 ## Core data model
@@ -131,10 +132,9 @@ Each line in the code section:
 
 ## Token table / JSON definitions
 
-`TokenTable.java` loads the JSON files and builds three maps:
-- `nameToKey`: normalized-uppercase name → encoding key `(slot << 16) | offset`
+`TokenTable.java` loads the JSON files and builds:
+- `nameToSignatures`: normalized-uppercase name → `List<SignatureEntry(key, commaGroups)>` sorted ascending by `commaGroups`
 - `keyToExtraBytes`: encoding key → count of zero bytes to write after the token
-- `keyToAltKey`: primary key → alternate key for dual-form keywords (see `altOffset` in JSON)
 
 **Slot 0 (core)** keys are used directly as `uint16` in the binary.
 **Slot N** keys are encoded as `ExtKeyword(slot, offset)` → `0x004E slot 0x00 offset`.
@@ -175,7 +175,9 @@ Each line in the code section:
 
 Definitions **without** an `"offset"` field are documentation-only and are skipped by the tokenizer. This applies to ~66 entries in core.json (aliases, optional-suffix forms like "INVERSE ON/OFF", etc.).
 
-**`altOffset`** (optional): the alternate token offset used when the keyword is followed by `(` or a numeric literal. Many AMOS keywords have two binary table entries: a "bare" form (no argument or function call) and an "argument/function" form. Example: `Screen Hide` (no screen number) uses `0x0AAE`; `Screen Hide 3` (with number) uses `0x0AC0` (the `altOffset`). Similarly `Colour R,G,B` (command) uses `0x0D1C`; `Colour(n)` (function) uses `0x0D2C` (the `altOffset`). `AsciiParser` selects the alt form when the next non-whitespace character after the keyword is `(`, a digit, `$`, or `%`.
+**Multiple signatures / multi-form keywords**: Many AMOS keywords have 2–4 binary table entries at different offsets, one per argument-count variant. Each signature in the JSON has its own `"offset"` field. `TokenTable` builds a list of `SignatureEntry(key, commaGroups)` per keyword, sorted ascending by `commaGroups`. `AsciiParser.countCommaGroups()` counts the top-level comma groups following the keyword on the source line (handling parenthesized function-call syntax), and `TokenTable.selectKey()` picks the highest `commaGroups ≤ actual` — falling back to the first signature if none qualify.
+
+Keywords whose form ordering is non-obvious (e.g. `X Screen(x)` vs `X Screen(screen,x)`, `Paint x,y` vs `Paint x,y,colour`) are listed in `OVERRIDES` in `scripts/migrate_offsets.py`. When a new test reveals a wrong form, add the keyword there and re-run the migration script.
 
 ## AsciiParser internals
 
@@ -195,10 +197,37 @@ Key behaviors to know:
 # Tokenize ASCII source to binary
 ./gradlew run --args="source.Asc output.AMOS"
 
+# Dump an AMOS binary as a human-readable token listing
+./gradlew run --args="--dump file.AMOS"
+
+# Diff two AMOS binary files at the token level — use this instead of xxd/diff
+# Shows each differing line with EXP/ACT token pairs; matching tokens shown for context
+./gradlew run --args="--diff expected.AMOS actual.AMOS"
+
 # Generate a JSON skeleton from any .Lib binary
 ./gradlew run --args="--gen-ext-json AMOSPro_3d.Lib --slot 4 output.json"
 # Default start: -194 for slot 0, 6 for all other slots
 ```
+
+## Debugging tokenizer differences
+
+**Always use `--diff` / `--dump` instead of `xxd`, `sed`, or raw binary diff tools.**
+
+`AmosDump` walks the token stream correctly (respecting variable-length payloads for named tokens, strings, REMs, etc.) so reported byte offsets are token-aligned and meaningful.
+
+Typical workflow when a test fails with `Line N offset M: token value differs (exp=0xXXXX, act=0xYYYY)`:
+
+1. Tokenize the `.Asc` file to a temp file:
+   ```bash
+   ./gradlew run --args="source.Asc /tmp/actual.AMOS"
+   ```
+2. Diff against the reference:
+   ```bash
+   ./gradlew run --args="--diff src/test/resources/file.AMOS /tmp/actual.AMOS"
+   ```
+3. The diff output shows the exact token where the encoder diverges, with decoded annotations (variable names, string contents, keyword offsets) alongside the raw hex — enough to identify which keyword form was selected incorrectly.
+
+When diagnosing a wrong keyword form, look up the two candidate offsets in `src/main/resources/amos/definitions/core.json` (or the relevant extension JSON) to understand their `commaGroups` values, then check whether `countCommaGroups()` in `AsciiParser` is computing the right count for that source line.
 
 ## scripts/enrich_definitions.py
 
@@ -212,13 +241,21 @@ python3 scripts/enrich_definitions.py
 
 The script matches binary entries to JSON definitions by normalized uppercase name. Unmatched binary entries (operators, internal tokens) are reported but not written. JSON entries without a binary match get no `offset` and are silently skipped at tokenization time.
 
+## scripts/migrate_offsets.py
+
+Run after `enrich_definitions.py` whenever the reference JSON definitions change, to produce the per-signature-offset JSON consumed by the tokenizer:
+```bash
+cd portamos
+python3 scripts/migrate_offsets.py
+```
+Reads from `reference/amiga-amos/src/main/resources/amos/definitions/` and writes to `src/main/resources/amos/definitions/`. The `OVERRIDES` dict in the script contains manual form-ordering for keywords whose argument-count mapping cannot be auto-derived (e.g. `MID$`, `SCREEN`, `PAINT`, `X SCREEN`, `Y SCREEN`). Add new entries there when tests reveal incorrect form selection.
+
 ## Known gaps / future work
 
 - **Detokenizer** (binary → AmosFile → ASCII): not started
 - **Bank data**: `AmosFile` is designed to hold bank data (graphics, samples) alongside lines, but banks are not yet parsed or written — `AmosFileWriter` always writes zero banks
 - **JSON coverage gaps**: ~66 core definitions lack offsets (documented aliases, optional-suffix variants); 3 compact entries (GET CBLOCK, PUT CBLOCK, DEL CBLOCK) have no binary counterpart; music "TRACK LOOP OFF" in JSON is spelled "TRACK LOOP OF" in the binary
 - **Third-party extensions**: `reference/amostools/extensions/` contains ~80 third-party `.Lib` files; use `--gen-ext-json` to generate JSON skeletons for them
-- **AmosVersion**: only `PRO_101` and `BASIC_13` are defined; the version in the file header determines which AMOS loads the file
 - **Symbol table offsets** (`unk2` in named tokens): AMOS fills in a slot offset (6 bytes per variable) into the second byte of each named token payload at tokenize time. We always write 0. This doesn't affect program semantics (AMOS recomputes these at load time), but the binary is not byte-identical.
-- **altOffset coverage**: the 10 `altOffset` entries in `core.json` cover PaletteEditor; there are ~139 dual-form pairs in core.bin total. Run `scripts/enrich_definitions.py` and extend it to populate `altOffset` for all pairs.
+- **OVERRIDE coverage**: there are ~139 dual-form pairs in core.bin; only those exercised by test files have been verified. New test programs may expose further incorrect form selections requiring new OVERRIDES entries.
 - **Blank-line indent edge case**: AMOS editors occasionally save blank lines with `indent=0` rather than 1. These cannot be reproduced from ASCII source; the structural test skips indent comparison for empty lines.

@@ -1,5 +1,6 @@
 package dev.rambris.amos;
 
+import dev.rambris.amos.tokenizer.AmosDump;
 import dev.rambris.amos.tokenizer.ExtJsonGenerator;
 import dev.rambris.amos.tokenizer.Tokenizer;
 import dev.rambris.amos.tokenizer.model.AmosFile;
@@ -12,6 +13,12 @@ public class Main {
             Usage:
               portamos <source.asc> <output.amos>
                   Tokenize an ASCII AMOS source file to binary.
+
+              portamos --dump <file.amos>
+                  Dump an AMOS binary file as a human-readable token listing.
+
+              portamos --diff <expected.amos> <actual.amos>
+                  Diff two AMOS binary files at the token level.
 
               portamos --gen-ext-json <input.Lib> --slot <n> [--start <s>] <output.json>
                   Generate a JSON definition skeleton from an AMOS extension binary.
@@ -27,6 +34,10 @@ public class Main {
 
         if (args[0].equals("--gen-ext-json")) {
             runGenExtJson(args);
+        } else if (args[0].equals("--dump")) {
+            runDump(args);
+        } else if (args[0].equals("--diff")) {
+            runDiff(args);
         } else {
             runTokenize(args);
         }
@@ -48,6 +59,24 @@ public class Main {
         byte[] binary = tokenizer.encode(amosFile);
         System.out.println("Writing " + args[1]);
         java.nio.file.Files.write(Path.of(args[1]), binary);
+    }
+
+    // -------------------------------------------------------------------------
+    // Dump: --dump <file.amos>
+    // -------------------------------------------------------------------------
+
+    private static void runDump(String[] args) throws Exception {
+        if (args.length < 2) { System.err.println(USAGE); System.exit(1); }
+        new AmosDump().dump(Path.of(args[1]), System.out);
+    }
+
+    // -------------------------------------------------------------------------
+    // Diff: --diff <expected.amos> <actual.amos>
+    // -------------------------------------------------------------------------
+
+    private static void runDiff(String[] args) throws Exception {
+        if (args.length < 3) { System.err.println(USAGE); System.exit(1); }
+        new AmosDump().diff(Path.of(args[1]), Path.of(args[2]), System.out);
     }
 
     // -------------------------------------------------------------------------
