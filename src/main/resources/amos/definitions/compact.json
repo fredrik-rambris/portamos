@@ -30,7 +30,8 @@
               "name": "bank number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 38
         },
         {
           "presentation": "Spack screen number To bank number x1, y1, x2, y2",
@@ -69,11 +70,11 @@
               "name": "y2",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 54
         }
       ],
-      "link": "https://amospromanual.dev/06-02-using-screens.html#picoext-spack",
-      "offset": 38
+      "link": "https://amospromanual.dev/06-02-using-screens.html#picoext-spack"
     },
     {
       "name": "PACK",
@@ -97,7 +98,8 @@
               "name": "bank number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 6
         },
         {
           "presentation": "Pack screen number To bank number x1, y1, x2, y2",
@@ -136,11 +138,11 @@
               "name": "y2",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 20
         }
       ],
-      "link": "https://amospromanual.dev/06-02-using-screens.html#picoext-pack",
-      "offset": 6
+      "link": "https://amospromanual.dev/06-02-using-screens.html#picoext-pack"
     },
     {
       "name": "UNPACK",
@@ -155,7 +157,28 @@
               "name": "bank number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 72
+        },
+        {
+          "presentation": "Unpack bank number To screen number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "screen number",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 86
         },
         {
           "presentation": "Unpack bank number, x, y",
@@ -175,30 +198,11 @@
               "name": "y",
               "valueType": "integer"
             }
-          ]
-        },
-        {
-          "presentation": "Unpack bank number To screen number",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "bank number",
-              "valueType": "integer"
-            },
-            {
-              "kind": "keyword",
-              "keyword": "To"
-            },
-            {
-              "kind": "value",
-              "name": "screen number",
-              "valueType": "integer"
-            }
-          ]
+          ],
+          "offset": 96
         }
       ],
-      "link": "https://amospromanual.dev/06-02-using-screens.html#picoext-unpack",
-      "offset": 72
+      "link": "https://amospromanual.dev/06-02-using-screens.html#picoext-unpack"
     },
     {
       "name": "GET CBLOCK",

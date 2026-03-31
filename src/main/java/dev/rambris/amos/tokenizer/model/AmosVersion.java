@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 public enum AmosVersion {
     PRO_101("AMOS Pro101v"),
+    BASIC_134("AMOS Basic V134 "),
     BASIC_13("AMOS Basic v1.3 ");
 
     private final String versionString;

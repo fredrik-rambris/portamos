@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,24 +20,32 @@ import java.util.Map;
  * For encoding:
  *   - slot 0 token: write key & 0xFFFF as uint16 directly
  *   - slot N token: emit as ExtKeyword(slot, offset)
+ *
+ * Each JSON definition may have multiple signatures, each with its own offset.
+ * The tokenizer selects the appropriate signature (and therefore binary token
+ * offset) based on the number of comma-separated argument groups on the line.
  */
 class TokenTable {
 
     private static final ObjectMapper JSON = new ObjectMapper();
 
-    /** Maps normalized uppercase keyword name → encoding key. */
-    private final Map<String, Integer> nameToKey = new HashMap<>();
+    /**
+     * One binary form of a keyword.
+     * {@code commaGroups = valueParamCount - keywordParamCount} is the expected
+     * number of top-level comma groups after the keyword (i.e. commas + 1 if
+     * there is any argument, but adjusted for keyword separators like "To").
+     */
+    record SignatureEntry(int key, int commaGroups) {}
+
+    /**
+     * Maps normalized uppercase keyword name → ordered list of SignatureEntries.
+     * The list is ordered from fewest to most comma groups so that the selection
+     * algorithm ("highest commaGroups ≤ actual") works by iterating in order.
+     */
+    private final Map<String, List<SignatureEntry>> nameToSignatures = new HashMap<>();
 
     /** Maps encoding key → extra zero bytes to write after the token (back-patch space). */
     private final Map<Integer, Integer> keyToExtraBytes = new HashMap<>();
-
-    /**
-     * Maps primary key → alternate key for keywords that have two forms.
-     * The alternate form is used when the keyword is followed by '(' or a numeric literal,
-     * e.g. "Screen Hide 3" (with screen number) vs "Screen Hide" (current screen),
-     * or "Colour(n)" (function returning colour) vs "Colour ink,rgb" (command setting colour).
-     */
-    private final Map<Integer, Integer> keyToAltKey = new HashMap<>();
 
     /**
      * Core operator and punctuation tokens. These live at fixed offsets in the core
@@ -70,7 +80,11 @@ class TokenTable {
     );
 
     TokenTable() {
-        nameToKey.putAll(CORE_OPERATORS);
+        // Register operators as single-entry signature lists
+        for (var entry : CORE_OPERATORS.entrySet()) {
+            int key = entry.getValue();
+            nameToSignatures.put(entry.getKey(), List.of(new SignatureEntry(key, 0)));
+        }
         loadResource("/amos/definitions/core.json");
         loadResource("/amos/definitions/music.json");
         loadResource("/amos/definitions/compact.json");
@@ -78,20 +92,42 @@ class TokenTable {
         loadResource("/amos/definitions/ioports.json");
     }
 
-    /** Returns the encoding key for the given keyword, or null if not found. */
+    /**
+     * Returns the primary (first) encoding key for the given keyword, or null if not found.
+     * Used for operators and as a fallback; prefer {@link #selectKey} for keyword tokens.
+     */
     Integer lookup(String name) {
-        return nameToKey.get(name.toUpperCase());
+        List<SignatureEntry> sigs = nameToSignatures.get(name.toUpperCase());
+        if (sigs == null || sigs.isEmpty()) return null;
+        return sigs.get(0).key();
     }
 
     /**
-     * Returns the alternate encoding key for the given keyword, or the primary key if there is
-     * no alternate form.  The alternate form is used when the keyword is followed by '(' or a
-     * numeric literal (digit, '$', '%').
+     * Selects the best-matching encoding key for the given keyword based on the number
+     * of top-level comma groups that follow it on the source line.
+     *
+     * <p>Selection rule: choose the signature whose {@code commaGroups} is the highest
+     * value that is still ≤ {@code actualCommaGroups}.  Falls back to the first
+     * (fewest-args) signature if no signature is ≤ actualCommaGroups.</p>
+     *
+     * @param name              the keyword name (case-insensitive)
+     * @param actualCommaGroups commaCount + 1 if any arg follows, else 0
+     * @return the encoding key, or null if the keyword is not in the table
      */
-    Integer lookupAlt(String name) {
-        Integer primary = nameToKey.get(name.toUpperCase());
-        if (primary == null) return null;
-        return keyToAltKey.getOrDefault(primary, primary);
+    Integer selectKey(String name, int actualCommaGroups) {
+        List<SignatureEntry> sigs = nameToSignatures.get(name.toUpperCase());
+        if (sigs == null || sigs.isEmpty()) return null;
+        if (sigs.size() == 1) return sigs.get(0).key();
+
+        // Walk through signatures (ordered fewest→most commaGroups).
+        // Keep track of the best candidate = highest commaGroups ≤ actual.
+        SignatureEntry best = sigs.get(0);
+        for (SignatureEntry sig : sigs) {
+            if (sig.commaGroups() <= actualCommaGroups) {
+                best = sig;
+            }
+        }
+        return best.key();
     }
 
     /** Returns the number of extra zero bytes to emit after the given token key, or 0. */
@@ -111,34 +147,57 @@ class TokenTable {
 
     private void parseDefinitions(JsonNode root) {
         JsonNode ext = root.path("extension");
-        int slot  = ext.path("slot").asInt(0);
-        // start is not needed at read time — offsets are already stored per-definition
+        int slot = ext.path("slot").asInt(0);
 
         JsonNode definitions = root.path("definitions");
         for (JsonNode defn : definitions) {
-            JsonNode offsetNode = defn.path("offset");
-            if (offsetNode.isMissingNode()) continue; // no binary offset — skip
-
-            int offset = offsetNode.asInt();
-            int key = (slot << 16) | (offset & 0xFFFF);
-
             String name = defn.path("name").asText("").strip().toUpperCase();
             if (name.isEmpty()) continue;
 
-            nameToKey.putIfAbsent(name, key);
-
             JsonNode extraNode = defn.path("extraBytes");
-            if (!extraNode.isMissingNode()) {
-                keyToExtraBytes.putIfAbsent(key, extraNode.asInt());
+
+            JsonNode signatures = defn.path("signatures");
+            if (signatures.isMissingNode() || !signatures.isArray()) continue;
+
+            List<SignatureEntry> entries = new ArrayList<>();
+            for (JsonNode sig : signatures) {
+                JsonNode offsetNode = sig.path("offset");
+                if (offsetNode.isMissingNode()) continue;
+
+                int offset = offsetNode.asInt();
+                int key = (slot << 16) | (offset & 0xFFFF);
+
+                // Use explicit "commaGroups" override if present (set on skeleton sigs),
+                // otherwise compute from the parameter list.
+                int commaGroups;
+                JsonNode cgOverride = sig.path("commaGroups");
+                if (!cgOverride.isMissingNode()) {
+                    commaGroups = cgOverride.asInt();
+                } else {
+                    int valueParams = 0;
+                    int keywordParams = 0;
+                    JsonNode params = sig.path("parameters");
+                    if (params.isArray()) {
+                        for (JsonNode p : params) {
+                            String kind = p.path("kind").asText("");
+                            if ("value".equals(kind)) valueParams++;
+                            else if ("keyword".equals(kind)) keywordParams++;
+                        }
+                    }
+                    commaGroups = Math.max(valueParams - keywordParams, 0);
+                }
+                entries.add(new SignatureEntry(key, commaGroups));
+
+                // Register extraBytes for this key
+                if (!extraNode.isMissingNode()) {
+                    keyToExtraBytes.putIfAbsent(key, extraNode.asInt());
+                }
             }
 
-            JsonNode altNode = defn.path("altOffset");
-            if (!altNode.isMissingNode()) {
-                int altOffset = altNode.asInt();
-                int altKey = (slot << 16) | (altOffset & 0xFFFF);
-                keyToAltKey.putIfAbsent(key, altKey);
-                // Also register the alt name→key mapping so extraBytesFor works on alt keys
-                nameToKey.putIfAbsent(name + "\u0000alt", altKey);
+            if (!entries.isEmpty()) {
+                // Sort by commaGroups ascending so selectKey walks fewest→most
+                entries.sort((a, b) -> Integer.compare(a.commaGroups(), b.commaGroups()));
+                nameToSignatures.putIfAbsent(name, entries);
             }
         }
     }

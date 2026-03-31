@@ -20,7 +20,10 @@
       "Bash(echo \"PWD: $PWD\")",
       "Bash(gradle)",
       "Bash(gradle*)",
-      "Bash(./gradlew *)"
+      "Bash(./gradlew *)",
+      "Bash(grep *)",
+      "Bash(jq:*)",
+      "Bash(xxd)"
     ]
   }
 }

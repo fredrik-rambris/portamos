@@ -211,23 +211,16 @@ class AsciiParser {
         // Try longest match first (3 words, 2 words, 1 word)
         for (int n = wordCount; n >= 1; n--) {
             String candidate = text.substring(start, wordEnds[n - 1]);
-            Integer key = tokenTable.lookup(candidate);
-            if (key != null) {
-                end[0] = wordEnds[n - 1];
-                // Use the alternate token form when the next non-whitespace character
-                // is '(' (function call) or starts a numeric literal (optional numeric arg).
-                // Example: "Screen Hide 3" → alt form; "Screen Hide" alone → primary form.
-                // Example: "Colour(n)" → alt form; "Colour ink,rgb" → primary form.
-                int nextPos = wordEnds[n - 1];
-                while (nextPos < text.length() && text.charAt(nextPos) == ' ') nextPos++;
-                if (nextPos < text.length()) {
-                    char next = text.charAt(nextPos);
-                    if (next == '(' || next == '$' || next == '%' || Character.isDigit(next)) {
-                        Integer altKey = tokenTable.lookupAlt(candidate);
-                        if (altKey != null) key = altKey;
-                    }
-                }
-                AmosToken tok = keyToToken(key);
+            if (tokenTable.lookup(candidate) == null) continue;
+
+            end[0] = wordEnds[n - 1];
+
+            // Count comma groups after the keyword to select the right signature form.
+            int commaGroups = countCommaGroups(text, wordEnds[n - 1]);
+            Integer key = tokenTable.selectKey(candidate, commaGroups);
+            if (key == null) continue;
+
+            AmosToken tok = keyToToken(key);
                 // Track context for the next identifier token
                 if (tok instanceof AmosToken.Keyword kw) {
                     int v = kw.value();
@@ -243,10 +236,61 @@ class AsciiParser {
                     nextIdentIsProcDef = false;
                 }
                 return tok;
-            }
         }
 
         return null;
+    }
+
+    /**
+     * Counts the number of "comma groups" that follow position {@code start} in {@code text}.
+     *
+     * <p>A comma group is a sequence of characters between two commas (or between the
+     * start of the argument list and the first comma).  Commas inside parentheses or
+     * brackets are not counted (they belong to a nested expression).
+     *
+     * <p>Returns 0 if nothing that looks like an argument follows the keyword.  Returns
+     * commaCount + 1 if at least one argument starts there.
+     *
+     * <p>Only characters that can start an argument (letter, digit, {@code (}, {@code $},
+     * {@code %}, {@code "}, {@code '}) trigger {@code hasArg = true}.  Operators such as
+     * {@code -} that follow a keyword (e.g. {@code Screen Height-1}) mean the keyword
+     * itself takes no argument — the operator applies to its return value.
+     */
+    private static int countCommaGroups(String text, int start) {
+        int len = text.length();
+        int pos = start;
+        // Skip leading spaces
+        while (pos < len && text.charAt(pos) == ' ') pos++;
+        if (pos >= len) return 0;
+
+        char first = text.charAt(pos);
+        // Argument starters: identifier char, digit, open-paren, $, %, ", '
+        boolean hasArg = Character.isLetterOrDigit(first) || first == '(' || first == '$'
+                || first == '%' || first == '"' || first == '\'';
+        if (!hasArg) return 0;
+
+        // If the keyword is invoked as a function — e.g. Zone(3,x,y) — the args are
+        // inside the outer parentheses.  Count commas at depth 1 (inside the outer ())
+        // rather than depth 0, and stop when the outer ) closes.
+        boolean functionCall = (first == '(');
+        int countDepth = functionCall ? 1 : 0;
+
+        int commas = 0;
+        int depth = 0;
+        for (int i = pos; i < len; i++) {
+            char c = text.charAt(i);
+            if (c == '(' || c == '[') {
+                depth++;
+            } else if (c == ')' || c == ']') {
+                depth--;
+                if (depth < countDepth) break; // exited the function-call parens (or depth < 0)
+            } else if (c == ':' && depth == 0) {
+                break; // statement separator
+            } else if (c == ',' && depth == countDepth) {
+                commas++;
+            }
+        }
+        return commas + 1;
     }
 
     private static boolean isKeywordChar(char c) {
@@ -311,8 +355,9 @@ class AsciiParser {
             return new AmosToken.ProcRef(name);
         }
 
-        // Array variable: flagged by a preceding Dim keyword, or if the name is a known array
-        boolean isArr = nextVarIsArray || arrayVarNames.contains(name.toLowerCase());
+        // Array variable: flagged by a preceding Dim keyword, or if the name (with type suffix) is a known array
+        String arraySuffix = type == AmosToken.VarType.STRING ? "$" : type == AmosToken.VarType.FLOAT ? "#" : "";
+        boolean isArr = nextVarIsArray || arrayVarNames.contains(name.toLowerCase() + arraySuffix);
         if (nextVarIsArray) nextVarIsArray = false;
 
         return new AmosToken.Variable(name, type, isArr);

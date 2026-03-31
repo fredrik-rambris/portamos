@@ -21,11 +21,11 @@
               "name": "number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 88
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-music",
-      "offset": 88
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-music"
     },
     {
       "name": "MUSIC STOP",
@@ -34,11 +34,11 @@
       "signatures": [
         {
           "presentation": "Music Stop",
-          "parameters": []
+          "parameters": [],
+          "offset": 60
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-music-stop",
-      "offset": 60
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-music-stop"
     },
     {
       "name": "MUSIC OFF",
@@ -47,11 +47,11 @@
       "signatures": [
         {
           "presentation": "Music Off",
-          "parameters": []
+          "parameters": [],
+          "offset": 44
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-music-off",
-      "offset": 44
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-music-off"
     },
     {
       "name": "MVOLUME",
@@ -66,11 +66,11 @@
               "name": "level",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 406
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-mvolume",
-      "offset": 406
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-mvolume"
     },
     {
       "name": "TEMPO",
@@ -85,11 +85,11 @@
               "name": "speed",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 76
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-tempo",
-      "offset": 76
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-tempo"
     },
     {
       "name": "TRACK LOAD",
@@ -109,11 +109,11 @@
               "name": "bank number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 698
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-load",
-      "offset": 698
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-load"
     },
     {
       "name": "TRACK PLAY",
@@ -122,7 +122,8 @@
       "signatures": [
         {
           "presentation": "Track Play",
-          "parameters": []
+          "parameters": [],
+          "offset": 662
         },
         {
           "presentation": "Track Play bank number, pattern number",
@@ -137,11 +138,16 @@
               "name": "pattern number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 680
+        },
+        {
+          "offset": 688,
+          "parameters": [],
+          "commaGroups": 3
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-play",
-      "offset": 662
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-play"
     },
     {
       "name": "TRACK LOOP ON",
@@ -150,11 +156,11 @@
       "signatures": [
         {
           "presentation": "Track Loop On",
-          "parameters": []
+          "parameters": [],
+          "offset": 622
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-loop-on",
-      "offset": 622
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-loop-on"
     },
     {
       "name": "TRACK LOOP OFF",
@@ -175,11 +181,11 @@
       "signatures": [
         {
           "presentation": "Track Stop",
-          "parameters": []
+          "parameters": [],
+          "offset": 606
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-stop",
-      "offset": 606
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-stop"
     },
     {
       "name": "MED LOAD",
@@ -199,11 +205,11 @@
               "name": "bank number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 820
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-load",
-      "offset": 820
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-load"
     },
     {
       "name": "MED PLAY",
@@ -212,7 +218,8 @@
       "signatures": [
         {
           "presentation": "Med Play",
-          "parameters": []
+          "parameters": [],
+          "offset": 838
         },
         {
           "presentation": "Med Play bank number, song number",
@@ -227,11 +234,16 @@
               "name": "song number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 854
+        },
+        {
+          "offset": 862,
+          "parameters": [],
+          "commaGroups": 3
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-play",
-      "offset": 838
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-play"
     },
     {
       "name": "MED STOP",
@@ -240,11 +252,11 @@
       "signatures": [
         {
           "presentation": "Med Stop",
-          "parameters": []
+          "parameters": [],
+          "offset": 872
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-stop",
-      "offset": 872
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-stop"
     },
     {
       "name": "MED CONT",
@@ -253,11 +265,11 @@
       "signatures": [
         {
           "presentation": "Med Cont",
-          "parameters": []
+          "parameters": [],
+          "offset": 886
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-cont",
-      "offset": 886
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-cont"
     },
     {
       "name": "MED MIDI ON",
@@ -266,11 +278,11 @@
       "signatures": [
         {
           "presentation": "Med Midi On",
-          "parameters": []
+          "parameters": [],
+          "offset": 900
         }
       ],
-      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-midi-on",
-      "offset": 900
+      "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-med-midi-on"
     },
     {
       "name": "BOOM",
@@ -279,11 +291,11 @@
       "signatures": [
         {
           "presentation": "Boom",
-          "parameters": []
+          "parameters": [],
+          "offset": 116
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-boom",
-      "offset": 116
+      "link": "https://amospromanual.dev/08-01-music.html#i-boom"
     },
     {
       "name": "SHOOT",
@@ -292,11 +304,11 @@
       "signatures": [
         {
           "presentation": "Shoot",
-          "parameters": []
+          "parameters": [],
+          "offset": 126
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-shoot",
-      "offset": 126
+      "link": "https://amospromanual.dev/08-01-music.html#i-shoot"
     },
     {
       "name": "BELL",
@@ -305,7 +317,8 @@
       "signatures": [
         {
           "presentation": "Bell",
-          "parameters": []
+          "parameters": [],
+          "offset": 280
         },
         {
           "presentation": "Bell pitch",
@@ -315,11 +328,11 @@
               "name": "pitch",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 292
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-bell",
-      "offset": 280
+      "link": "https://amospromanual.dev/08-01-music.html#i-bell"
     },
     {
       "name": "VOLUME",
@@ -334,7 +347,8 @@
               "name": "level",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 420
         },
         {
           "presentation": "Volume voice, level",
@@ -349,11 +363,11 @@
               "name": "level",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 434
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-volume",
-      "offset": 420
+      "link": "https://amospromanual.dev/08-01-music.html#i-volume"
     },
     {
       "name": "VOICE",
@@ -368,11 +382,11 @@
               "name": "bit-mask",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 32
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-voice",
-      "offset": 32
+      "link": "https://amospromanual.dev/08-01-music.html#i-voice"
     },
     {
       "name": "PLAY",
@@ -392,7 +406,8 @@
               "name": "delay",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 324
         },
         {
           "presentation": "Play voice, pitch, delay",
@@ -412,11 +427,11 @@
               "name": "delay",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 338
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-play",
-      "offset": 324
+      "link": "https://amospromanual.dev/08-01-music.html#i-play"
     },
     {
       "name": "PLAY OFF",
@@ -425,11 +440,16 @@
       "signatures": [
         {
           "presentation": "Play Off",
-          "parameters": []
+          "parameters": [],
+          "offset": 300
+        },
+        {
+          "offset": 316,
+          "parameters": [],
+          "commaGroups": 1
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-play-off",
-      "offset": 300
+      "link": "https://amospromanual.dev/08-01-music.html#i-play-off"
     },
     {
       "name": "SET WAVE",
@@ -449,11 +469,11 @@
               "name": "shape$",
               "valueType": "string"
             }
-          ]
+          ],
+          "offset": 350
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-set-wave",
-      "offset": 350
+      "link": "https://amospromanual.dev/08-01-music.html#i-set-wave"
     },
     {
       "name": "WAVE",
@@ -477,11 +497,11 @@
               "name": "voices",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 444
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-wave",
-      "offset": 444
+      "link": "https://amospromanual.dev/08-01-music.html#i-wave"
     },
     {
       "name": "NOISE TO",
@@ -496,11 +516,11 @@
               "name": "voices",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 100
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-noise-to",
-      "offset": 100
+      "link": "https://amospromanual.dev/08-01-music.html#i-noise-to"
     },
     {
       "name": "SAMPLE",
@@ -524,11 +544,11 @@
               "name": "voices",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 206
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-sample",
-      "offset": 206
+      "link": "https://amospromanual.dev/08-01-music.html#i-sample"
     },
     {
       "name": "DEL WAVE",
@@ -543,11 +563,11 @@
               "name": "number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 368
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-del-wave",
-      "offset": 368
+      "link": "https://amospromanual.dev/08-01-music.html#i-del-wave"
     },
     {
       "name": "SET ENVEL",
@@ -581,11 +601,11 @@
               "name": "volume",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 384
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-set-envel",
-      "offset": 384
+      "link": "https://amospromanual.dev/08-01-music.html#i-set-envel"
     },
     {
       "name": "LED ON",
@@ -594,11 +614,11 @@
       "signatures": [
         {
           "presentation": "Led On",
-          "parameters": []
+          "parameters": [],
+          "offset": 458
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-led-on",
-      "offset": 458
+      "link": "https://amospromanual.dev/08-01-music.html#i-led-on"
     },
     {
       "name": "LED OFF",
@@ -607,11 +627,11 @@
       "signatures": [
         {
           "presentation": "Led Off",
-          "parameters": []
+          "parameters": [],
+          "offset": 470
         }
       ],
-      "link": "https://amospromanual.dev/08-01-music.html#i-led-off",
-      "offset": 470
+      "link": "https://amospromanual.dev/08-01-music.html#i-led-off"
     },
     {
       "name": "VUMETER",
@@ -626,12 +646,12 @@
               "name": "voice",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 18
         }
       ],
       "link": "https://amospromanual.dev/08-01-music.html#fn-vumeter",
-      "returnType": "integer",
-      "offset": 18
+      "returnType": "integer"
     },
     {
       "name": "SAM PLAY",
@@ -646,7 +666,8 @@
               "name": "sample number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 222
         },
         {
           "presentation": "Sam Play voice, sample number",
@@ -661,7 +682,8 @@
               "name": "sample number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 238
         },
         {
           "presentation": "Sam Play voice, sample number, frequency",
@@ -681,11 +703,11 @@
               "name": "frequency",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 248
         }
       ],
-      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-play",
-      "offset": 222
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-play"
     },
     {
       "name": "SAM STOP",
@@ -694,7 +716,8 @@
       "signatures": [
         {
           "presentation": "Sam Stop",
-          "parameters": []
+          "parameters": [],
+          "offset": 582
         },
         {
           "presentation": "Sam Stop voices",
@@ -704,11 +727,11 @@
               "name": "voices",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 598
         }
       ],
-      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-stop",
-      "offset": 582
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-stop"
     },
     {
       "name": "SAM BANK",
@@ -723,11 +746,11 @@
               "name": "bank number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 138
         }
       ],
-      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-bank",
-      "offset": 138
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-bank"
     },
     {
       "name": "SAM RAW",
@@ -757,11 +780,11 @@
               "name": "frequency",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 260
         }
       ],
-      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-raw",
-      "offset": 260
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-raw"
     },
     {
       "name": "SAM LOOP ON",
@@ -770,11 +793,21 @@
       "signatures": [
         {
           "presentation": "Sam Loop On",
-          "parameters": []
+          "parameters": [],
+          "offset": 154
+        },
+        {
+          "offset": 172,
+          "parameters": [],
+          "commaGroups": 1
+        },
+        {
+          "offset": 198,
+          "parameters": [],
+          "commaGroups": 1
         }
       ],
-      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-loop-on",
-      "offset": 154
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-loop-on"
     },
     {
       "name": "SAM LOOP OFF",
@@ -783,11 +816,11 @@
       "signatures": [
         {
           "presentation": "Sam Loop Off",
-          "parameters": []
+          "parameters": [],
+          "offset": 180
         }
       ],
-      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-loop-off",
-      "offset": 180
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-loop-off"
     },
     {
       "name": "SLOAD",
@@ -816,11 +849,11 @@
               "name": "length",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 528
         }
       ],
-      "link": "https://amospromanual.dev/08-02-samples.html#i-sload",
-      "offset": 528
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sload"
     },
     {
       "name": "SSAVE",
@@ -849,11 +882,11 @@
               "name": "end",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 804
         }
       ],
-      "link": "https://amospromanual.dev/08-02-samples.html#i-ssave",
-      "offset": 804
+      "link": "https://amospromanual.dev/08-02-samples.html#i-ssave"
     },
     {
       "name": "SAM SWAP",
@@ -878,11 +911,11 @@
               "name": "length",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 562
         }
       ],
-      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-swap",
-      "offset": 562
+      "link": "https://amospromanual.dev/08-02-samples.html#i-sam-swap"
     },
     {
       "name": "SAM SWAPPED",
@@ -897,12 +930,12 @@
               "name": "voice number",
               "valueType": "integer"
             }
-          ]
+          ],
+          "offset": 544
         }
       ],
       "link": "https://amospromanual.dev/08-02-samples.html#fn-sam-swapped",
-      "returnType": "integer",
-      "offset": 544
+      "returnType": "integer"
     }
   ]
 }

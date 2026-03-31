@@ -87,7 +87,8 @@ public class Tokenizer {
             if (stripped.regionMatches(true, 0, "Dim ", 0, 4)) {
                 var rest = stripped.substring(4).stripLeading();
                 var end = 0;
-                while (end < rest.length() && (Character.isLetterOrDigit(rest.charAt(end)) || rest.charAt(end) == '_')) end++;
+                while (end < rest.length() && (Character.isLetterOrDigit(rest.charAt(end))
+                        || rest.charAt(end) == '_' || rest.charAt(end) == '$' || rest.charAt(end) == '#')) end++;
                 if (end > 0) names.add(rest.substring(0, end).toLowerCase());
             }
         }
