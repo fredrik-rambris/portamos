@@ -29,4 +29,5 @@ public interface AmosBank {
     Type type();
     short bankNumber();
     boolean chipRam();
+    BankWriter writer();
 }

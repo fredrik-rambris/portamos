@@ -41,6 +41,11 @@ public record ResourceBank(
         return Type.RESOURCE;
     }
 
+    @Override
+    public BankWriter writer() {
+        return new ResourceBankWriter();
+    }
+
     /**
      * One entry in the image offset table.
      *

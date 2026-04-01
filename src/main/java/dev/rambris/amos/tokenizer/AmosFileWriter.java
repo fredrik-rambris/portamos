@@ -60,11 +60,8 @@ class AmosFileWriter {
 
             // Serialize each bank
             if (!banks.isEmpty()) {
-                ResourceBankWriter bankWriter = new ResourceBankWriter();
                 for (AmosBank bank : banks) {
-                    if (bank instanceof ResourceBank rb) {
-                        out.write(bankWriter.toBytes(rb));
-                    }
+                    out.write(bank.writer().toBytes(bank));
                 }
             }
         } catch (IOException e) {

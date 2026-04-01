@@ -51,16 +51,20 @@ import java.util.List;
  *   each: [2] length_including_itself + program_bytes + NUL (padded to even)
  * </pre>
  */
-public class ResourceBankWriter {
+public class ResourceBankWriter implements BankWriter {
 
     private static final int SUB_HEADER_SIZE = 26; // 2 + 3×4 + 3×4
 
-    public void write(ResourceBank bank, Path dest) throws IOException {
+    @Override
+    public void write(AmosBank bank, Path dest) throws IOException {
         Files.write(dest, toBytes(bank));
     }
 
-    public byte[] toBytes(ResourceBank bank) throws IOException {
-        return serialize(bank);
+    @Override
+    public byte[] toBytes(AmosBank bank) throws IOException {
+        if (bank instanceof ResourceBank rb) {
+            return serialize(rb);
+        } else throw new IllegalArgumentException("Not a ResourceBank");
     }
 
     // -------------------------------------------------------------------------
@@ -68,9 +72,9 @@ public class ResourceBankWriter {
     // -------------------------------------------------------------------------
 
     private byte[] serialize(ResourceBank bank) throws IOException {
-        byte[] imgSection  = buildImageSection(bank);
-        byte[] txtSection  = buildTextSection(bank);
-        byte[] dblSection  = buildDblSection(bank);
+        byte[] imgSection = buildImageSection(bank);
+        byte[] txtSection = buildTextSection(bank);
+        byte[] dblSection = buildDblSection(bank);
 
         // Sub-header offsets are relative to DATA_START
         int imgOff = imgSection.length > 0 ? SUB_HEADER_SIZE : 0;
@@ -132,8 +136,8 @@ public class ResourceBankWriter {
         // Header: 2(n) + 4×n(offsets) + 2(nColors) + 2(screenMode) + 64(palette)
         //       + 2(nameLen) + nameBytes + padding
         byte[] nameBytes = bank.imagePath().getBytes(StandardCharsets.ISO_8859_1);
-        int nameLen  = nameBytes.length;
-        int namePad  = nameLen % 2 != 0 ? 1 : 0;
+        int nameLen = nameBytes.length;
+        int namePad = nameLen % 2 != 0 ? 1 : 0;
         int headerSz = 2 + 4 * n + 2 + 2 + 64 + 2 + nameLen + namePad;
 
         // Entry offsets are relative to the start of the images section
