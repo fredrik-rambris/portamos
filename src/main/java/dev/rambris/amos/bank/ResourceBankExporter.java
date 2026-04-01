@@ -132,7 +132,7 @@ public class ResourceBankExporter {
     private void exportPrograms(ResourceBank bank, Path outDir) throws IOException {
         for (int i = 0; i < bank.programs().size(); i++) {
             Path dest = outDir.resolve("program_%03d.amui".formatted(i));
-            Files.writeString(dest, bank.programs().get(i));
+            Files.writeString(dest, bank.programs().get(i), java.nio.charset.StandardCharsets.UTF_8);
         }
         System.out.printf("Exported %d interface program(s)%n", bank.programs().size());
     }

@@ -2,7 +2,9 @@ package dev.rambris.amos;
 
 import dev.rambris.amos.bank.ResourceBank;
 import dev.rambris.amos.bank.ResourceBankExporter;
+import dev.rambris.amos.bank.ResourceBankImporter;
 import dev.rambris.amos.bank.ResourceBankReader;
+import dev.rambris.amos.bank.ResourceBankWriter;
 import dev.rambris.amos.tokenizer.AmosDump;
 import dev.rambris.amos.tokenizer.ExtJsonGenerator;
 import dev.rambris.amos.tokenizer.Tokenizer;
@@ -30,7 +32,11 @@ public class Main {
 
               portamos --disasm-bank <input.Abk> <output-dir>
                   Disassemble a Resource Bank file into its component files.
-                  Writes image_NNN.pacpic, text_NNN.txt, program_NNN.amui, resource.json.
+                  Writes spritesheet.png, program_NNN.amui, bank.json.
+
+              portamos --asm-bank <input-dir> <output.Abk>
+                  Assemble a Resource Bank from a directory produced by --disasm-bank.
+                  Reads bank.json, the spritesheet PNG, and any program_NNN.amui files.
             """;
 
     public static void main(String[] args) throws Exception {
@@ -47,6 +53,8 @@ public class Main {
             runDiff(args);
         } else if (args[0].equals("--disasm-bank")) {
             runDisasmBank(args);
+        } else if (args[0].equals("--asm-bank")) {
+            runAsmBank(args);
         } else {
             runTokenize(args);
         }
@@ -144,6 +152,26 @@ public class Main {
                 bank.texts().size(),
                 bank.programs().size());
         new ResourceBankExporter().export(bank, outDir);
+    }
+
+    // -------------------------------------------------------------------------
+    // Assemble Resource Bank: --asm-bank <input-dir> <output.Abk>
+    // -------------------------------------------------------------------------
+
+    private static void runAsmBank(String[] args) throws Exception {
+        if (args.length < 3) { System.err.println(USAGE); System.exit(1); }
+        Path inDir   = Path.of(args[1]);
+        Path outFile = Path.of(args[2]);
+        System.out.printf("Reading bank from %s ...%n", inDir);
+        ResourceBank bank = new ResourceBankImporter().importFrom(inDir);
+        System.out.printf("Bank %d (%s, %d elements, %d texts, %d programs)%n",
+                bank.bankNumber(),
+                bank.chipRam() ? "chip" : "fast",
+                bank.elements().size(),
+                bank.texts().size(),
+                bank.programs().size());
+        new ResourceBankWriter().write(bank, outFile);
+        System.out.printf("Written %s%n", outFile);
     }
 
     private static void die(String msg) {
