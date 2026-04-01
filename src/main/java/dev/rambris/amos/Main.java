@@ -1,5 +1,8 @@
 package dev.rambris.amos;
 
+import dev.rambris.amos.bank.ResourceBank;
+import dev.rambris.amos.bank.ResourceBankExporter;
+import dev.rambris.amos.bank.ResourceBankReader;
 import dev.rambris.amos.tokenizer.AmosDump;
 import dev.rambris.amos.tokenizer.ExtJsonGenerator;
 import dev.rambris.amos.tokenizer.Tokenizer;
@@ -24,6 +27,10 @@ public class Main {
                   Generate a JSON definition skeleton from an AMOS extension binary.
                   --slot   Extension slot number (0=core, 1=Music, 2=Compact, 3=Request, 6=IOPorts, …)
                   --start  Byte offset from token-table base to first entry (default: -194 for slot 0, 6 otherwise)
+
+              portamos --disasm-bank <input.Abk> <output-dir>
+                  Disassemble a Resource Bank file into its component files.
+                  Writes image_NNN.pacpic, text_NNN.txt, program_NNN.amui, resource.json.
             """;
 
     public static void main(String[] args) throws Exception {
@@ -38,6 +45,8 @@ public class Main {
             runDump(args);
         } else if (args[0].equals("--diff")) {
             runDiff(args);
+        } else if (args[0].equals("--disasm-bank")) {
+            runDisasmBank(args);
         } else {
             runTokenize(args);
         }
@@ -116,6 +125,25 @@ public class Main {
 
         System.out.printf("Generating JSON from %s (slot=%d, start=%d)%n", inputPath.getFileName(), slot, start);
         ExtJsonGenerator.generate(inputPath, slot, start, outputPath);
+    }
+
+    // -------------------------------------------------------------------------
+    // Disassemble Resource Bank: --disasm-bank <input.Abk> <output-dir>
+    // -------------------------------------------------------------------------
+
+    private static void runDisasmBank(String[] args) throws Exception {
+        if (args.length < 3) { System.err.println(USAGE); System.exit(1); }
+        Path inputPath = Path.of(args[1]);
+        Path outDir    = Path.of(args[2]);
+        System.out.printf("Reading %s ...%n", inputPath.getFileName());
+        ResourceBank bank = new ResourceBankReader().read(inputPath);
+        System.out.printf("Bank %d (%s, %d elements, %d texts, %d programs)%n",
+                bank.bankNumber(),
+                bank.chipRam() ? "chip" : "fast",
+                bank.elements().size(),
+                bank.texts().size(),
+                bank.programs().size());
+        new ResourceBankExporter().export(bank, outDir);
     }
 
     private static void die(String msg) {
