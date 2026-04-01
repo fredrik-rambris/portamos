@@ -56,7 +56,11 @@ public class ResourceBankWriter {
     private static final int SUB_HEADER_SIZE = 26; // 2 + 3×4 + 3×4
 
     public void write(ResourceBank bank, Path dest) throws IOException {
-        Files.write(dest, serialize(bank));
+        Files.write(dest, toBytes(bank));
+    }
+
+    public byte[] toBytes(ResourceBank bank) throws IOException {
+        return serialize(bank);
     }
 
     // -------------------------------------------------------------------------

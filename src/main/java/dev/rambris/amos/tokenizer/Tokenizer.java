@@ -165,7 +165,7 @@ public class Tokenizer {
         List<byte[]> encodedLines = file.lines().stream()
                 .map(line -> encoder.encodeLine(line.indent(), line.tokens()))
                 .toList();
-        return writer.write(file.version(), encodedLines);
+        return writer.write(file.version(), encodedLines, file.banks());
     }
 
     // -------------------------------------------------------------------------

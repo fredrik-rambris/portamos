@@ -1,5 +1,8 @@
 package dev.rambris.amos.tokenizer;
 
+import dev.rambris.amos.bank.AmosBank;
+import dev.rambris.amos.bank.ResourceBank;
+import dev.rambris.amos.bank.ResourceBankWriter;
 import dev.rambris.amos.tokenizer.model.AmosVersion;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,9 +25,10 @@ class AmosFileWriter {
      *
      * @param version      the AMOS version to use for the file header
      * @param encodedLines the list of already-encoded lines (from BinaryEncoder.encodeLine)
+     * @param banks        data banks to attach (may be empty)
      * @return the complete binary file as a byte array
      */
-    byte[] write(AmosVersion version, List<byte[]> encodedLines) {
+    byte[] write(AmosVersion version, List<byte[]> encodedLines, List<AmosBank> banks) {
         int codeLen = encodedLines.stream().mapToInt(l -> l.length).sum();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream(22 + codeLen + 6);
@@ -45,13 +49,24 @@ class AmosFileWriter {
                 out.write(line);
             }
 
-            // AmBs section: magic + uint16 bank count = 0
+            // AmBs section: magic + uint16 bank count
             out.write('A');
             out.write('m');
             out.write('B');
             out.write('s');
-            out.write(0x00); // bank count high byte
-            out.write(0x00); // bank count low byte
+            int bankCount = banks.size();
+            out.write((bankCount >> 8) & 0xFF);
+            out.write(bankCount & 0xFF);
+
+            // Serialize each bank
+            if (!banks.isEmpty()) {
+                ResourceBankWriter bankWriter = new ResourceBankWriter();
+                for (AmosBank bank : banks) {
+                    if (bank instanceof ResourceBank rb) {
+                        out.write(bankWriter.toBytes(rb));
+                    }
+                }
+            }
         } catch (IOException e) {
             // ByteArrayOutputStream never throws IOException
             throw new RuntimeException("Unexpected IO error", e);
