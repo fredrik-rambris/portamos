@@ -7,7 +7,9 @@
       "Glob",
       "Grep",
       "Bash(python3:*)",
-      "Bash(./gradlew build:*)"
+      "Bash(./gradlew build:*)",
+      "Bash(./gradlew compileJava)",
+      "Bash(./gradlew test:*)"
     ]
   }
 }
