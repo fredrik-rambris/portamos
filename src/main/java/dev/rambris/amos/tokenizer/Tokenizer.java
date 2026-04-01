@@ -126,9 +126,7 @@ public class Tokenizer {
         var rawLines = lines.toArray(String[]::new);
         parser.setProcedureNames(scanProcedureNames(rawLines));
         parser.setArrayVarNames(scanArrayVarNames(rawLines));
-        var amosLines = java.util.Arrays.stream(rawLines)
-                .map(this::tokenizeLine)
-                .toList();
+        var amosLines = tokenizeLines(rawLines);
         return new AmosFile(version, amosLines);
     }
 
@@ -148,10 +146,7 @@ public class Tokenizer {
         rawLines = java.util.Arrays.copyOf(rawLines, lineCount);
         parser.setProcedureNames(scanProcedureNames(rawLines));
         parser.setArrayVarNames(scanArrayVarNames(rawLines));
-        var lines = java.util.Arrays.stream(rawLines)
-                .map(this::tokenizeLine)
-                .toList();
-        return new AmosFile(version, lines);
+        return new AmosFile(version, tokenizeLines(rawLines));
     }
 
     // -------------------------------------------------------------------------
@@ -162,10 +157,37 @@ public class Tokenizer {
      * Encodes an {@link AmosFile} into a complete AMOS binary file.
      */
     public byte[] encode(AmosFile file) {
-        List<byte[]> encodedLines = file.lines().stream()
-                .map(line -> encoder.encodeLine(line.indent(), line.tokens()))
-                .toList();
+        List<AmosLine> lines = file.lines();
+        List<byte[]> encodedLines = new ArrayList<>(lines.size());
+        for (int i = 0; i < lines.size(); i++) {
+            AmosLine line = lines.get(i);
+            try {
+                encodedLines.add(encoder.encodeLine(line.indent(), line.tokens()));
+            } catch (TokenizeException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                throw new TokenizeException(i + 1, -1, null, e);
+            }
+        }
         return writer.write(file.version(), encodedLines, file.banks());
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal: tokenize a pre-scanned array of raw source lines
+    // -------------------------------------------------------------------------
+
+    private List<AmosLine> tokenizeLines(String[] rawLines) {
+        List<AmosLine> result = new ArrayList<>(rawLines.length);
+        for (int i = 0; i < rawLines.length; i++) {
+            try {
+                result.add(tokenizeLine(rawLines[i]));
+            } catch (TokenizeException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                throw new TokenizeException(i + 1, -1, rawLines[i], e);
+            }
+        }
+        return result;
     }
 
     // -------------------------------------------------------------------------
