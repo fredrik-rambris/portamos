@@ -90,7 +90,7 @@ public class ResourceBankWriter implements BankWriter {
         buf.putShort(bank.bankNumber());
         buf.putShort((short) (bank.chipRam() ? 0x0002 : 0x0000));
         buf.putInt(dataSize);
-        buf.put(Arrays.copyOf("Resource".getBytes(StandardCharsets.ISO_8859_1), 8));
+        buf.put(AmosBank.Type.RESOURCE.identifier().getBytes(StandardCharsets.ISO_8859_1));
 
         // ---- Sub-header at DATA_START ----
         buf.putShort((short) 3); // BKCHUNKS

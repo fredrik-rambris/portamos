@@ -9,7 +9,8 @@
       "Bash(python3:*)",
       "Bash(./gradlew build:*)",
       "Bash(./gradlew compileJava)",
-      "Bash(./gradlew test:*)"
+      "Bash(./gradlew test:*)",
+      "Bash(xxd*)"
     ]
   }
 }

@@ -78,9 +78,10 @@ public class ResourceBankReader {
 
         byte[] nameBytes = new byte[8];
         buf.get(nameBytes);
-        String bankName = new String(nameBytes, StandardCharsets.ISO_8859_1).stripTrailing();
-        if (!"Resource".equals(bankName)) {
-            throw new IOException("Expected \"Resource\" bank, got: \"" + bankName + "\"");
+        String bankName = new String(nameBytes, StandardCharsets.ISO_8859_1);
+        if (!AmosBank.Type.RESOURCE.identifier().equals(bankName)) {
+            throw new IOException("Expected \"" + AmosBank.Type.RESOURCE.identifier()
+                    + "\" bank, got: \"" + bankName + "\"");
         }
 
         // ---- Resource bank sub-header ----
