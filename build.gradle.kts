@@ -1,6 +1,7 @@
 plugins {
     java
     application
+    id("com.gradleup.shadow") version "8.3.6"
 }
 
 group = "dev.rambris"
@@ -13,7 +14,7 @@ java {
 }
 
 application {
-    mainClass = "dev.rambris.amos.Main"
+    mainClass = "dev.rambris.amigaamos.Main"
 }
 
 repositories {

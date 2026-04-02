@@ -1,0 +1,261 @@
+{
+  "extension" : {
+    "id" : "AMOSPro_Compiler",
+    "name" : "Compiler",
+    "filename" : "AMOSPro_Compiler.Lib",
+    "slot" : 5,
+    "start" : 6,
+    "vendor" : "Francois Lionet"
+  },
+  "definitions" : [ {
+    "name" : "CMPCALL",
+    "kind" : "instruction",
+    "documentation" : "Call the compiler",
+    "signatures" : [ {
+      "offset" : 6,
+      "commaGroups" : 0,
+      "presentation" : "Cmpcall",
+      "parameters" : [ ]
+    } ]
+  }, {
+    "name" : "COMP OPTIONS",
+    "kind" : "instruction",
+    "documentation" : "",
+    "signatures" : [ {
+      "offset" : 20,
+      "commaGroups" : 1,
+      "presentation" : "Comp Options \"Command Line\"",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "Command Line",
+        "valueType" : "string"
+      } ]
+    } ]
+  }, {
+    "name" : "COMP TEST ON",
+    "kind" : "instruction",
+    "documentation" : "If COMPTEST is set to ON, checks will only be carried out before Jump instructions such as\nGOTO or WHILE, and time consuming commands like PRINT or WAIT. This is the\nstandard system used by the AMOS Pro interpreter.",
+    "signatures" : [ {
+      "offset" : 40,
+      "commaGroups" : 0,
+      "presentation" : "Comp Test On",
+      "parameters" : [ ]
+    } ]
+  }, {
+    "name" : "COMP TEST OFF",
+    "kind" : "instruction",
+    "documentation" : "The COMPTEST OFF command stops the testing completely and speeds your programs 'IY\nup to ten percent. You can use it to optimise time critical sections of your routines so that\nthey run at the maximum possible rate. This technique can be invaluable for programs such\nas fractal generators or 3D routines, which need to perform vast numbers of calculations\nevery second,",
+    "signatures" : [ {
+      "offset" : 58,
+      "commaGroups" : 0,
+      "presentation" : "Comp Test Off",
+      "parameters" : [ ]
+    } ]
+  }, {
+    "name" : "COMP TEST",
+    "kind" : "instruction",
+    "documentation" : "COMPTEST performs a single test in your program. It's called after a COMPTEST OFF to\nprovide you with manual control over the entire testing process",
+    "signatures" : [ {
+      "offset" : 78,
+      "commaGroups" : 0,
+      "presentation" : "Comp Test",
+      "parameters" : [ ]
+    } ]
+  }, {
+    "name" : "COMPILE",
+    "kind" : "instruction",
+    "documentation" : "Compile a program from AMOS Professional",
+    "signatures" : [ {
+      "offset" : 94,
+      "commaGroups" : 1,
+      "presentation" : "Compile command_string$",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "param1",
+        "valueType" : "string"
+      } ]
+    }, {
+      "offset" : 110,
+      "commaGroups" : 2,
+      "presentation" : "Compile param1, param2",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "param1",
+        "valueType" : "string"
+      }, {
+        "kind" : "value",
+        "name" : "param2",
+        "valueType" : "integer"
+      } ]
+    } ]
+  }, {
+    "name" : "COMP ERR$",
+    "kind" : "function",
+    "documentation" : "Return last error message",
+    "signatures" : [ {
+      "offset" : 120,
+      "commaGroups" : 0,
+      "presentation" : "Comp Err$",
+      "parameters" : [ ]
+    } ]
+  }, {
+    "name" : "COMP LOAD",
+    "kind" : "instruction",
+    "documentation" : "COMP LOAD loads the full Compiler utility into memory.",
+    "signatures" : [ {
+      "offset" : 136,
+      "commaGroups" : 0,
+      "presentation" : "Comp Load",
+      "parameters" : [ ]
+    }, {
+      "offset" : 152,
+      "commaGroups" : 1,
+      "presentation" : "Comp Load path",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "path",
+        "valueType" : "string"
+      } ]
+    } ]
+  }, {
+    "name" : "COMP DEL",
+    "kind" : "instruction",
+    "documentation" : "Restore the memory used by Compiler",
+    "signatures" : [ {
+      "offset" : 160,
+      "commaGroups" : 0,
+      "presentation" : "Comp Del",
+      "parameters" : [ ]
+    } ]
+  }, {
+    "name" : "COMP HERE",
+    "kind" : "function",
+    "documentation" : "Return Compiler status",
+    "signatures" : [ {
+      "offset" : 174,
+      "commaGroups" : 0,
+      "presentation" : "Comp Here",
+      "parameters" : [ ]
+    } ]
+  }, {
+    "name" : "COMP SIZE",
+    "kind" : "function",
+    "documentation" : "Return compiled program size",
+    "signatures" : [ {
+      "offset" : 190,
+      "commaGroups" : 0,
+      "presentation" : "Comp Size",
+      "parameters" : [ ]
+    } ]
+  }, {
+    "name" : "SQUASH",
+    "kind" : "function",
+    "documentation" : "Compact an area of memory",
+    "signatures" : [ {
+      "offset" : 206,
+      "commaGroups" : 5,
+      "presentation" : "Squash(Address, Length, Flag, Ahead, Colour)",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "Address",
+        "valueType" : "integer"
+      }, {
+        "kind" : "value",
+        "name" : "Length",
+        "valueType" : "integer"
+      }, {
+        "kind" : "value",
+        "name" : "Flag",
+        "valueType" : "integer"
+      }, {
+        "kind" : "value",
+        "name" : "Ahead",
+        "valueType" : "integer"
+      }, {
+        "kind" : "value",
+        "name" : "Colour",
+        "valueType" : "integer"
+      } ]
+    } ]
+  }, {
+    "name" : "UNSQUASH",
+    "kind" : "function",
+    "documentation" : "Unpack a squashed memory area",
+    "signatures" : [ {
+      "offset" : 228,
+      "commaGroups" : 2,
+      "presentation" : "Unsquash(Address, Length)",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "Address",
+        "valueType" : "integer"
+      }, {
+        "kind" : "value",
+        "name" : "Length",
+        "valueType" : "integer"
+      } ]
+    } ]
+  }, {
+    "name" : "PPSAVE",
+    "kind" : "instruction",
+    "documentation" : "",
+    "signatures" : [ {
+      "offset" : 246,
+      "commaGroups" : 2,
+      "presentation" : "Ppsave param1, param2",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "param1",
+        "valueType" : "string"
+      }, {
+        "kind" : "value",
+        "name" : "param2",
+        "valueType" : "integer"
+      } ]
+    }, {
+      "offset" : 262,
+      "commaGroups" : 3,
+      "presentation" : "Ppsave param1, param2, param3",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "param1",
+        "valueType" : "string"
+      }, {
+        "kind" : "value",
+        "name" : "param2",
+        "valueType" : "integer"
+      }, {
+        "kind" : "value",
+        "name" : "param3",
+        "valueType" : "integer"
+      } ]
+    } ]
+  }, {
+    "name" : "PPLOAD",
+    "kind" : "instruction",
+    "documentation" : "Loads and unpacks a file crunched with the PPSAVE command",
+    "signatures" : [ {
+      "offset" : 274,
+      "commaGroups" : 1,
+      "presentation" : "Ppload Filename",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "Filename",
+        "valueType" : "string"
+      } ]
+    }, {
+      "offset" : 288,
+      "commaGroups" : 2,
+      "presentation" : "Ppload Filename, Efficiency",
+      "parameters" : [ {
+        "kind" : "value",
+        "name" : "Filename",
+        "valueType" : "string"
+      }, {
+        "kind" : "value",
+        "name" : "Efficiency",
+        "valueType" : "integer"
+      } ]
+    } ]
+  } ]
+}

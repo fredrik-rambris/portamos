@@ -1,0 +1,116 @@
+name: Release JAR on tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release, for example v0.1.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Determine ref
+        id: ref
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.tag || '' }}" ]; then
+            echo "ref=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+          fetch-depth: 1
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Build runnable JAR
+        run: ./gradlew clean shadowJar
+
+      - name: Read tagged commit message and locate JAR
+        id: prep
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          subject="$(git log -1 --pretty=%s)"
+          body="$(git log -1 --pretty=%b)"
+
+          if [ -z "$body" ]; then
+            body="$subject"
+          fi
+
+          jar_path="$(find build/libs -maxdepth 1 -type f -name '*-all.jar' | head -n 1)"
+
+          if [ -z "$jar_path" ]; then
+            echo "No runnable JAR found in build/libs" >&2
+            exit 1
+          fi
+
+          {
+            echo "title<<EOF"
+            echo "$subject"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "body<<EOF"
+            echo "$body"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "jar_path=$jar_path" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release and upload JAR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.ref.outputs.tag }}
+          RELEASE_TITLE: ${{ steps.prep.outputs.title }}
+          RELEASE_BODY: ${{ steps.prep.outputs.body }}
+          JAR_PATH: ${{ steps.prep.outputs.jar_path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          printf '%s\n' "$RELEASE_BODY" > release-notes.txt
+
+          if [[ "$TAG_NAME" == *-* ]]; then
+            gh release create "$TAG_NAME" "$JAR_PATH" \
+              --title "$RELEASE_TITLE" \
+              --notes-file release-notes.txt \
+              --prerelease
+          else
+            gh release create "$TAG_NAME" "$JAR_PATH" \
+              --title "$RELEASE_TITLE" \
+              --notes-file release-notes.txt
+          fi
