@@ -1,8 +1,6 @@
 package dev.rambris.amigaamos.bank;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,7 +21,9 @@ public interface AmosBank {
         CODE("Code    "),
         PACPIC("Pac.Pic."),
         RESOURCE("Resource"),
-        SAMPLES("Samples ");
+        SAMPLES("Samples "),
+        SPRITES("Sprites "),
+        ICONS("Icons   ");
 
         private final String identifier;
 
@@ -53,11 +53,12 @@ public interface AmosBank {
 
     /**
      * Reads an AMOS bank from a file, dispatching to the correct reader
-     * based on the 8-byte bank-name header field.
+     * based on the 4-byte magic and (for {@code AmBk} files) the 8-byte bank-name header field.
      *
      * <ul>
-     *   <li><b>Resource</b> → {@link ResourceBank} via {@link ResourceBankReader}</li>
-     *   <li><b>All others</b> (Work, Data, Music, Samples, …) → {@link RawBank} via {@link RawBankReader}</li>
+     *   <li><b>AmSp / AmIc</b> → {@link SpriteBank} via {@link SpriteBankReader}</li>
+     *   <li><b>AmBk / Resource</b> → {@link ResourceBank} via {@link ResourceBankReader}</li>
+     *   <li><b>AmBk / others</b> (Work, Data, Music, Samples, …) → {@link RawBank} via {@link RawBankReader}</li>
      * </ul>
      */
     static AmosBank read(Path path) throws IOException {
@@ -66,33 +67,29 @@ public interface AmosBank {
 
     /**
      * Reads an AMOS bank from raw bytes, dispatching to the correct reader
-     * based on the 8-byte bank-name header field.
+     * based on the 4-byte magic and (for {@code AmBk} files) the 8-byte bank-name header field.
      */
     static AmosBank read(byte[] data) throws IOException {
-        if (data.length < MIN_HEADER_SIZE) {
-            throw new IOException("Too small to be an AmBk bank (" + data.length + " bytes)");
+        if (data.length < 4) {
+            throw new IOException("Too small to be an AMOS bank (" + data.length + " bytes)");
         }
 
-        var buf = ByteBuffer.wrap(data, 0, MIN_HEADER_SIZE).order(ByteOrder.BIG_ENDIAN);
+        var magic = new String(data, 0, 4, StandardCharsets.US_ASCII);
 
-        var magicBytes = new byte[4];
-        buf.get(magicBytes);
-        var magic = new String(magicBytes, StandardCharsets.US_ASCII);
-        if (!"AmBk".equals(magic)) {
-            throw new IOException("Not an AmBk file: magic=\"" + magic + "\"");
-        }
-
-        // Skip bank number (2), flags (2), length (4) → offset 12
-        buf.position(12);
-        var nameBytes = new byte[8];
-        buf.get(nameBytes);
-        var bankName = new String(nameBytes, StandardCharsets.ISO_8859_1);
-
-        var type = Type.fromIdentifier(bankName);
-
-        if (type == Type.RESOURCE) {
-            return ResourceBankReader.read(data);
-        }
-        return RawBankReader.read(data);
+        return switch (magic) {
+            case "AmSp", "AmIc" -> SpriteBankReader.read(data);
+            case "AmBk" -> {
+                if (data.length < MIN_HEADER_SIZE) {
+                    throw new IOException("Too small to be an AmBk bank (" + data.length + " bytes)");
+                }
+                var nameBytes = new byte[8];
+                System.arraycopy(data, 12, nameBytes, 0, 8);
+                var bankName = new String(nameBytes, StandardCharsets.ISO_8859_1);
+                var type = Type.fromIdentifier(bankName);
+                if (type == Type.RESOURCE) yield ResourceBankReader.read(data);
+                yield RawBankReader.read(data);
+            }
+            default -> throw new IOException("Not an AMOS bank file: magic=\"" + magic + "\"");
+        };
     }
 }
