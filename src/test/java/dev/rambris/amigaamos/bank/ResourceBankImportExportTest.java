@@ -24,8 +24,8 @@ class ResourceBankImportExportTest {
         Path exportDir = tmp.resolve("exported");
         new ResourceBankExporter().export(original, exportDir);
 
-        // 3. Import back from the directory
-        ResourceBank imported = new ResourceBankImporter().importFrom(exportDir);
+        // 3. Import back from the bank.json file in the exported directory
+        var imported = new ResourceBankImporter().importFrom(exportDir.resolve("bank.json"));
 
         // 4. Write the imported bank to a file and read it back
         Path written = tmp.resolve("reimported.Abk");

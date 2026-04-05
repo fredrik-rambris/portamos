@@ -163,8 +163,9 @@ public class Main {
         if (args.length < 3) { System.err.println(USAGE); System.exit(1); }
         Path inDir   = Path.of(args[1]);
         Path outFile = Path.of(args[2]);
-        System.out.printf("Reading bank from %s ...%n", inDir);
-        ResourceBank bank = new ResourceBankImporter().importFrom(inDir);
+        Path jsonPath = inDir.resolve("bank.json");
+        System.out.printf("Reading bank from %s ...%n", jsonPath);
+        var bank = new ResourceBankImporter().importFrom(jsonPath);
         System.out.printf("Bank %d (%s, %d elements, %d texts, %d programs)%n",
                 bank.bankNumber(),
                 bank.chipRam() ? "chip" : "fast",

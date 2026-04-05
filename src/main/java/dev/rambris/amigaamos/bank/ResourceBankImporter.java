@@ -14,14 +14,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Imports a {@link ResourceBank} from a directory previously produced by
+ * Imports a {@link ResourceBank} from a JSON metadata file previously produced by
  * {@link ResourceBankExporter}.
  *
- * <p>Expected directory layout:
+ * <p>Usage: call {@link #importFrom(Path)} with the path to the {@code bank.json} file.
+ * All other files (spritesheet PNG, {@code program_NNN.amui}) are resolved as siblings
+ * of the JSON file using the filenames stored within it.
+ *
+ * <p>Example — given {@code jsonPath = "/path/to/exported/bank.json"} containing
+ * {@code "spritesheet": "dark-boxes.png"}:
  * <pre>
- *   bank.json            — bank metadata (bankNumber, chipRam, screenMode, palette, elements, texts, programs)
- *   &lt;spritesheet&gt;.png   — indexed-colour PNG; filename taken from the {@code spritesheet} key in bank.json
- *   program_NNN.amui     — DBL Interface program source files (one per entry in the {@code programs} array)
+ *   spritesheet resolved to: /path/to/exported/dark-boxes.png
  * </pre>
  *
  * <p>The number of bitplanes is derived from the PNG's {@link IndexColorModel} map size,
@@ -33,15 +36,15 @@ public class ResourceBankImporter {
     private static final ObjectMapper JSON = new ObjectMapper();
 
     /**
-     * Imports a {@link ResourceBank} from the given directory.
+     * Imports a {@link ResourceBank} from the given JSON metadata file.
      *
-     * @param dir directory containing {@code bank.json} and the spritesheet PNG
+     * @param jsonPath path to the {@code bank.json} metadata file
      * @return the reconstructed in-memory bank
      * @throws IOException              if any file cannot be read
      * @throws IllegalStateException    if the spritesheet is not an indexed-colour PNG
      */
-    public ResourceBank importFrom(Path dir) throws IOException {
-        JsonNode root = JSON.readTree(dir.resolve("bank.json").toFile());
+    public ResourceBank importFrom(Path jsonPath) throws IOException {
+        JsonNode root = JSON.readTree(jsonPath.toFile());
 
         short bankNumber = (short) root.path("bankNumber").asInt(1);
         boolean chipRam  = root.path("chipRam").asBoolean(true);
@@ -51,7 +54,7 @@ public class ResourceBankImporter {
         int[] palette = parsePalette(root.path("palette"));
 
         String spritesheetFile = root.path("spritesheet").asText("spritesheet.png");
-        Path spritesheetPath = dir.resolve(spritesheetFile);
+        Path spritesheetPath = jsonPath.resolveSibling(spritesheetFile);
 
         // Load spritesheet; derive bitplane count from numColours in JSON (preferred)
         // because Java always writes 8-bit indexed PNGs regardless of the original depth.
@@ -66,7 +69,7 @@ public class ResourceBankImporter {
 
         List<ResourceBank.Element> elements = parseElements(root.path("elements"), raster, planes);
         List<String> texts    = parseTexts(root.path("texts"));
-        List<String> programs = parsePrograms(root.path("programs"), dir);
+        List<String> programs = parsePrograms(root.path("programs"), jsonPath.getParent());
 
         return new ResourceBank(bankNumber, chipRam, screenMode, palette, imagePath,
                 List.copyOf(elements), List.copyOf(texts), List.copyOf(programs));
