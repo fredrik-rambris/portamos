@@ -55,37 +55,27 @@ import java.util.List;
  *   Each program: [2] length_including_itself, [length-2] program_bytes (with trailing NUL)
  * </pre>
  */
-public class ResourceBankReader {
+class ResourceBankReader {
 
-    private static final int DATA_START = 20;
-    private static final int PAC_PIC_MAGIC = 0x06071963;
+    // Offsets in this reader are relative to the AmBk payload start.
+    private static final int DATA_START = 0;
+    private static final int PAC_PIC_MAGIC = PacPicFormat.PK_MAGIC;
 
-    public static ResourceBank read(Path path) throws IOException {
+    static ResourceBank read(Path path) throws IOException {
         return read(Files.readAllBytes(path));
     }
 
-    public static ResourceBank read(byte[] raw) throws IOException {
-        var buf = ByteBuffer.wrap(raw).order(ByteOrder.BIG_ENDIAN);
-
-        // ---- File header ----
-        var magicBytes = new byte[4];
-        buf.get(magicBytes);
-        var magic = new String(magicBytes, StandardCharsets.US_ASCII);
-        if (!"AmBk".equals(magic)) {
-            throw new IOException("Not an AmBk file: magic=\"" + magic + "\"");
-        }
-        var bankNumber = (short) (buf.getShort() & 0xFFFF);
-        var flags = buf.getShort() & 0xFFFF;
-        var chipRam = (flags & 0x0002) != 0;
-        buf.getInt(); // bank length — skip
-
-        var nameBytes = new byte[8];
-        buf.get(nameBytes);
-        var bankName = new String(nameBytes, StandardCharsets.ISO_8859_1);
-        if (!AmosBank.Type.RESOURCE.identifier().equals(bankName)) {
+    static ResourceBank read(byte[] raw) throws IOException {
+        var hdr = AmBkCodec.parse(raw);
+        if (hdr.type() != AmosBank.Type.RESOURCE) {
             throw new IOException("Expected \"" + AmosBank.Type.RESOURCE.identifier()
-                    + "\" bank, got: \"" + bankName + "\"");
+                    + "\" bank, got: \"" + hdr.typeName() + "\"");
         }
+
+        var bankNumber = hdr.bankNumber();
+        var chipRam = hdr.chipRam();
+        var payload = hdr.payload();
+        var buf = ByteBuffer.wrap(payload).order(ByteOrder.BIG_ENDIAN);
 
         // ---- Resource bank sub-header ----
         buf.position(DATA_START);
@@ -101,7 +91,9 @@ public class ResourceBankReader {
         List<String> programs = List.of();
 
         if (imagesOffset > 0) {
-            var imagesEnd = textsOffset > 0 ? DATA_START + textsOffset : raw.length;
+            var imagesEnd = payload.length;
+            if (textsOffset > 0) imagesEnd = Math.min(imagesEnd, DATA_START + textsOffset);
+            if (dblOffset > 0) imagesEnd = Math.min(imagesEnd, DATA_START + dblOffset);
             imgs = parseImages(buf, DATA_START + imagesOffset, imagesEnd);
         }
         if (textsOffset > 0) {

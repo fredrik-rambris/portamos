@@ -15,7 +15,7 @@ import java.util.List;
  * <p>Sprite banks do not follow the regular {@code AmBk} convention; they use their own magic
  * and layout.  See {@link SpriteBank} for the format description.
  */
-public class SpriteBankReader {
+class SpriteBankReader {
 
     private static final String MAGIC_SP = "AmSp";
     private static final String MAGIC_IC = "AmIc";
@@ -23,7 +23,7 @@ public class SpriteBankReader {
     /**
      * Reads a sprite/icon bank from {@code path}.
      */
-    public static SpriteBank read(Path path) throws IOException {
+    static SpriteBank read(Path path) throws IOException {
         return read(Files.readAllBytes(path));
     }
 
@@ -32,7 +32,7 @@ public class SpriteBankReader {
      *
      * @throws IOException if the data does not start with {@code AmSp} or {@code AmIc}
      */
-    public static SpriteBank read(byte[] raw) throws IOException {
+    static SpriteBank read(byte[] raw) throws IOException {
         var buf = ByteBuffer.wrap(raw).order(ByteOrder.BIG_ENDIAN);
 
         var magicBytes = new byte[4];

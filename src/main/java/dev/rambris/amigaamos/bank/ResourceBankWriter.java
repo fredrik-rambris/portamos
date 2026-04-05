@@ -82,30 +82,26 @@ public class ResourceBankWriter implements BankWriter {
         int dblOff = dblSection.length > 0 ? SUB_HEADER_SIZE + imgSection.length + txtSection.length : 0;
 
         int dataSize = SUB_HEADER_SIZE + imgSection.length + txtSection.length + dblSection.length;
+        ByteBuffer payload = ByteBuffer.allocate(dataSize).order(ByteOrder.BIG_ENDIAN);
 
-        ByteBuffer buf = ByteBuffer.allocate(20 + dataSize).order(ByteOrder.BIG_ENDIAN);
+        // ---- Sub-header at payload start ----
+        payload.putShort((short) 3); // BKCHUNKS
+        payload.putInt(imgOff);
+        payload.putInt(txtOff);
+        payload.putInt(dblOff);
+        payload.putInt(0); // reserved 1
+        payload.putInt(0); // reserved 2
+        payload.putInt(0); // reserved 3
 
-        // ---- File header (20 bytes) ----
-        buf.put("AmBk".getBytes(StandardCharsets.US_ASCII));
-        buf.putShort(bank.bankNumber());
-        buf.putShort((short) (bank.chipRam() ? 0x0002 : 0x0000));
-        buf.putInt(dataSize);
-        buf.put(AmosBank.Type.RESOURCE.identifier().getBytes(StandardCharsets.ISO_8859_1));
+        payload.put(imgSection);
+        payload.put(txtSection);
+        payload.put(dblSection);
 
-        // ---- Sub-header at DATA_START ----
-        buf.putShort((short) 3); // BKCHUNKS
-        buf.putInt(imgOff);
-        buf.putInt(txtOff);
-        buf.putInt(dblOff);
-        buf.putInt(0); // reserved 1
-        buf.putInt(0); // reserved 2
-        buf.putInt(0); // reserved 3
-
-        buf.put(imgSection);
-        buf.put(txtSection);
-        buf.put(dblSection);
-
-        return buf.array();
+        return AmBkCodec.build(
+                bank.bankNumber(),
+                bank.chipRam(),
+                AmosBank.Type.RESOURCE.identifier(),
+                payload.array());
     }
 
     // -------------------------------------------------------------------------

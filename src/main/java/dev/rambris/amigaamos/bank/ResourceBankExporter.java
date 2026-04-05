@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -77,17 +76,7 @@ public class ResourceBankExporter {
         }
 
 
-        // Build 8-bit IndexColorModel from the 32-entry Amiga palette
-        // Amiga colour word: 0x0RGB, each nibble 0-F → scale to 0-255 by * 17
-        int[] palette = bank.palette();
-        byte[] reds = new byte[256], greens = new byte[256], blues = new byte[256];
-        for (int i = 0; i < Math.min(maxColour, 256); i++) {
-            int c = palette[i];
-            reds[i] = (byte) (((c >> 8) & 0xF) * 17);
-            greens[i] = (byte) (((c >> 4) & 0xF) * 17);
-            blues[i] = (byte) ((c & 0xF) * 17);
-        }
-        IndexColorModel colorModel = new IndexColorModel(8, maxColour, reds, greens, blues);
+        var colorModel = AmigaPalette.buildIndexColorModel(bank.palette(), maxColour);
 
         BufferedImage sheet = new BufferedImage(sheetW, sheetH,
                 BufferedImage.TYPE_BYTE_INDEXED, colorModel);
@@ -154,7 +143,7 @@ public class ResourceBankExporter {
         ArrayNode paletteNode = root.putArray("palette");
 
         for (int color : bank.palette()) {
-            paletteNode.add("#%03X".formatted(color));
+            paletteNode.add(AmigaPalette.toHexRgb(color));
         }
 
         ArrayNode elementsNode = root.putArray("elements");

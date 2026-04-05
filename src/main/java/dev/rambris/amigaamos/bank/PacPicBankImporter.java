@@ -90,9 +90,7 @@ public class PacPicBankImporter {
         var palette = new int[32];
         if (paletteNode.isMissingNode()) return palette;
         for (int i = 0; i < Math.min(32, paletteNode.size()); i++) {
-            var t = paletteNode.get(i).asText("#000");
-            var hex = t.startsWith("#") ? t.substring(1) : t;
-            palette[i] = Integer.parseInt(hex, 16) & 0xFFF;
+            palette[i] = AmigaPalette.parseHexRgb(paletteNode.get(i).asText("#000"));
         }
         return palette;
     }

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,7 +64,7 @@ public class SpriteBankExporter {
         }
 
         int maxColors = 1 << maxPlanes;
-        var colorModel = buildColorModel(bank.palette(), maxColors);
+        var colorModel = AmigaPalette.buildIndexColorModel(bank.palette(), maxColors);
         var sheet = new BufferedImage(sheetW, sheetH, BufferedImage.TYPE_BYTE_INDEXED, colorModel);
         var raster = sheet.getRaster();
 
@@ -116,19 +115,6 @@ public class SpriteBankExporter {
         return pixels;
     }
 
-    private static IndexColorModel buildColorModel(int[] palette, int maxColors) {
-        var reds = new byte[256];
-        var greens = new byte[256];
-        var blues = new byte[256];
-        for (int i = 0; i < Math.min(maxColors, 256); i++) {
-            var c = i < palette.length ? palette[i] : 0;
-            reds[i]   = (byte) (((c >> 8) & 0xF) * 17);
-            greens[i] = (byte) (((c >> 4) & 0xF) * 17);
-            blues[i]  = (byte) ((c & 0xF) * 17);
-        }
-        return new IndexColorModel(8, maxColors, reds, greens, blues);
-    }
-
     // -------------------------------------------------------------------------
     // Metadata JSON
     // -------------------------------------------------------------------------
@@ -148,7 +134,7 @@ public class SpriteBankExporter {
 
         ArrayNode paletteNode = root.putArray("palette");
         for (var color : bank.palette()) {
-            paletteNode.add("#%03X".formatted(color));
+            paletteNode.add(AmigaPalette.toHexRgb(color));
         }
 
         ArrayNode spritesNode = root.putArray("sprites");

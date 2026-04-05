@@ -142,15 +142,11 @@ public class SpriteBankImporter {
         if (paletteNode.isMissingNode()) return palette;
 
         for (int i = 0; i < Math.min(paletteNode.size(), 32); i++) {
-            palette[i] = parseAmigaColor(paletteNode.get(i).asText("#000"));
+            palette[i] = AmigaPalette.parseHexRgb(paletteNode.get(i).asText("#000"));
         }
         return palette;
     }
 
-    private static int parseAmigaColor(String color) {
-        var hex = color.startsWith("#") ? color.substring(1) : color;
-        return Integer.parseInt(hex, 16) & 0xFFF;
-    }
 
     private static int colorModelToPlanes(int nColors) {
         var planes = 0;

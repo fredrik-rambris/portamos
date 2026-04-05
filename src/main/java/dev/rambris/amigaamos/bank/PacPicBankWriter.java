@@ -3,7 +3,6 @@ package dev.rambris.amigaamos.bank;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -12,7 +11,6 @@ import java.nio.file.Path;
  */
 public class PacPicBankWriter implements BankWriter {
 
-    private static final int PS_MAGIC = 0x12031990;
 
     @Override
     public void write(AmosBank bank, Path dest) throws IOException {
@@ -26,19 +24,7 @@ public class PacPicBankWriter implements BankWriter {
         }
 
         var payload = serializePayload(pb);
-        var nameBytes = AmosBank.Type.PACPIC.identifier().getBytes(StandardCharsets.ISO_8859_1);
-        var nameAndPayload = nameBytes.length + payload.length;
-        var flags = pb.chipRam() ? 0x0000 : 0x0001;
-
-        var buf = ByteBuffer.allocate(4 + 2 + 2 + 4 + nameBytes.length + payload.length)
-                .order(ByteOrder.BIG_ENDIAN);
-        buf.put("AmBk".getBytes(StandardCharsets.US_ASCII));
-        buf.putShort(pb.bankNumber());
-        buf.putShort((short) flags);
-        buf.putInt(nameAndPayload);
-        buf.put(nameBytes);
-        buf.put(payload);
-        return buf.array();
+        return AmBkCodec.build(pb.bankNumber(), pb.chipRam(), AmosBank.Type.PACPIC.identifier(), payload);
     }
 
     private static byte[] serializePayload(PacPicBank bank) {
@@ -47,8 +33,8 @@ public class PacPicBankWriter implements BankWriter {
         }
 
         var sh = bank.screenHeader();
-        var buf = ByteBuffer.allocate(90 + bank.picData().length).order(ByteOrder.BIG_ENDIAN);
-        buf.putInt(PS_MAGIC);
+        var buf = ByteBuffer.allocate(PacPicFormat.SPACK_HEADER_SIZE + bank.picData().length).order(ByteOrder.BIG_ENDIAN);
+        buf.putInt(PacPicFormat.SPACK_MAGIC);
         buf.putShort((short) sh.width());
         buf.putShort((short) sh.height());
         buf.putShort((short) sh.hardX());

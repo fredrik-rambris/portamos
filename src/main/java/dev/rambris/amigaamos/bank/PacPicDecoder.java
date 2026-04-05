@@ -41,7 +41,7 @@ public class PacPicDecoder {
      */
     public static int[][] decompress(byte[] data) {
         ByteBuffer hdr = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
-        hdr.getInt();                          // 0x06071963 magic
+        hdr.getInt();                          // PK_MAGIC
         hdr.getShort();                        // Pkdx — source X in bytes (not used here)
         hdr.getShort();                        // Pkdy — source Y in pixels (not used here)
         int wBytes = hdr.getShort() & 0xFFFF; // Pktx — width in bytes
@@ -58,7 +58,7 @@ public class PacPicDecoder {
         byte[][] planes_buf = new byte[planes][height * wBytes];
 
         // Stream positions within data[]
-        int picPos = 24;      // PICDATA begins immediately after the 24-byte header
+        int picPos = PacPicFormat.PACK_HEADER_SIZE;      // PICDATA begins after header
         int rlePos = rleOff;
         int ptsPos = ptsOff;
 

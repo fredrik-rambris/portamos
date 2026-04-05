@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -65,7 +64,7 @@ public class PacPicBankExporter {
             s.put("numPlanes", sh.numPlanes());
             var p = s.putArray("palette");
             for (var c : sh.palette()) {
-                p.add("#%03X".formatted(c));
+                p.add(AmigaPalette.toHexRgb(c));
             }
         }
 
@@ -74,16 +73,7 @@ public class PacPicBankExporter {
 
     private static BufferedImage toIndexedImage(
             int[][] pixels, int width, int height, int[] amigaPalette, int maxColors) {
-        var reds = new byte[256];
-        var greens = new byte[256];
-        var blues = new byte[256];
-        for (int i = 0; i < Math.min(maxColors, 256); i++) {
-            var c = i < amigaPalette.length ? amigaPalette[i] : (i & 0xFFF);
-            reds[i] = (byte) (((c >> 8) & 0xF) * 17);
-            greens[i] = (byte) (((c >> 4) & 0xF) * 17);
-            blues[i] = (byte) ((c & 0xF) * 17);
-        }
-        var cm = new IndexColorModel(8, Math.min(maxColors, 256), reds, greens, blues);
+        var cm = AmigaPalette.buildIndexColorModel(amigaPalette, maxColors);
         var image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, cm);
         var raster = image.getRaster();
         for (int y = 0; y < height; y++) {
@@ -106,16 +96,16 @@ public class PacPicBankExporter {
 
     private static int readSrcX(byte[] picData) {
         // pkdx stored in bytes at offset +4
-        var pkdx = ((picData[4] & 0xFF) << 8) | (picData[5] & 0xFF);
+        var pkdx = ((picData[PacPicFormat.OFF_PKDX] & 0xFF) << 8) | (picData[PacPicFormat.OFF_PKDX + 1] & 0xFF);
         return pkdx * 8;
     }
 
     private static int readSrcY(byte[] picData) {
-        return ((picData[6] & 0xFF) << 8) | (picData[7] & 0xFF);
+        return ((picData[PacPicFormat.OFF_PKDY] & 0xFF) << 8) | (picData[PacPicFormat.OFF_PKDY + 1] & 0xFF);
     }
 
     private static int readPlanes(byte[] picData) {
-        return ((picData[14] & 0xFF) << 8) | (picData[15] & 0xFF);
+        return ((picData[PacPicFormat.OFF_PKPLAN] & 0xFF) << 8) | (picData[PacPicFormat.OFF_PKPLAN + 1] & 0xFF);
     }
 }
 

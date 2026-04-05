@@ -205,13 +205,13 @@ public class PacPicEncoder {
         }
 
         // ---- Assemble output ----
-        int ptsOff   = 24 + picLen;
+        int ptsOff   = PacPicFormat.PACK_HEADER_SIZE + picLen;
         int rleOff   = ptsOff + ptsAreaSz;
         int rawTotal = rleOff + rleLen;
         int total    = (rawTotal + 3) & ~1;   // round up to even
 
         ByteBuffer out = ByteBuffer.allocate(total).order(ByteOrder.BIG_ENDIAN);
-        out.putInt(0x06071963);              // magic
+        out.putInt(PacPicFormat.PK_MAGIC);              // magic
         out.putShort((short) (srcX / 8));   // Pkdx: source X in bytes
         out.putShort((short) srcY);          // Pkdy: source Y in pixels
         out.putShort((short) wBytes);        // Pktx: width in bytes

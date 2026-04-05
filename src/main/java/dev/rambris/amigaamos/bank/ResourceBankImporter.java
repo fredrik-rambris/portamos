@@ -142,16 +142,11 @@ public class ResourceBankImporter {
         int[] palette = new int[32];
         if (paletteNode.isMissingNode()) return palette;
         for (int i = 0; i < Math.min(paletteNode.size(), 32); i++) {
-            palette[i] = parseAmigaColor(paletteNode.get(i).asText("#000"));
+            palette[i] = AmigaPalette.parseHexRgb(paletteNode.get(i).asText("#000"));
         }
         return palette;
     }
 
-    /** Parses {@code "#RGB"} (Amiga 12-bit colour) → int {@code 0x0RGB}. */
-    private static int parseAmigaColor(String color) {
-        String hex = color.startsWith("#") ? color.substring(1) : color;
-        return Integer.parseInt(hex, 16) & 0xFFF;
-    }
 
     /** Parses a hex string like {@code "0x0000"} or {@code "0"} to an int. */
     private static int parseHex(String s) {
