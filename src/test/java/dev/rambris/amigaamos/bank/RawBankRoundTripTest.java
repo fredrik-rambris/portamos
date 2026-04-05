@@ -19,8 +19,8 @@ class RawBankRoundTripTest {
             "ChipData.Abk, DATA, true",
     })
     void readTestFile(String filename, String expectedType, boolean expectedChip) throws Exception {
-        Path path = Path.of("src/test/resources", filename);
-        AmosBank bank = new RawBankReader().read(path);
+        var path = Path.of("src/test/resources", filename);
+        var bank = RawBankReader.read(path);
 
         assertEquals(AmosBank.Type.valueOf(expectedType), bank.type(), "type");
         assertEquals(expectedChip, bank.chipRam(), "chipRam");
@@ -40,13 +40,13 @@ class RawBankRoundTripTest {
             "ChipData.Abk",
     })
     void writeRoundTrip(String filename, @TempDir Path tmp) throws Exception {
-        Path original = Path.of("src/test/resources", filename);
-        AmosBank bank = new RawBankReader().read(original);
+        var original = Path.of("src/test/resources", filename);
+        var bank = RawBankReader.read(original);
 
         Path written = tmp.resolve(filename);
         new RawBankWriter().write(bank, written);
 
-        AmosBank readback = new RawBankReader().read(written);
+        var readback = RawBankReader.read(written);
         assertEquals(bank.type(),       readback.type(),       "type");
         assertEquals(bank.bankNumber(), readback.bankNumber(), "bankNumber");
         assertEquals(bank.chipRam(),    readback.chipRam(),    "chipRam");
@@ -61,8 +61,8 @@ class RawBankRoundTripTest {
             "ChipData.Abk",
     })
     void importExportRoundTrip(String filename, @TempDir Path tmp) throws Exception {
-        Path original = Path.of("src/test/resources", filename);
-        AmosBank bank = new RawBankReader().read(original);
+        var original = Path.of("src/test/resources", filename);
+        var bank = RawBankReader.read(original);
 
         // Export
         Path dataPath = tmp.resolve("payload.bin");
@@ -82,8 +82,8 @@ class RawBankRoundTripTest {
     @Test
     void importResolvesDataFileRelativeToJson(@TempDir Path tmp) throws Exception {
         // Export to one name, then manually edit JSON to reference a renamed data file
-        Path original = Path.of("src/test/resources/Work.Abk");
-        AmosBank bank = new RawBankReader().read(original);
+        var original = Path.of("src/test/resources/Work.Abk");
+        var bank = RawBankReader.read(original);
 
         Path dataPath = tmp.resolve("original.bin");
         new RawBankExporter().export(bank, dataPath);

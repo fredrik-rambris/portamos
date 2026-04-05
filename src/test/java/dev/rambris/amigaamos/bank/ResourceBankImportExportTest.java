@@ -18,7 +18,7 @@ class ResourceBankImportExportTest {
     @Test
     void importExportRoundTrip(@TempDir Path tmp) throws Exception {
         // 1. Read the original bank
-        ResourceBank original = new ResourceBankReader().read(DEFAULT_BANK);
+        var original = (ResourceBank) AmosBank.read(DEFAULT_BANK);
 
         // 2. Export to a directory
         Path exportDir = tmp.resolve("exported");
@@ -30,7 +30,7 @@ class ResourceBankImportExportTest {
         // 4. Write the imported bank to a file and read it back
         Path written = tmp.resolve("reimported.Abk");
         new ResourceBankWriter().write(imported, written);
-        ResourceBank readback = new ResourceBankReader().read(written);
+        var readback = (ResourceBank) AmosBank.read(written);
 
         // Structural checks
         assertEquals(original.bankNumber(),  readback.bankNumber(),  "bankNumber");

@@ -8,7 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Reads an AMOS Professional Work or Data bank ({@code .Abk}) file.
+ * Reads an AMOS Professional bank ({@code .Abk}) file as a {@link RawBank}.
+ *
+ * <p>Handles any bank type whose payload is opaque binary data (Work, Data,
+ * Music, Samples, AMAL, etc.).  The bank type is determined from the 8-byte
+ * name field in the header.
  *
  * <p>Binary layout (big-endian):
  * <pre>
@@ -16,7 +20,7 @@ import java.nio.file.Path;
  *   [2]  bank number
  *   [2]  flags: 0x0000 = chip RAM, 0x0001 = fast (non-chip) RAM
  *   [4]  length: (name size 8) + payload size
- *   [8]  bank name: "Work    " or "Data    "
+ *   [8]  bank name: "Work    ", "Data    ", "Music   ", …
  *   [n]  payload bytes
  * </pre>
  *
@@ -30,44 +34,53 @@ import java.nio.file.Path;
 public class RawBankReader {
 
     /**
-     * Reads a Work or Data bank from {@code path}.
+     * Reads a bank from {@code path}.
      *
      * @return a {@link RawBank} with type determined from the bank name
-     * @throws IOException if the file cannot be read or is not a valid Work/Data bank
+     * @throws IOException if the file cannot be read or is not a valid bank
      */
-    public AmosBank read(Path path) throws IOException {
-        byte[] raw = Files.readAllBytes(path);
-        ByteBuffer buf = ByteBuffer.wrap(raw).order(ByteOrder.BIG_ENDIAN);
+    public static RawBank read(Path path) throws IOException {
+        return read(Files.readAllBytes(path));
+    }
+
+    /**
+     * Reads a bank from raw bytes.
+     *
+     * @return a {@link RawBank} with type determined from the bank name
+     * @throws IOException if the data is not a valid bank
+     */
+    public static RawBank read(byte[] raw) throws IOException {
+        var buf = ByteBuffer.wrap(raw).order(ByteOrder.BIG_ENDIAN);
 
         // Magic
-        byte[] magicBytes = new byte[4];
+        var magicBytes = new byte[4];
         buf.get(magicBytes);
         if (!"AmBk".equals(new String(magicBytes, StandardCharsets.US_ASCII))) {
-            throw new IOException("Not an AmBk file: " + path);
+            throw new IOException("Not an AmBk file");
         }
 
-        short bankNumber = buf.getShort();
-        int   flags      = buf.getShort() & 0xFFFF;
+        var bankNumber = buf.getShort();
+        var flags = buf.getShort() & 0xFFFF;
         // Bit 31 of the length field is set by the AMOS saver for Data banks but is
         // not used by the AMOS loader — type is determined from the name below.
-        int   nameAndPayload = buf.getInt() & 0x7FFFFFFF;
+        var nameAndPayload = buf.getInt() & 0x7FFFFFFF;
 
-        boolean chipRam = (flags & 0x0001) == 0; // 0x0000 = chip, 0x0001 = fast
+        var chipRam = (flags & 0x0001) == 0; // 0x0000 = chip, 0x0001 = fast
 
         // Bank name determines type (8 bytes, space-padded to match Type.identifier())
-        byte[] nameBytes = new byte[8];
+        var nameBytes = new byte[8];
         buf.get(nameBytes);
-        String name = new String(nameBytes, StandardCharsets.ISO_8859_1);
+        var name = new String(nameBytes, StandardCharsets.ISO_8859_1);
 
-        int payloadSize = nameAndPayload - 8;
-        if (payloadSize <= 0) throw new IOException("Invalid bank length in " + path);
-        byte[] data = new byte[payloadSize];
+        var payloadSize = nameAndPayload - 8;
+        if (payloadSize <= 0) throw new IOException("Invalid bank length");
+        var data = new byte[payloadSize];
         buf.get(data);
 
-        if (name.equals(AmosBank.Type.WORK.identifier())) return new RawBank(AmosBank.Type.WORK, bankNumber, chipRam, data);
-        if (name.equals(AmosBank.Type.DATA.identifier())) return new RawBank(AmosBank.Type.DATA, bankNumber, chipRam, data);
-        throw new IOException("Expected \"" + AmosBank.Type.WORK.identifier().stripTrailing()
-                + "\" or \"" + AmosBank.Type.DATA.identifier().stripTrailing()
-                + "\" bank name, got: \"" + name.stripTrailing() + "\" in " + path);
+        var type = AmosBank.Type.fromIdentifier(name);
+        if (type == null) {
+            throw new IOException("Unknown bank type: \"" + name.stripTrailing() + "\"");
+        }
+        return new RawBank(type, bankNumber, chipRam, data);
     }
 }

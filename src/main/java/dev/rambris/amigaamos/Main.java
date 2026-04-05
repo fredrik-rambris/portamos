@@ -140,14 +140,19 @@ public class Main {
         Path inputPath = Path.of(args[1]);
         Path outDir    = Path.of(args[2]);
         System.out.printf("Reading %s ...%n", inputPath.getFileName());
-        ResourceBank bank = new ResourceBankReader().read(inputPath);
+        var bank = AmosBank.read(inputPath);
+        if (!(bank instanceof ResourceBank resourceBank)) {
+            System.err.printf("Expected a Resource bank, got: %s%n", bank.type());
+            System.exit(1);
+            return;
+        }
         System.out.printf("Bank %d (%s, %d elements, %d texts, %d programs)%n",
-                bank.bankNumber(),
-                bank.chipRam() ? "chip" : "fast",
-                bank.elements().size(),
-                bank.texts().size(),
-                bank.programs().size());
-        new ResourceBankExporter().export(bank, outDir);
+                resourceBank.bankNumber(),
+                resourceBank.chipRam() ? "chip" : "fast",
+                resourceBank.elements().size(),
+                resourceBank.texts().size(),
+                resourceBank.programs().size());
+        new ResourceBankExporter().export(resourceBank, outDir);
     }
 
     // -------------------------------------------------------------------------

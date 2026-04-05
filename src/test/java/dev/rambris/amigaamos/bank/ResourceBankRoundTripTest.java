@@ -14,12 +14,12 @@ class ResourceBankRoundTripTest {
 
     @Test
     void roundTrip(@TempDir Path tmp) throws Exception {
-        ResourceBank original = new ResourceBankReader().read(DEFAULT_BANK);
+        var original = (ResourceBank) AmosBank.read(DEFAULT_BANK);
 
         Path written = tmp.resolve("roundtrip.Abk");
         new ResourceBankWriter().write(original, written);
 
-        ResourceBank readback = new ResourceBankReader().read(written);
+        var readback = (ResourceBank) AmosBank.read(written);
 
         assertEquals(original.bankNumber(),  readback.bankNumber(),  "bankNumber");
         assertEquals(original.chipRam(),     readback.chipRam(),     "chipRam");

@@ -60,25 +60,28 @@ public class ResourceBankReader {
     private static final int DATA_START = 20;
     private static final int PAC_PIC_MAGIC = 0x06071963;
 
-    public ResourceBank read(Path path) throws IOException {
-        byte[] raw = Files.readAllBytes(path);
-        ByteBuffer buf = ByteBuffer.wrap(raw).order(ByteOrder.BIG_ENDIAN);
+    public static ResourceBank read(Path path) throws IOException {
+        return read(Files.readAllBytes(path));
+    }
+
+    public static ResourceBank read(byte[] raw) throws IOException {
+        var buf = ByteBuffer.wrap(raw).order(ByteOrder.BIG_ENDIAN);
 
         // ---- File header ----
-        byte[] magicBytes = new byte[4];
+        var magicBytes = new byte[4];
         buf.get(magicBytes);
-        String magic = new String(magicBytes, StandardCharsets.US_ASCII);
+        var magic = new String(magicBytes, StandardCharsets.US_ASCII);
         if (!"AmBk".equals(magic)) {
             throw new IOException("Not an AmBk file: magic=\"" + magic + "\"");
         }
-        short bankNumber = (short) (buf.getShort() & 0xFFFF);
-        int flags = buf.getShort() & 0xFFFF;
-        boolean chipRam = (flags & 0x0002) != 0;
+        var bankNumber = (short) (buf.getShort() & 0xFFFF);
+        var flags = buf.getShort() & 0xFFFF;
+        var chipRam = (flags & 0x0002) != 0;
         buf.getInt(); // bank length — skip
 
-        byte[] nameBytes = new byte[8];
+        var nameBytes = new byte[8];
         buf.get(nameBytes);
-        String bankName = new String(nameBytes, StandardCharsets.ISO_8859_1);
+        var bankName = new String(nameBytes, StandardCharsets.ISO_8859_1);
         if (!AmosBank.Type.RESOURCE.identifier().equals(bankName)) {
             throw new IOException("Expected \"" + AmosBank.Type.RESOURCE.identifier()
                     + "\" bank, got: \"" + bankName + "\"");
@@ -87,18 +90,18 @@ public class ResourceBankReader {
         // ---- Resource bank sub-header ----
         buf.position(DATA_START);
         buf.getShort();          // BKCHUNKS — skip
-        int imagesOffset = buf.getInt();
-        int textsOffset = buf.getInt();
-        int dblOffset = buf.getInt();
+        var imagesOffset = buf.getInt();
+        var textsOffset = buf.getInt();
+        var dblOffset = buf.getInt();
         // three reserved longs — buf is now at DATA_START+26
 
         // ---- Parse sections ----
-        ImagesResult imgs = new ImagesResult(List.of(), 0, new int[32], "");
+        var imgs = new ImagesResult(List.of(), 0, new int[32], "");
         List<String> texts = List.of();
         List<String> programs = List.of();
 
         if (imagesOffset > 0) {
-            int imagesEnd = textsOffset > 0 ? DATA_START + textsOffset : raw.length;
+            var imagesEnd = textsOffset > 0 ? DATA_START + textsOffset : raw.length;
             imgs = parseImages(buf, DATA_START + imagesOffset, imagesEnd);
         }
         if (textsOffset > 0) {
@@ -123,7 +126,7 @@ public class ResourceBankReader {
                                 int screenMode, int[] palette, String imagePath) {
     }
 
-    private ImagesResult parseImages(ByteBuffer buf, int sectionStart, int sectionEnd) {
+    private static ImagesResult parseImages(ByteBuffer buf, int sectionStart, int sectionEnd) {
         buf.position(sectionStart);
 
         int nEntries = buf.getShort() & 0xFFFF;
@@ -166,7 +169,7 @@ public class ResourceBankReader {
      *   <li>Otherwise: a named Res_NN element with explicit name, count, and Pac.Pic images.</li>
      * </ul>
      */
-    private ResourceBank.Element parseEntry(ByteBuffer buf, int entryStart, int entryEnd) {
+    private static ResourceBank.Element parseEntry(ByteBuffer buf, int entryStart, int entryEnd) {
         buf.position(entryStart);
         int first4 = buf.getInt();
 
@@ -223,7 +226,7 @@ public class ResourceBankReader {
      *   <li>Otherwise: left as a single-image element with no type.</li>
      * </ol>
      */
-    private List<ResourceBank.Element> groupElements(List<ResourceBank.Element> raw) {
+    private static List<ResourceBank.Element> groupElements(List<ResourceBank.Element> raw) {
         List<ResourceBank.Element> result = new ArrayList<>();
         int i = 0;
         while (i < raw.size()) {
@@ -257,7 +260,7 @@ public class ResourceBankReader {
         return result;
     }
 
-    private boolean allUntypedSingle(List<ResourceBank.Element> elems, int start, int count) {
+    private static boolean allUntypedSingle(List<ResourceBank.Element> elems, int start, int count) {
         for (int k = 0; k < count; k++) {
             ResourceBank.Element el = elems.get(start + k);
             if (el.type() != null || el.images().size() != 1) return false;
@@ -268,7 +271,7 @@ public class ResourceBankReader {
     /**
      * Checks whether nine consecutive single-image elements form a 3×3 coordinate grid.
      */
-    private boolean isBox(List<ResourceBank.Element> elems, int start) {
+    private static boolean isBox(List<ResourceBank.Element> elems, int start) {
         ResourceBank.Image ref = elems.get(start).images().get(0);
         int w = ref.width(), h = ref.height();
         int x0 = ref.x(), y0 = ref.y();
@@ -284,7 +287,7 @@ public class ResourceBankReader {
     /**
      * Checks whether three consecutive single-image elements form a horizontal or vertical line.
      */
-    private boolean isLine(List<ResourceBank.Element> elems, int start) {
+    private static boolean isLine(List<ResourceBank.Element> elems, int start) {
         ResourceBank.Image a = elems.get(start).images().get(0);
         ResourceBank.Image b = elems.get(start + 1).images().get(0);
         ResourceBank.Image c = elems.get(start + 2).images().get(0);
@@ -297,7 +300,7 @@ public class ResourceBankReader {
         return hLine || vLine;
     }
 
-    private List<ResourceBank.Image> flatImages(List<ResourceBank.Element> elems, int start, int count) {
+    private static List<ResourceBank.Image> flatImages(List<ResourceBank.Element> elems, int start, int count) {
         List<ResourceBank.Image> imgs = new ArrayList<>(count);
         for (int k = 0; k < count; k++) {
             imgs.add(elems.get(start + k).images().get(0));
@@ -325,7 +328,7 @@ public class ResourceBankReader {
      *   --- packed bitmap data ---
      * </pre>
      */
-    private ResourceBank.Image readPacPic(ByteBuffer buf, int start, int end) {
+    private static ResourceBank.Image readPacPic(ByteBuffer buf, int start, int end) {
         buf.position(start + 4); // skip magic
         int pkdx = buf.getShort() & 0xFFFF;
         int pkdy = buf.getShort() & 0xFFFF;
@@ -347,7 +350,7 @@ public class ResourceBankReader {
     /**
      * Finds the next {@code 0x06071963} magic in {@code data[from..end)}, returning its offset or -1.
      */
-    private int findNextPacPic(byte[] data, int from, int end) {
+    private static int findNextPacPic(byte[] data, int from, int end) {
         for (int o = from; o <= end - 4; o++) {
             if (data[o] == 0x06 && data[o + 1] == 0x07 && data[o + 2] == 0x19 && data[o + 3] == 0x63)
                 return o;
@@ -359,7 +362,7 @@ public class ResourceBankReader {
     // Texts section
     // -------------------------------------------------------------------------
 
-    private List<String> parseTexts(ByteBuffer buf) {
+    private static List<String> parseTexts(ByteBuffer buf) {
         List<String> texts = new ArrayList<>();
         while (buf.hasRemaining()) {
             int marker = buf.get() & 0xFF;
@@ -377,7 +380,7 @@ public class ResourceBankReader {
     // DBL (Interface programs) section
     // -------------------------------------------------------------------------
 
-    private List<String> parseDBL(ByteBuffer buf) {
+    private static List<String> parseDBL(ByteBuffer buf) {
         int dblStart = buf.position();
         int nPrograms = buf.getShort() & 0xFFFF;
         int[] offsets = new int[nPrograms];
