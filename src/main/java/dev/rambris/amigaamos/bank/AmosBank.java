@@ -58,6 +58,7 @@ public interface AmosBank {
      * <ul>
      *   <li><b>AmSp / AmIc</b> → {@link SpriteBank} via {@link SpriteBankReader}</li>
      *   <li><b>AmBk / Resource</b> → {@link ResourceBank} via {@link ResourceBankReader}</li>
+     *   <li><b>AmBk / Pac.Pic.</b> → {@link PacPicBank} via {@link PacPicBankReader}</li>
      *   <li><b>AmBk / others</b> (Work, Data, Music, Samples, …) → {@link RawBank} via {@link RawBankReader}</li>
      * </ul>
      */
@@ -87,6 +88,7 @@ public interface AmosBank {
                 var bankName = new String(nameBytes, StandardCharsets.ISO_8859_1);
                 var type = Type.fromIdentifier(bankName);
                 if (type == Type.RESOURCE) yield ResourceBankReader.read(data);
+                if (type == Type.PACPIC) yield PacPicBankReader.read(data);
                 yield RawBankReader.read(data);
             }
             default -> throw new IOException("Not an AMOS bank file: magic=\"" + magic + "\"");
