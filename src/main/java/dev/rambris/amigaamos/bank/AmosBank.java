@@ -73,7 +73,7 @@ public interface AmosBank {
      *   <li><b>AmBk / others</b> (Work, Data, Music, Samples, …) → {@link RawBank} via {@link RawBankReader}</li>
      * </ul>
      */
-    public static AmosBank read(Path path) throws IOException {
+    static AmosBank read(Path path) throws IOException {
         return read(Files.readAllBytes(path));
     }
 
@@ -81,7 +81,7 @@ public interface AmosBank {
      * Reads an AMOS bank from raw bytes, dispatching to the correct reader
      * based on the 4-byte magic and (for {@code AmBk} files) the 8-byte bank-name header field.
      */
-    public static AmosBank read(byte[] data) throws IOException {
+    static AmosBank read(byte[] data) throws IOException {
         if (data.length < 4) {
             throw new IOException("Too small to be an AMOS bank (" + data.length + " bytes)");
         }

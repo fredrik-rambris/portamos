@@ -55,17 +55,17 @@ import java.util.List;
  *   Each program: [2] length_including_itself, [length-2] program_bytes (with trailing NUL)
  * </pre>
  */
-class ResourceBankReader {
+public class ResourceBankReader {
 
     // Offsets in this reader are relative to the AmBk payload start.
     private static final int DATA_START = 0;
     private static final int PAC_PIC_MAGIC = PacPicFormat.PK_MAGIC;
 
-    static ResourceBank read(Path path) throws IOException {
+    public static ResourceBank read(Path path) throws IOException {
         return read(Files.readAllBytes(path));
     }
 
-    static ResourceBank read(byte[] raw) throws IOException {
+    public static ResourceBank read(byte[] raw) throws IOException {
         var hdr = AmBkCodec.parse(raw);
         if (hdr.type() != AmosBank.Type.RESOURCE) {
             throw new IOException("Expected \"" + AmosBank.Type.RESOURCE.identifier()

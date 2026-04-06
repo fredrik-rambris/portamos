@@ -1,0 +1,65 @@
+Core definitions confirmed absent from AMOS Professional binaries
+==================================================================
+Verified against: AMOSPro.Lib (gen-ext-json), 00base.bin (amostools),
++ILib.s and +Lib.s (source). 623/623 shared entries match between
+AMOSPro.Lib and 00base.bin with zero mismatches — both sources agree.
+
+CONCLUSION: The entries below are absent from all examined binaries.
+They are AMOS 1.x/AMOS Basic commands that were removed or never
+implemented in AMOS Professional.
+
+Confirmed by: src/test/resources/MissingOffsetsProbe.Asc — all entries
+below produced "Syntax Error" in AMOS Pro. All entries have been REMOVED
+from core.json as they are not tokenizable in AMOS Pro.
+
+--- Graphics: drawing state (removed from core.json) ---
+PATTERN, PATTERN$, LINE STYLE, SET FILL, FILL STYLE
+SET ORIGIN, ORIGIN, X ORIGIN, Y ORIGIN
+SET CLIP, X CLIP, Y CLIP
+
+--- Sprites / icons (removed from core.json) ---
+SPRITE IMAGE, SPRITE COLL
+ICON, ICON OFF, ICON IMAGE, ICON COLL
+
+--- Blitter (removed from core.json) ---
+BLIT, BLIT WAIT, BLIT MODE, BLIT FILL, BLIT COPY, BLIT TEST
+
+--- Hardware: copper, raster, interrupts, DMA (removed from core.json) ---
+SET COPPER, COPPER WAIT, COPPER MOVE
+SET RASTER, RASTER ON, RASTER OFF
+SET INT, INT ON, INT OFF
+SET DMA, DMA ON, DMA OFF
+
+NOTE: The following are NOT missing — they are not separate tokens:
+  - ON MENU PROC / ON MENU GOSUB / ON MENU GOTO: one ON MENU token
+    (offset 776); it reads the following Goto/Gosub/Proc keyword from
+    the token stream at runtime.
+  - ON ERROR PROC: one ON ERROR token (offset 742); peeks at next token.
+  - ON PROC: one ON token (offset 790); checks next keyword for dispatch.
+  - ON AMAL: does not exist. Real command is AMAL ON (has offsets).
+  - ROL, ROR: only suffixed forms (ROL.B/.W/.L, ROR.B/.W/.L) exist.
+  - INVERSE ON/OFF etc.: documentation-only slash-combined entries;
+    the split forms all have offsets.
+
+========================================================================
+BONUS: entries found in 00base.bin but NOT originally in core.json
+       — ADDED to core.json with confirmed offsets from
+         src/test/resources/MissingOffsetsBonusProbe.Asc / .AMOS
+========================================================================
+
+offset   name                      added to core.json
+------   ----                      ------------------
+   196   FOLLOW OFF                yes
+   212   FOLLOW                    yes
+   224   RESUME NEXT               yes
+  4340   GET CBLOCK                yes (slot-0 core token; compact.json has doc-only entry)
+  4366   PUT CBLOCK (1 arg)        yes
+  4384   PUT CBLOCK (3 args)       yes
+  4396   DEL CBLOCK (0 args)       yes
+  4414   DEL CBLOCK (1 arg)        yes
+  6300   PORT                      yes
+  9042   PRG NEXT$                 yes
+
+Omitted from bonus (AMOS Pro did not recognise these):
+  SCREEN SIZE (2638), OPEN PORT (6366), DRIVE (6460)
+  PRG FIRST$ (9024), PSEL$ (9058+), ZDIALOG (11234)

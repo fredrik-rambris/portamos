@@ -1,184 +1,381 @@
 package dev.rambris.amigaamos;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.rambris.amigaamos.bank.*;
 import dev.rambris.amigaamos.tokenizer.AmosDump;
 import dev.rambris.amigaamos.tokenizer.ExtJsonGenerator;
 import dev.rambris.amigaamos.tokenizer.Tokenizer;
-import dev.rambris.amigaamos.tokenizer.model.AmosFile;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 
-public class Main {
-
-    private static final String USAGE = """
-            Usage:
-              portamos <source.asc> <output.amos>
-                  Tokenize an ASCII AMOS source file to binary.
-
-              portamos --dump <file.amos>
-                  Dump an AMOS binary file as a human-readable token listing.
-
-              portamos --diff <expected.amos> <actual.amos>
-                  Diff two AMOS binary files at the token level.
-
-              portamos --gen-ext-json <input.Lib> --slot <n> [--start <s>] <output.json>
-                  Generate a JSON definition skeleton from an AMOS extension binary.
-                  --slot   Extension slot number (0=core, 1=Music, 2=Compact, 3=Request, 6=IOPorts, …)
-                  --start  Byte offset from token-table base to first entry (default: -194 for slot 0, 6 otherwise)
-
-              portamos --disasm-bank <input.Abk> <output-dir>
-                  Disassemble a Resource Bank file into its component files.
-                  Writes spritesheet.png, program_NNN.amui, bank.json.
-
-              portamos --asm-bank <input-dir> <output.Abk>
-                  Assemble a Resource Bank from a directory produced by --disasm-bank.
-                  Reads bank.json, the spritesheet PNG, and any program_NNN.amui files.
-            """;
-
-    public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            System.err.println(USAGE);
-            System.exit(1);
+@Command(
+        name = "portamos",
+        mixinStandardHelpOptions = true,
+        version = "portamos " + Version.VALUE,
+        description = {
+                "AMOS Professional tokenizer and bank tool.",
+                "",
+                "Run 'portamos dev-help' for developer/diagnostic commands."
+        },
+        subcommands = {
+                Main.BuildCommand.class,
+                Main.DisasmCommand.class,
+                Main.AsmCommand.class,
+                Main.RawCommand.class,
+                Main.DevHelpCommand.class,
+                Main.DumpCommand.class,
+                Main.DiffCommand.class,
+                Main.GenExtJsonCommand.class,
+                CommandLine.HelpCommand.class
         }
+)
+public class Main implements Callable<Integer> {
 
-        if (args[0].equals("--gen-ext-json")) {
-            runGenExtJson(args);
-        } else if (args[0].equals("--dump")) {
-            runDump(args);
-        } else if (args[0].equals("--diff")) {
-            runDiff(args);
-        } else if (args[0].equals("--disasm-bank")) {
-            runDisasmBank(args);
-        } else if (args[0].equals("--asm-bank")) {
-            runAsmBank(args);
-        } else {
-            runTokenize(args);
+    public static void main(String[] args) {
+        System.exit(new CommandLine(new Main()).execute(args));
+    }
+
+    @Override
+    public Integer call() {
+        CommandLine.usage(this, System.out);
+        return 0;
+    }
+
+    // =========================================================================
+    // build
+    // =========================================================================
+
+    @Command(
+            name = "build",
+            mixinStandardHelpOptions = true,
+            description = {
+                    "Tokenize an ASCII AMOS source file and write a binary .AMOS file.",
+                    "Banks can be attached from disk Abk files or assembled from JSON + data files."
+            }
+    )
+    static class BuildCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<source.Asc>",
+                description = "ASCII AMOS source file to tokenize")
+        Path source;
+
+        @Parameters(index = "1", paramLabel = "<output.AMOS>",
+                description = "Output binary AMOS file")
+        Path output;
+
+        @Option(names = "--add-bank", paramLabel = "<path.Abk>",
+                description = "Attach a bank loaded directly from an Abk file (repeatable)")
+        List<Path> addBanks = new ArrayList<>();
+
+        @Option(names = "--import-bank", paramLabel = "<path.json>",
+                description = "Assemble a bank from JSON + data files and attach it (repeatable)")
+        List<Path> importBanks = new ArrayList<>();
+
+        @Override
+        public Integer call() throws Exception {
+            System.out.println("Reading " + source);
+            var tokenizer = new Tokenizer();
+            var amosFile = tokenizer.parse(source);
+
+            var banks = new ArrayList<AmosBank>();
+
+            for (var bankPath : addBanks) {
+                System.out.println("Adding bank from " + bankPath);
+                banks.add(AmosBank.read(bankPath));
+            }
+
+            for (var jsonPath : importBanks) {
+                System.out.println("Importing bank from " + jsonPath);
+                banks.add(importBankFromJson(jsonPath));
+            }
+
+            if (!banks.isEmpty()) {
+                amosFile = amosFile.withBanks(banks);
+                System.out.printf("Attached %d bank(s)%n", banks.size());
+            }
+
+            System.out.println("Encoding...");
+            var binary = tokenizer.encode(amosFile);
+            System.out.println("Writing " + output);
+            Files.write(output, binary);
+            System.out.printf("Done (%d bytes)%n", binary.length);
+            return 0;
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Tokenize: <source.asc> <output.amos>
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // disasm
+    // =========================================================================
 
-    private static void runTokenize(String[] args) throws Exception {
-        if (args.length < 2) {
-            System.err.println(USAGE);
-            System.exit(1);
-        }
-        System.out.println("Reading " + args[0]);
-        var tokenizer = new Tokenizer();
-        AmosFile amosFile = tokenizer.parse(Path.of(args[0]));
-        System.out.println("Encoding");
-        byte[] binary = tokenizer.encode(amosFile);
-        System.out.println("Writing " + args[1]);
-        java.nio.file.Files.write(Path.of(args[1]), binary);
-    }
+    @Command(
+            name = "disasm",
+            mixinStandardHelpOptions = true,
+            description = "Disassemble an AMOS bank file (Abk) to JSON + data files in a directory."
+    )
+    static class DisasmCommand implements Callable<Integer> {
 
-    // -------------------------------------------------------------------------
-    // Dump: --dump <file.amos>
-    // -------------------------------------------------------------------------
+        @Parameters(index = "0", paramLabel = "<input.Abk>",
+                description = "Input AMOS bank file (AmBk, AmSp, AmIc, …)")
+        Path input;
 
-    private static void runDump(String[] args) throws Exception {
-        if (args.length < 2) { System.err.println(USAGE); System.exit(1); }
-        new AmosDump().dump(Path.of(args[1]), System.out);
-    }
+        @Parameters(index = "1", paramLabel = "<output-dir>",
+                description = "Output directory for JSON and data files")
+        Path outDir;
 
-    // -------------------------------------------------------------------------
-    // Diff: --diff <expected.amos> <actual.amos>
-    // -------------------------------------------------------------------------
+        @Override
+        public Integer call() throws Exception {
+            System.out.printf("Reading %s ...%n", input.getFileName());
+            var bank = AmosBank.read(input);
+            Files.createDirectories(outDir);
+            var stem = stem(input);
+            System.out.printf("Bank type: %s%n", bank.type());
 
-    private static void runDiff(String[] args) throws Exception {
-        if (args.length < 3) { System.err.println(USAGE); System.exit(1); }
-        new AmosDump().diff(Path.of(args[1]), Path.of(args[2]), System.out);
-    }
-
-    // -------------------------------------------------------------------------
-    // Generate extension JSON: --gen-ext-json <input.Lib> --slot <n> [--start <s>] <output.json>
-    // -------------------------------------------------------------------------
-
-    private static void runGenExtJson(String[] args) throws Exception {
-        Path inputPath = null;
-        Path outputPath = null;
-        int slot = -1;
-        int start = Integer.MIN_VALUE; // sentinel = not set
-
-        int i = 1;
-        while (i < args.length) {
-            switch (args[i]) {
-                case "--slot" -> {
-                    if (++i >= args.length) die("--slot requires a value");
-                    slot = Integer.parseInt(args[i]);
-                }
-                case "--start" -> {
-                    if (++i >= args.length) die("--start requires a value");
-                    start = Integer.parseInt(args[i]);
-                }
+            switch (bank) {
+                case SpriteBank sb -> new SpriteBankExporter().export(sb, outDir);
+                case ResourceBank rb -> new ResourceBankExporter().export(rb, outDir);
+                case PacPicBank pb ->
+                        new PacPicBankExporter().export(pb, outDir.resolve(stem + ".png"));
+                case RawBank rb ->
+                        new RawBankExporter().export(rb, outDir.resolve(stem + ".bin"));
                 default -> {
-                    if (inputPath == null) inputPath = Path.of(args[i]);
-                    else if (outputPath == null) outputPath = Path.of(args[i]);
-                    else die("Unexpected argument: " + args[i]);
+                    System.err.println("Unsupported bank type: " + bank.type());
+                    return 1;
                 }
             }
-            i++;
+            return 0;
         }
-
-        if (inputPath == null) die("Missing input .Lib path");
-        if (outputPath == null) die("Missing output .json path");
-        if (slot < 0) die("--slot is required");
-        if (start == Integer.MIN_VALUE) start = (slot == 0) ? -194 : 6;
-
-        System.out.printf("Generating JSON from %s (slot=%d, start=%d)%n", inputPath.getFileName(), slot, start);
-        ExtJsonGenerator.generate(inputPath, slot, start, outputPath);
     }
 
-    // -------------------------------------------------------------------------
-    // Disassemble Resource Bank: --disasm-bank <input.Abk> <output-dir>
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // asm
+    // =========================================================================
 
-    private static void runDisasmBank(String[] args) throws Exception {
-        if (args.length < 3) { System.err.println(USAGE); System.exit(1); }
-        Path inputPath = Path.of(args[1]);
-        Path outDir    = Path.of(args[2]);
-        System.out.printf("Reading %s ...%n", inputPath.getFileName());
-        var bank = AmosBank.read(inputPath);
-        if (!(bank instanceof ResourceBank resourceBank)) {
-            System.err.printf("Expected a Resource bank, got: %s%n", bank.type());
-            System.exit(1);
-            return;
+    @Command(
+            name = "asm",
+            mixinStandardHelpOptions = true,
+            description = {
+                    "Assemble a bank from JSON + data files into an Abk file.",
+                    "The bank type is auto-detected from the 'type' field in the JSON."
+            }
+    )
+    static class AsmCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<input.json>",
+                description = "JSON metadata file; 'type' field determines the reader")
+        Path json;
+
+        @Parameters(index = "1", paramLabel = "<output.Abk>",
+                description = "Output AMOS bank file")
+        Path output;
+
+        @Override
+        public Integer call() throws Exception {
+            System.out.printf("Importing bank from %s ...%n", json.getFileName());
+            var bank = importBankFromJson(json);
+            System.out.printf("Bank type: %s, writing %s ...%n", bank.type(), output.getFileName());
+            bank.writer().write(bank, output);
+            System.out.printf("Written %s%n", output);
+            return 0;
         }
-        System.out.printf("Bank %d (%s, %d elements, %d texts, %d programs)%n",
-                resourceBank.bankNumber(),
-                resourceBank.chipRam() ? "chip" : "fast",
-                resourceBank.elements().size(),
-                resourceBank.texts().size(),
-                resourceBank.programs().size());
-        new ResourceBankExporter().export(resourceBank, outDir);
     }
 
-    // -------------------------------------------------------------------------
-    // Assemble Resource Bank: --asm-bank <input-dir> <output.Abk>
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // raw
+    // =========================================================================
 
-    private static void runAsmBank(String[] args) throws Exception {
-        if (args.length < 3) { System.err.println(USAGE); System.exit(1); }
-        Path inDir   = Path.of(args[1]);
-        Path outFile = Path.of(args[2]);
-        Path jsonPath = inDir.resolve("bank.json");
-        System.out.printf("Reading bank from %s ...%n", jsonPath);
-        var bank = new ResourceBankImporter().importFrom(jsonPath);
-        System.out.printf("Bank %d (%s, %d elements, %d texts, %d programs)%n",
-                bank.bankNumber(),
-                bank.chipRam() ? "chip" : "fast",
-                bank.elements().size(),
-                bank.texts().size(),
-                bank.programs().size());
-        new ResourceBankWriter().write(bank, outFile);
-        System.out.printf("Written %s%n", outFile);
+    @Command(
+            name = "raw",
+            mixinStandardHelpOptions = true,
+            description = "Wrap a raw data file into an AMOS bank (Abk) with the given type."
+    )
+    static class RawCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<input>",
+                description = "Raw data file to wrap")
+        Path input;
+
+        @Parameters(index = "1", paramLabel = "<output.Abk>",
+                description = "Output AMOS bank file")
+        Path output;
+
+        @Option(names = "--type", required = true, paramLabel = "<TYPE>",
+                description = "Bank type: WORK, DATA, MUSIC, SAMPLES, ASM, CODE, AMAL, MENU, TRACKER, DATAS")
+        String type;
+
+        @Option(names = "--chip",
+                description = "Store in chip RAM (default: fast RAM)")
+        boolean chip = false;
+
+        @Option(names = "--bank-number", paramLabel = "<n>",
+                description = "Bank slot number (default: ${DEFAULT-VALUE})")
+        short bankNumber = 1;
+
+        @Override
+        public Integer call() throws Exception {
+            System.out.printf("Reading %s ...%n", input.getFileName());
+            var data = Files.readAllBytes(input);
+
+            AmosBank.Type bankType;
+            try {
+                bankType = AmosBank.Type.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                System.err.println("Unknown bank type: " + type);
+                System.err.println("Valid types: WORK, DATA, MUSIC, SAMPLES, ASM, CODE, AMAL, MENU, TRACKER, DATAS");
+                return 1;
+            }
+
+            var bank = new RawBank(bankType, bankNumber, chip, data);
+            bank.writer().write(bank, output);
+            System.out.printf("Written %s  (%s, %s RAM, bank %d, %d bytes)%n",
+                    output, bankType, chip ? "chip" : "fast", bankNumber & 0xFFFF, data.length);
+            return 0;
+        }
     }
 
-    private static void die(String msg) {
-        System.err.println("Error: " + msg);
-        System.err.println(USAGE);
-        System.exit(1);
+    // =========================================================================
+    // dev-help
+    // =========================================================================
+
+    @Command(
+            name = "dev-help",
+            description = "Show help for developer / diagnostic commands."
+    )
+    static class DevHelpCommand implements Callable<Integer> {
+
+        @Override
+        public Integer call() {
+            System.out.println("""
+                    Developer / diagnostic commands
+                    ================================
+
+                      portamos dump <file.AMOS>
+                          Dump an AMOS binary as a human-readable token listing.
+
+                      portamos diff <expected.AMOS> <actual.AMOS>
+                          Diff two AMOS binary files at the token level.
+                          Shows differing lines with EXP/ACT token pairs and context.
+
+                      portamos gen-ext-json <input.Lib> --slot <n> [--start <s>] <output.json>
+                          Generate a JSON definition skeleton from an AMOS extension binary.
+                          --slot   Extension slot number (0=core, 1=Music, 2=Compact, …)
+                          --start  Byte offset from token-table base to first entry
+                                   (default: -194 for slot 0, 6 otherwise)
+                    """);
+            return 0;
+        }
+    }
+
+    // =========================================================================
+    // dump  (dev, hidden)
+    // =========================================================================
+
+    @Command(name = "dump", hidden = true,
+            description = "Dump an AMOS binary as a human-readable token listing.")
+    static class DumpCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<file.AMOS>",
+                description = "AMOS binary file to dump")
+        Path file;
+
+        @Override
+        public Integer call() throws Exception {
+            new AmosDump().dump(file, System.out);
+            return 0;
+        }
+    }
+
+    // =========================================================================
+    // diff  (dev, hidden)
+    // =========================================================================
+
+    @Command(name = "diff", hidden = true,
+            description = "Diff two AMOS binary files at the token level.")
+    static class DiffCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<expected.AMOS>",
+                description = "Expected AMOS binary file")
+        Path expected;
+
+        @Parameters(index = "1", paramLabel = "<actual.AMOS>",
+                description = "Actual AMOS binary file")
+        Path actual;
+
+        @Override
+        public Integer call() throws Exception {
+            new AmosDump().diff(expected, actual, System.out);
+            return 0;
+        }
+    }
+
+    // =========================================================================
+    // gen-ext-json  (dev, hidden)
+    // =========================================================================
+
+    @Command(name = "gen-ext-json", hidden = true,
+            description = "Generate a JSON definition skeleton from an AMOS extension binary.")
+    static class GenExtJsonCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<input.Lib>",
+                description = "Extension binary (.Lib file)")
+        Path input;
+
+        @Parameters(index = "1", paramLabel = "<output.json>",
+                description = "Output JSON skeleton file")
+        Path output;
+
+        @Option(names = "--slot", required = true, paramLabel = "<n>",
+                description = "Extension slot number")
+        int slot;
+
+        @Option(names = "--start", paramLabel = "<s>",
+                description = "Byte offset from token-table base to first entry "
+                        + "(default: -194 for slot 0, 6 otherwise)")
+        Integer start;
+
+        @Override
+        public Integer call() throws Exception {
+            var resolvedStart = (start != null) ? start : (slot == 0 ? -194 : 6);
+            System.out.printf("Generating JSON from %s (slot=%d, start=%d)%n",
+                    input.getFileName(), slot, resolvedStart);
+            ExtJsonGenerator.generate(input, slot, resolvedStart, output);
+            return 0;
+        }
+    }
+
+    // =========================================================================
+    // Shared helpers
+    // =========================================================================
+
+    /** Auto-detects bank type from the {@code "type"} field in the JSON and imports the bank. */
+    static AmosBank importBankFromJson(Path jsonPath) throws IOException {
+        var mapper = new ObjectMapper();
+        var root = mapper.readTree(jsonPath.toFile());
+        var type = root.path("type").asText("");
+        return switch (type.toLowerCase()) {
+            case "resource" -> new ResourceBankImporter().importFrom(jsonPath);
+            case "sprite", "sprites" -> new SpriteBankImporter().importFrom(jsonPath);
+            case "icon", "icons" -> new SpriteBankImporter().importFrom(jsonPath);
+            case "pacpic" -> new PacPicBankImporter().importFrom(jsonPath);
+            case "work", "data" -> new RawBankImporter().importFrom(jsonPath);
+            default -> throw new IllegalArgumentException(
+                    "Unknown bank type in JSON: \"" + type + "\". "
+                            + "Expected: resource, sprite, icon, pacpic, work, data");
+        };
+    }
+
+    /** Returns the filename stem (everything before the last dot). */
+    static String stem(Path path) {
+        var name = path.getFileName().toString();
+        var dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
     }
 }

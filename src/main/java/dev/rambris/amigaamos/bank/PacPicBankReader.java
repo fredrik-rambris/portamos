@@ -9,14 +9,14 @@ import java.nio.file.Path;
 /**
  * Reads an AMOS {@code AmBk} bank whose type is {@code "Pac.Pic."}.
  */
-class PacPicBankReader {
+public class PacPicBankReader {
 
 
-    static PacPicBank read(Path path) throws IOException {
+    public static PacPicBank read(Path path) throws IOException {
         return read(Files.readAllBytes(path));
     }
 
-    static PacPicBank read(byte[] raw) throws IOException {
+    public static PacPicBank read(byte[] raw) throws IOException {
         var hdr = AmBkCodec.parse(raw);
         if (hdr.type() != AmosBank.Type.PACPIC) {
             throw new IOException("Expected \"" + AmosBank.Type.PACPIC.identifier()

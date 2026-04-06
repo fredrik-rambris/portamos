@@ -98,6 +98,18 @@ class TokenizerTest {
     }
 
     @Test
+    void tokenize_bonus_probe() throws Exception {
+        Path ascPath  = Path.of("src/test/resources/MissingOffsetsBonusProbe.Asc");
+        Path amosPath = Path.of("src/test/resources/MissingOffsetsBonusProbe.AMOS");
+
+        var tokenizer = new Tokenizer(AmosVersion.BASIC_134);
+        byte[] actual   = tokenizer.tokenizeToBytes(Files.readString(ascPath));
+        byte[] expected = Files.readAllBytes(amosPath);
+
+        assertAmosFilesStructurallyEqual(expected, actual);
+    }
+
+    @Test
     void tokenize_procedures_2() throws Exception {
         Path ascPath  = Path.of("src/test/resources/Procedures_2.Asc");
         Path amosPath = Path.of("src/test/resources/Procedures_2.AMOS");

@@ -169,7 +169,8 @@
       "signatures": [
         {
           "presentation": "Track Loop Off",
-          "parameters": []
+          "parameters": [],
+          "offset": 642
         }
       ],
       "link": "https://amospromanual.dev/08-03-playing-music-modules.html#i-track-loop-off"
@@ -800,11 +801,6 @@
           "offset": 172,
           "commaGroups": 1,
           "parameters": []
-        },
-        {
-          "offset": 198,
-          "commaGroups": 2,
-          "parameters": []
         }
       ],
       "link": "https://amospromanual.dev/08-02-samples.html#i-sam-loop-on"
@@ -818,6 +814,17 @@
           "presentation": "Sam Loop Off",
           "parameters": [],
           "offset": 180
+        },
+        {
+          "presentation": "Sam Loop Off voices",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "voices",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 198
         }
       ],
       "link": "https://amospromanual.dev/08-02-samples.html#i-sam-loop-off"
@@ -936,6 +943,167 @@
       ],
       "link": "https://amospromanual.dev/08-02-samples.html#fn-sam-swapped",
       "returnType": "integer"
+    },
+    {
+      "name": "MUBASE",
+      "kind": "function",
+      "returnType": "integer",
+      "documentation": "Return the base address of the music data area.",
+      "signatures": [
+        {
+          "presentation": "Mubase",
+          "parameters": [],
+          "offset": 6
+        }
+      ],
+      "link": "https://amospromanual.dev/08-01-music.html#fn-mubase"
+    },
+    {
+      "name": "SAY",
+      "kind": "instruction",
+      "documentation": "Convert a string to speech using the narrator device.",
+      "signatures": [
+        {
+          "presentation": "Say text$",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "text$",
+              "valueType": "string"
+            }
+          ],
+          "offset": 484
+        },
+        {
+          "presentation": "Say text$, mode",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "text$",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "mode",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 496
+        }
+      ],
+      "link": "https://amospromanual.dev/08-04-speech.html#i-say"
+    },
+    {
+      "name": "SET TALK",
+      "kind": "instruction",
+      "documentation": "Set speech synthesizer parameters: sex, mode, pitch and rate.",
+      "signatures": [
+        {
+          "presentation": "Set Talk sex, mode, pitch, rate",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "sex",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "mode",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "pitch",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "rate",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 506
+        }
+      ],
+      "link": "https://amospromanual.dev/08-04-speech.html#i-set-talk"
+    },
+    {
+      "name": "MOUTH WIDTH",
+      "kind": "function",
+      "returnType": "integer",
+      "documentation": "Return the width of the mouth shape during speech.",
+      "signatures": [
+        {
+          "presentation": "Mouth Width",
+          "parameters": [],
+          "offset": 718
+        }
+      ],
+      "link": "https://amospromanual.dev/08-04-speech.html#fn-mouth-width"
+    },
+    {
+      "name": "MOUTH HEIGHT",
+      "kind": "function",
+      "returnType": "integer",
+      "documentation": "Return the height of the mouth shape during speech.",
+      "signatures": [
+        {
+          "presentation": "Mouth Height",
+          "parameters": [],
+          "offset": 736
+        }
+      ],
+      "link": "https://amospromanual.dev/08-04-speech.html#fn-mouth-height"
+    },
+    {
+      "name": "MOUTH READ",
+      "kind": "instruction",
+      "documentation": "Read the current mouth shape values for lip sync animation.",
+      "signatures": [
+        {
+          "presentation": "Mouth Read",
+          "parameters": [],
+          "offset": 754
+        }
+      ],
+      "link": "https://amospromanual.dev/08-04-speech.html#i-mouth-read"
+    },
+    {
+      "name": "TALK STOP",
+      "kind": "instruction",
+      "documentation": "Stop the current speech output immediately.",
+      "signatures": [
+        {
+          "presentation": "Talk Stop",
+          "parameters": [],
+          "offset": 770
+        }
+      ],
+      "link": "https://amospromanual.dev/08-04-speech.html#i-talk-stop"
+    },
+    {
+      "name": "TALK MISC",
+      "kind": "instruction",
+      "documentation": "Set speech volume and frequency.",
+      "signatures": [
+        {
+          "presentation": "Talk Misc volume, frequency",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "volume",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "frequency",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 786
+        }
+      ],
+      "link": "https://amospromanual.dev/08-04-speech.html#i-talk-misc"
     }
   ]
 }

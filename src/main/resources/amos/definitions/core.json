@@ -1812,7 +1812,8 @@
               "name": "variable$",
               "valueType": "string"
             }
-          ]
+          ],
+          "offset": 10538
         }
       ],
       "link": "https://amospromanual.dev/05-07-windows.html#i-read-text-dollar"
@@ -1950,6 +1951,25 @@
         }
       ],
       "link": "https://amospromanual.dev/05-08-the-joystick-and-mouse.html#fn-fire"
+    },
+    {
+      "name": "PORT",
+      "kind": "function",
+      "returnType": "integer",
+      "documentation": "Read the state of a parallel port.",
+      "signatures": [
+        {
+          "presentation": "Port(number)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 6300
+        }
+      ]
     },
     {
       "name": "MOUSE KEY",
@@ -3359,7 +3379,7 @@
       "name": "PI#",
       "kind": "function",
       "returnType": "real",
-      "documentation": "Return the constant π for trigonometric calculations.",
+      "documentation": "Return the constant \u03c0 for trigonometric calculations.",
       "signatures": [
         {
           "presentation": "Pi#",
@@ -5786,37 +5806,7 @@
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-paint"
     },
-    {
-      "name": "PATTERN",
-      "kind": "instruction",
-      "documentation": "Set the fill pattern for drawing operations.",
-      "signatures": [
-        {
-          "presentation": "Pattern number",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "number",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#i-pattern"
-    },
-    {
-      "name": "PATTERN$",
-      "kind": "function",
-      "returnType": "string",
-      "documentation": "Return the current fill pattern as a string.",
-      "signatures": [
-        {
-          "presentation": "Pattern$",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#fn-pattern-dollar"
-    },
+
     {
       "name": "SET PATTERN",
       "kind": "instruction",
@@ -5868,149 +5858,8 @@
       ],
       "link": "https://amospromanual.dev/06-04-graphics.html#i-set-line"
     },
-    {
-      "name": "LINE STYLE",
-      "kind": "function",
-      "returnType": "integer",
-      "documentation": "Return the current line style.",
-      "signatures": [
-        {
-          "presentation": "Line Style",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#fn-line-style"
-    },
-    {
-      "name": "SET FILL",
-      "kind": "instruction",
-      "documentation": "Set the fill mode for drawing operations.",
-      "signatures": [
-        {
-          "presentation": "Set Fill mode",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "mode",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#i-set-fill"
-    },
-    {
-      "name": "FILL STYLE",
-      "kind": "function",
-      "returnType": "integer",
-      "documentation": "Return the current fill mode.",
-      "signatures": [
-        {
-          "presentation": "Fill Style",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#fn-fill-style"
-    },
-    {
-      "name": "SET ORIGIN",
-      "kind": "instruction",
-      "documentation": "Set the drawing origin for graphics operations.",
-      "signatures": [
-        {
-          "presentation": "Set Origin x, y",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "x",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#i-set-origin"
-    },
-    {
-      "name": "ORIGIN",
-      "kind": "function",
-      "returnType": "string",
-      "documentation": "Return the current drawing origin as a string.",
-      "signatures": [
-        {
-          "presentation": "Origin",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#fn-origin"
-    },
-    {
-      "name": "X ORIGIN",
-      "kind": "function",
-      "returnType": "integer",
-      "documentation": "Return the X coordinate of the current drawing origin.",
-      "signatures": [
-        {
-          "presentation": "X Origin",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#fn-x-origin"
-    },
-    {
-      "name": "Y ORIGIN",
-      "kind": "function",
-      "returnType": "integer",
-      "documentation": "Return the Y coordinate of the current drawing origin.",
-      "signatures": [
-        {
-          "presentation": "Y Origin",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#fn-y-origin"
-    },
-    {
-      "name": "SET CLIP",
-      "kind": "instruction",
-      "documentation": "Set the clipping region for graphics operations.",
-      "signatures": [
-        {
-          "presentation": "Set Clip x1, y1 To x2, y2",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "x1",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y1",
-              "valueType": "integer"
-            },
-            {
-              "kind": "keyword",
-              "keyword": "To"
-            },
-            {
-              "kind": "value",
-              "name": "x2",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y2",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#i-set-clip"
-    },
+
+
     {
       "name": "CLIP",
       "kind": "function",
@@ -6030,32 +5879,7 @@
       ],
       "link": "https://amospromanual.dev/06-03-drawing.html#fn-clip"
     },
-    {
-      "name": "X CLIP",
-      "kind": "function",
-      "returnType": "integer",
-      "documentation": "Return the X coordinate of the current clipping region.",
-      "signatures": [
-        {
-          "presentation": "X Clip",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#fn-x-clip"
-    },
-    {
-      "name": "Y CLIP",
-      "kind": "function",
-      "returnType": "integer",
-      "documentation": "Return the Y coordinate of the current clipping region.",
-      "signatures": [
-        {
-          "presentation": "Y Clip",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/06-03-drawing.html#fn-y-clip"
-    },
+
     {
       "name": "SPRITE",
       "kind": "instruction",
@@ -6137,29 +5961,7 @@
       ],
       "link": "https://amospromanual.dev/06-05-sprites.html#i-sprite-base"
     },
-    {
-      "name": "SPRITE IMAGE",
-      "kind": "instruction",
-      "documentation": "Define a sprite image.",
-      "signatures": [
-        {
-          "presentation": "Sprite Image number, address",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "number",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "address",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-05-sprites.html#i-sprite-image"
-    },
+
     {
       "name": "SPRITE PRIORITY",
       "kind": "instruction",
@@ -6184,76 +5986,8 @@
       ],
       "link": "https://amospromanual.dev/06-05-sprites.html#i-sprite-priority"
     },
-    {
-      "name": "SPRITE COLL",
-      "kind": "function",
-      "returnType": "integer",
-      "documentation": "Return the collision state of a sprite.",
-      "signatures": [
-        {
-          "presentation": "Sprite Coll number",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "number",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-05-sprites.html#fn-sprite-coll"
-    },
-    {
-      "name": "ICON",
-      "kind": "instruction",
-      "documentation": "Display an icon on the screen.",
-      "signatures": [
-        {
-          "presentation": "Icon number, x, y, image",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "number",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "x",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "y",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "image",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-06-icons.html#i-icon"
-    },
-    {
-      "name": "ICON OFF",
-      "kind": "instruction",
-      "documentation": "Turn off an icon.",
-      "signatures": [
-        {
-          "presentation": "Icon Off number",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "number",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-06-icons.html#i-icon-off"
-    },
+
+
     {
       "name": "ICON BASE",
       "kind": "instruction",
@@ -6273,193 +6007,9 @@
       ],
       "link": "https://amospromanual.dev/06-06-icons.html#i-icon-base"
     },
-    {
-      "name": "ICON IMAGE",
-      "kind": "instruction",
-      "documentation": "Define an icon image.",
-      "signatures": [
-        {
-          "presentation": "Icon Image number, address",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "number",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "address",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-06-icons.html#i-icon-image"
-    },
-    {
-      "name": "ICON COLL",
-      "kind": "function",
-      "returnType": "integer",
-      "documentation": "Return the collision state of an icon.",
-      "signatures": [
-        {
-          "presentation": "Icon Coll number",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "number",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/06-06-icons.html#fn-icon-coll"
-    },
-    {
-      "name": "BLIT",
-      "kind": "instruction",
-      "documentation": "Perform a blitter operation between memory areas.",
-      "signatures": [
-        {
-          "presentation": "Blit source, destination, length",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "source",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "destination",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "length",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-01-blitter.html#i-blit"
-    },
-    {
-      "name": "BLIT WAIT",
-      "kind": "instruction",
-      "documentation": "Wait for the blitter to finish its current operation.",
-      "signatures": [
-        {
-          "presentation": "Blit Wait",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/07-01-blitter.html#i-blit-wait"
-    },
-    {
-      "name": "BLIT MODE",
-      "kind": "instruction",
-      "documentation": "Set the blitter operation mode.",
-      "signatures": [
-        {
-          "presentation": "Blit Mode mode",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "mode",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-01-blitter.html#i-blit-mode"
-    },
-    {
-      "name": "BLIT FILL",
-      "kind": "instruction",
-      "documentation": "Fill a memory area using the blitter.",
-      "signatures": [
-        {
-          "presentation": "Blit Fill address, length, value",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "address",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "length",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "value",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-01-blitter.html#i-blit-fill"
-    },
-    {
-      "name": "BLIT COPY",
-      "kind": "instruction",
-      "documentation": "Copy a memory area using the blitter.",
-      "signatures": [
-        {
-          "presentation": "Blit Copy source, destination, length",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "source",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "destination",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "length",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-01-blitter.html#i-blit-copy"
-    },
-    {
-      "name": "BLIT TEST",
-      "kind": "function",
-      "returnType": "integer",
-      "documentation": "Test the blitter status.",
-      "signatures": [
-        {
-          "presentation": "Blit Test",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/07-01-blitter.html#fn-blit-test"
-    },
-    {
-      "name": "SET COPPER",
-      "kind": "instruction",
-      "documentation": "Set a copper list for display effects.",
-      "signatures": [
-        {
-          "presentation": "Set Copper address",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "address",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-02-copper.html#i-set-copper"
-    },
+
+
+
     {
       "name": "COPPER ON",
       "kind": "instruction",
@@ -6486,173 +6036,7 @@
       ],
       "link": "https://amospromanual.dev/07-02-copper.html#i-copper-off"
     },
-    {
-      "name": "COPPER WAIT",
-      "kind": "instruction",
-      "documentation": "Wait for the copper to reach a specific position.",
-      "signatures": [
-        {
-          "presentation": "Copper Wait position",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "position",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-02-copper.html#i-copper-wait"
-    },
-    {
-      "name": "COPPER MOVE",
-      "kind": "instruction",
-      "documentation": "Move a value to a copper register.",
-      "signatures": [
-        {
-          "presentation": "Copper Move register, value",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "register",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "value",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-02-copper.html#i-copper-move"
-    },
-    {
-      "name": "SET RASTER",
-      "kind": "instruction",
-      "documentation": "Set a raster interrupt routine.",
-      "signatures": [
-        {
-          "presentation": "Set Raster address",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "address",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-03-raster.html#i-set-raster"
-    },
-    {
-      "name": "RASTER ON",
-      "kind": "instruction",
-      "documentation": "Enable raster interrupts.",
-      "signatures": [
-        {
-          "presentation": "Raster On",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/07-03-raster.html#i-raster-on"
-    },
-    {
-      "name": "RASTER OFF",
-      "kind": "instruction",
-      "documentation": "Disable raster interrupts.",
-      "signatures": [
-        {
-          "presentation": "Raster Off",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/07-03-raster.html#i-raster-off"
-    },
-    {
-      "name": "SET INT",
-      "kind": "instruction",
-      "documentation": "Set a custom interrupt routine.",
-      "signatures": [
-        {
-          "presentation": "Set Int address",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "address",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-04-interrupts.html#i-set-int"
-    },
-    {
-      "name": "INT ON",
-      "kind": "instruction",
-      "documentation": "Enable custom interrupts.",
-      "signatures": [
-        {
-          "presentation": "Int On",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/07-04-interrupts.html#i-int-on"
-    },
-    {
-      "name": "INT OFF",
-      "kind": "instruction",
-      "documentation": "Disable custom interrupts.",
-      "signatures": [
-        {
-          "presentation": "Int Off",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/07-04-interrupts.html#i-int-off"
-    },
-    {
-      "name": "SET DMA",
-      "kind": "instruction",
-      "documentation": "Set DMA (Direct Memory Access) channels.",
-      "signatures": [
-        {
-          "presentation": "Set Dma channels",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channels",
-              "valueType": "integer"
-            }
-          ]
-        }
-      ],
-      "link": "https://amospromanual.dev/07-05-dma.html#i-set-dma"
-    },
-    {
-      "name": "DMA ON",
-      "kind": "instruction",
-      "documentation": "Enable DMA channels.",
-      "signatures": [
-        {
-          "presentation": "Dma On",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/07-05-dma.html#i-dma-on"
-    },
-    {
-      "name": "DMA OFF",
-      "kind": "instruction",
-      "documentation": "Disable DMA channels.",
-      "signatures": [
-        {
-          "presentation": "Dma Off",
-          "parameters": []
-        }
-      ],
-      "link": "https://amospromanual.dev/07-05-dma.html#i-dma-off"
-    },
+
     {
       "name": "APPEAR",
       "kind": "instruction",
@@ -8657,6 +8041,30 @@
       "link": "https://amospromanual.dev/07-06-amal.html#i-amal-off"
     },
     {
+      "name": "FOLLOW OFF",
+      "kind": "instruction",
+      "documentation": "Stop a Bob from following a sprite.",
+      "signatures": [
+        {
+          "presentation": "Follow Off",
+          "parameters": [],
+          "offset": 196
+        }
+      ]
+    },
+    {
+      "name": "FOLLOW",
+      "kind": "instruction",
+      "documentation": "Make a Bob follow a sprite.",
+      "signatures": [
+        {
+          "presentation": "Follow",
+          "parameters": [],
+          "offset": 212
+        }
+      ]
+    },
+    {
       "name": "AMAL FREEZE",
       "kind": "instruction",
       "documentation": "Suspend one or all AMAL programs.",
@@ -9505,6 +8913,109 @@
         }
       ],
       "link": "https://amospromanual.dev/07-07-icons-and-blocks.html#i-del-block"
+    },
+    {
+      "name": "GET CBLOCK",
+      "kind": "instruction",
+      "documentation": "Save and compact a rectangular screen block.",
+      "signatures": [
+        {
+          "presentation": "Get Cblock number, x, y, width, height",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "width",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "height",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 4340
+        }
+      ],
+      "link": "https://amospromanual.dev/07-07-icons-and-blocks.html#i-get-cblock"
+    },
+    {
+      "name": "PUT CBLOCK",
+      "kind": "instruction",
+      "documentation": "Display a compacted block at its original or a new position.",
+      "signatures": [
+        {
+          "presentation": "Put Cblock number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 4366
+        },
+        {
+          "presentation": "Put Cblock number, x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 4384
+        }
+      ],
+      "link": "https://amospromanual.dev/07-07-icons-and-blocks.html#i-put-cblock"
+    },
+    {
+      "name": "DEL CBLOCK",
+      "kind": "instruction",
+      "documentation": "Delete one or all compacted blocks.",
+      "signatures": [
+        {
+          "presentation": "Del Cblock",
+          "parameters": [],
+          "offset": 4396
+        },
+        {
+          "presentation": "Del Cblock number",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "number",
+              "valueType": "integer"
+            }
+          ],
+          "offset": 4414
+        }
+      ],
+      "link": "https://amospromanual.dev/07-07-icons-and-blocks.html#i-del-cblock"
     },
     {
       "name": "HREV BLOCK",
@@ -10464,7 +9975,7 @@
         },
         {
           "offset": 6084,
-          "commaGroups": 2,
+          "commaGroups": 1,
           "parameters": []
         }
       ],
@@ -10988,13 +10499,13 @@
           "offset": 11040
         },
         {
-          "offset": 11114,
-          "commaGroups": 1,
+          "offset": 11060,
+          "commaGroups": 2,
           "parameters": []
         },
         {
-          "offset": 11060,
-          "commaGroups": 2,
+          "offset": 11114,
+          "commaGroups": 3,
           "parameters": []
         }
       ],
@@ -11355,6 +10866,19 @@
       ],
       "link": "https://amospromanual.dev/11-04-multitasking.html#fn-prg-under",
       "returnType": "integer"
+    },
+    {
+      "name": "PRG NEXT$",
+      "kind": "function",
+      "returnType": "string",
+      "documentation": "Return the name of the next AMOS program in memory.",
+      "signatures": [
+        {
+          "presentation": "Prg Next$",
+          "parameters": [],
+          "offset": 9042
+        }
+      ]
     },
     {
       "name": "EXEC",
@@ -11733,6 +11257,19 @@
           "presentation": "Resume",
           "parameters": [],
           "offset": 816
+        }
+      ],
+      "link": "https://amospromanual.dev/12-02-error-handling.html#str-resume"
+    },
+    {
+      "name": "RESUME NEXT",
+      "kind": "structure",
+      "documentation": "Resume execution at the statement after the one that caused the error.",
+      "signatures": [
+        {
+          "presentation": "Resume Next",
+          "parameters": [],
+          "offset": 224
         }
       ],
       "link": "https://amospromanual.dev/12-02-error-handling.html#str-resume"
@@ -12530,7 +12067,8 @@
               "name": "variable list",
               "valueType": "any"
             }
-          ]
+          ],
+          "offset": 1202
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#str-input-pound"
@@ -12579,7 +12117,8 @@
               "name": "variable list",
               "valueType": "any"
             }
-          ]
+          ],
+          "offset": 1214
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#str-line-input-pound"
@@ -12773,7 +12312,8 @@
               "name": "variable list",
               "valueType": "any"
             }
-          ]
+          ],
+          "offset": 1130
         }
       ],
       "link": "https://amospromanual.dev/10-02-disc-access.html#str-print-pound"

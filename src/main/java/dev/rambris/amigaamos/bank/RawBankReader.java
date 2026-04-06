@@ -28,7 +28,7 @@ import java.nio.file.Path;
  * the format compatible with AMOS while avoiding a spurious dependency on an
  * undocumented flag.
  */
-class RawBankReader {
+public class RawBankReader {
 
     /**
      * Reads a bank from {@code path}.
@@ -36,7 +36,7 @@ class RawBankReader {
      * @return a {@link RawBank} with type determined from the bank name
      * @throws IOException if the file cannot be read or is not a valid bank
      */
-    static RawBank read(Path path) throws IOException {
+    public static RawBank read(Path path) throws IOException {
         return read(Files.readAllBytes(path));
     }
 
@@ -46,7 +46,7 @@ class RawBankReader {
      * @return a {@link RawBank} with type determined from the bank name
      * @throws IOException if the data is not a valid bank
      */
-    static RawBank read(byte[] raw) throws IOException {
+    public static RawBank read(byte[] raw) throws IOException {
         var hdr = AmBkCodec.parse(raw);
         return new RawBank(hdr.type(), hdr.bankNumber(), hdr.chipRam(), hdr.payload());
     }
