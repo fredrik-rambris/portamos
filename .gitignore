@@ -5,3 +5,5 @@ build/
 out/
 gradle.properties
 reference
+.sdkmanrc
+scripts/*.pyc
