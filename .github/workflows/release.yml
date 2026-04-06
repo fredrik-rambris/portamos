@@ -1,4 +1,4 @@
-name: Release JAR on tag
+name: Release on tag
 
 on:
   push:
@@ -18,30 +18,96 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  # ---------------------------------------------------------------------------
+  # Native binaries (Linux, macOS, Windows) — run in parallel
+  # ---------------------------------------------------------------------------
+  native:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-amd64
+            binary: portamos
+          - os: macos-latest
+            platform: macos-aarch64
+            binary: portamos
+          - os: windows-latest
+            platform: windows-amd64
+            binary: portamos.exe
+
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Determine ref
-        id: ref
-        shell: bash
-        run: |
-          if [ -n "${{ github.event.inputs.tag || '' }}" ]; then
-            echo "ref=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
-            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
-            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Check out tagged commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.ref.outputs.ref }}
+          ref: ${{ env.TAG }}
           fetch-depth: 1
 
-      - name: Set up Java
+      - name: Set up GraalVM JDK 21
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: graalvm
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: true
+
+      - name: Make Gradle wrapper executable
+        if: runner.os != 'Windows'
+        run: chmod +x ./gradlew
+
+      - name: Build native binary
+        run: ./gradlew nativeCompile
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          tar -czf build/native/nativeCompile/portamos-${{ env.TAG }}-${{ matrix.platform }}.tar.gz \
+            -C build/native/nativeCompile ${{ matrix.binary }} \
+            -C ${{ github.workspace }} README.md
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          tar -czf build/native/nativeCompile/portamos-${{ env.TAG }}-${{ matrix.platform }}.tar.gz \
+            -C build/native/nativeCompile ${{ matrix.binary }} \
+            -C ${{ github.workspace }} README.md MacOS-README.txt
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Copy-Item README.md build/native/nativeCompile/README.md
+          Compress-Archive `
+            -Path build/native/nativeCompile/${{ matrix.binary }}, build/native/nativeCompile/README.md `
+            -DestinationPath build/native/nativeCompile/portamos-${{ env.TAG }}-${{ matrix.platform }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: portamos-${{ env.TAG }}-${{ matrix.platform }}
+          path: |
+            build/native/nativeCompile/portamos-${{ env.TAG }}-${{ matrix.platform }}.tar.gz
+            build/native/nativeCompile/portamos-${{ env.TAG }}-${{ matrix.platform }}.zip
+
+  # ---------------------------------------------------------------------------
+  # Fat JAR fallback (for users with a JVM)
+  # ---------------------------------------------------------------------------
+  jar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 1
+
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -57,60 +123,54 @@ jobs:
       - name: Build runnable JAR
         run: ./gradlew clean shadowJar
 
-      - name: Read tagged commit message and locate JAR
-        id: prep
+      - name: Locate JAR
+        id: jar
+        run: echo "path=$(find build/libs -maxdepth 1 -name '*-all.jar' | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: portamos-${{ env.TAG }}-jar
+          path: ${{ steps.jar.outputs.path }}
+
+  # ---------------------------------------------------------------------------
+  # GitHub Release — waits for all builds, then publishes everything
+  # ---------------------------------------------------------------------------
+  release:
+    needs: [native, jar]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
 
           subject="$(git log -1 --pretty=%s)"
           body="$(git log -1 --pretty=%b)"
+          [ -z "$body" ] && body="$subject"
+          printf '%s\n' "$body" > release-notes.txt
 
-          if [ -z "$body" ]; then
-            body="$subject"
+          prerelease_flag=""
+          if [[ "${{ env.TAG }}" == *-* ]]; then
+            prerelease_flag="--prerelease"
           fi
 
-          jar_path="$(find build/libs -maxdepth 1 -type f -name '*-all.jar' | head -n 1)"
-
-          if [ -z "$jar_path" ]; then
-            echo "No runnable JAR found in build/libs" >&2
-            exit 1
-          fi
-
-          {
-            echo "title<<EOF"
-            echo "$subject"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-          {
-            echo "body<<EOF"
-            echo "$body"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-          echo "jar_path=$jar_path" >> "$GITHUB_OUTPUT"
-
-      - name: Create GitHub Release and upload JAR
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ steps.ref.outputs.tag }}
-          RELEASE_TITLE: ${{ steps.prep.outputs.title }}
-          RELEASE_BODY: ${{ steps.prep.outputs.body }}
-          JAR_PATH: ${{ steps.prep.outputs.jar_path }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          printf '%s\n' "$RELEASE_BODY" > release-notes.txt
-
-          if [[ "$TAG_NAME" == *-* ]]; then
-            gh release create "$TAG_NAME" "$JAR_PATH" \
-              --title "$RELEASE_TITLE" \
-              --notes-file release-notes.txt \
-              --prerelease
-          else
-            gh release create "$TAG_NAME" "$JAR_PATH" \
-              --title "$RELEASE_TITLE" \
-              --notes-file release-notes.txt
-          fi
+          gh release create "${{ env.TAG }}" artifacts/* \
+            --title "$subject" \
+            --notes-file release-notes.txt \
+            $prerelease_flag

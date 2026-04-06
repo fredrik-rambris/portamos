@@ -2,6 +2,7 @@ plugins {
     java
     application
     id("com.gradleup.shadow") version "8.3.6"
+    id("org.graalvm.buildtools.native") version "0.10.4"
 }
 
 group = "dev.rambris"
@@ -61,4 +62,32 @@ sourceSets.main {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+// ---------------------------------------------------------------------------
+// picocli-codegen: emit GraalVM reflect-config.json at compile time
+// ---------------------------------------------------------------------------
+
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("-Aproject=${project.group}/${project.name}")
+}
+
+// ---------------------------------------------------------------------------
+// GraalVM Native Image
+// ---------------------------------------------------------------------------
+
+graalvmNative {
+    metadataRepository { enabled = true }   // pre-built configs for Jackson etc.
+    binaries {
+        named("main") {
+            imageName = "portamos"
+            buildArgs.addAll("--no-fallback", "-H:+ReportExceptionStackTraces")
+            resources {
+                // Embed all JSON definition files into the native binary.
+                // getResourceAsStream("/amos/definitions/…") will work unchanged.
+                includedPatterns.add("amos/definitions/.*\\.json")
+            }
+        }
+    }
+    toolchainDetection = false
 }

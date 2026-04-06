@@ -1,5 +1,7 @@
 # Portamos
 
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
 A portable, JVM-based toolkit for working
 with [AMOS Professional](https://en.wikipedia.org/wiki/AMOS_(programming_language)) files on modern systems. The name is
 a play on *portable AMOS*.
