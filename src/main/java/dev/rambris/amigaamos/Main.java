@@ -20,11 +20,20 @@ import java.util.concurrent.Callable;
 @Command(
         name = "portamos",
         mixinStandardHelpOptions = true,
-        version = "portamos " + Version.VALUE,
+        version = {
+                "portamos " + Version.VALUE,
+                "Copyright 2026 Fredrik Rambris",
+                "License: Apache 2.0 <https://www.apache.org/licenses/LICENSE-2.0>"
+        },
         description = {
                 "AMOS Professional tokenizer and bank tool.",
                 "",
                 "Run 'portamos dev-help' for developer/diagnostic commands."
+        },
+        footer = {
+                "",
+                "Copyright 2026 Fredrik Rambris. License: Apache 2.0",
+                "<https://www.apache.org/licenses/LICENSE-2.0>"
         },
         subcommands = {
                 Main.BuildCommand.class,
