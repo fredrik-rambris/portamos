@@ -1,9 +1,6 @@
 package dev.rambris.iff;
 
-import dev.rambris.iff.codec.BmhdChunk;
-import dev.rambris.iff.codec.IlbmCodec;
-import dev.rambris.iff.codec.IlbmImage;
-import dev.rambris.iff.codec.IlbmOptions;
+import dev.rambris.iff.codec.*;
 import dev.rambris.iff.exceptions.IffParseException;
 import org.junit.jupiter.api.Test;
 
@@ -274,6 +271,108 @@ class IlbmCodecTest {
         IlbmImage decoded = IlbmCodec.read(encoded);
 
         assertArrayEquals(bodyData, decoded.body());
+    }
+
+    // -------------------------------------------------------------------------
+    // Aspect ratio derivation (CAMG / dimensions)
+    // -------------------------------------------------------------------------
+
+    @Test
+    void write_camgHires_setsAspect_1_2() {
+        // HIRES non-laced → xAspect=1, yAspect=2, regardless of BMHD aspect
+        var bmhd = new BmhdChunk(640, 256, 0, 0, 4, 0, BmhdChunk.COMPRESSION_NONE,
+                0, 0, 0, 640, 256); // aspect 0,0 → should be derived
+        var image = new IlbmImage(bmhd, null, AmigaScreenMode.HIRES, new byte[640 / 8 * 256 * 4]);
+
+        byte[] encoded = IlbmCodec.write(image);
+        IlbmImage decoded = IlbmCodec.read(encoded);
+
+        assertEquals(1, decoded.bmhd().xAspect());
+        assertEquals(2, decoded.bmhd().yAspect());
+    }
+
+    @Test
+    void write_camgHiresLace_setsAspect_1_1() {
+        // HIRES + LACE → square pixels
+        var bmhd = new BmhdChunk(640, 512, 0, 0, 4, 0, BmhdChunk.COMPRESSION_NONE,
+                0, 0, 0, 640, 512);
+        var image = new IlbmImage(bmhd, null, AmigaScreenMode.HIRES_LACE, new byte[640 / 8 * 512 * 4]);
+
+        byte[] encoded = IlbmCodec.write(image);
+        IlbmImage decoded = IlbmCodec.read(encoded);
+
+        assertEquals(1, decoded.bmhd().xAspect());
+        assertEquals(1, decoded.bmhd().yAspect());
+    }
+
+    @Test
+    void write_camgLores_setsAspect_1_1() {
+        // LORES → square pixels
+        var bmhd = new BmhdChunk(320, 256, 0, 0, 4, 0, BmhdChunk.COMPRESSION_NONE,
+                0, 0, 0, 320, 256);
+        var image = new IlbmImage(bmhd, null, AmigaScreenMode.LORES, new byte[320 / 8 * 256 * 4]);
+
+        byte[] encoded = IlbmCodec.write(image);
+        IlbmImage decoded = IlbmCodec.read(encoded);
+
+        assertEquals(1, decoded.bmhd().xAspect());
+        assertEquals(1, decoded.bmhd().yAspect());
+    }
+
+    @Test
+    void write_noCamg_640x256_derivesAspect_1_2() {
+        // No CAMG, known hires dimensions → derive 1:2 from dimensions
+        var bmhd = new BmhdChunk(640, 256, 0, 0, 4, 0, BmhdChunk.COMPRESSION_NONE,
+                0, 0, 0, 640, 256);
+        var image = new IlbmImage(bmhd, null, 0, new byte[640 / 8 * 256 * 4]);
+
+        byte[] encoded = IlbmCodec.write(image);
+        IlbmImage decoded = IlbmCodec.read(encoded);
+
+        assertEquals(1, decoded.bmhd().xAspect());
+        assertEquals(2, decoded.bmhd().yAspect());
+    }
+
+    @Test
+    void write_noCamg_320x256_derivesAspect_1_1() {
+        // No CAMG, lores dimensions → derive 1:1 from dimensions
+        var bmhd = new BmhdChunk(320, 256, 0, 0, 4, 0, BmhdChunk.COMPRESSION_NONE,
+                0, 0, 0, 320, 256);
+        var image = new IlbmImage(bmhd, null, 0, new byte[320 / 8 * 256 * 4]);
+
+        byte[] encoded = IlbmCodec.write(image);
+        IlbmImage decoded = IlbmCodec.read(encoded);
+
+        assertEquals(1, decoded.bmhd().xAspect());
+        assertEquals(1, decoded.bmhd().yAspect());
+    }
+
+    @Test
+    void write_aspectAlreadySet_noCamg_preserved() {
+        // No CAMG, aspect explicitly set → use as-is (no derivation)
+        var bmhd = new BmhdChunk(320, 200, 0, 0, 4, 0, BmhdChunk.COMPRESSION_NONE,
+                0, 10, 11, 320, 200); // PAL-accurate lores aspect
+        var image = new IlbmImage(bmhd, null, 0, new byte[320 / 8 * 200 * 4]);
+
+        byte[] encoded = IlbmCodec.write(image);
+        IlbmImage decoded = IlbmCodec.read(encoded);
+
+        assertEquals(10, decoded.bmhd().xAspect());
+        assertEquals(11, decoded.bmhd().yAspect());
+    }
+
+    @Test
+    void write_camgOverridesExplicitAspect() {
+        // CAMG present → always derive aspect from mode, ignoring BMHD aspect
+        var bmhd = new BmhdChunk(640, 256, 0, 0, 4, 0, BmhdChunk.COMPRESSION_NONE,
+                0, 10, 11, 640, 256); // explicit aspect that should be overridden
+        var image = new IlbmImage(bmhd, null, AmigaScreenMode.HIRES, new byte[640 / 8 * 256 * 4]);
+
+        byte[] encoded = IlbmCodec.write(image);
+        IlbmImage decoded = IlbmCodec.read(encoded);
+
+        assertEquals(1, decoded.bmhd().xAspect());
+        assertEquals(2, decoded.bmhd().yAspect());
     }
 
     @Test

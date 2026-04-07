@@ -94,10 +94,22 @@ public class IlbmCodec {
                 ? BmhdChunk.COMPRESSION_BYTERUN1
                 : BmhdChunk.COMPRESSION_NONE;
 
+        int xAspect = bmhd.xAspect();
+        int yAspect = bmhd.yAspect();
+        if (image.camgMode() != 0) {
+            int[] aspect = AmigaScreenMode.aspectFromMode(image.camgMode());
+            xAspect = aspect[0];
+            yAspect = aspect[1];
+        } else if (xAspect <= 0 || yAspect <= 0) {
+            int[] aspect = AmigaScreenMode.aspectFromDimensions(bmhd.width(), bmhd.height());
+            xAspect = aspect[0];
+            yAspect = aspect[1];
+        }
+
         var writeBmhd = new BmhdChunk(
                 bmhd.width(), bmhd.height(), bmhd.x(), bmhd.y(),
                 bmhd.planes(), bmhd.masking(), compression,
-                bmhd.transparentColor(), bmhd.xAspect(), bmhd.yAspect(),
+                bmhd.transparentColor(), xAspect, yAspect,
                 bmhd.pageWidth(), bmhd.pageHeight());
 
         byte[] bodyBytes = (image.body() != null && useByteRun1)
