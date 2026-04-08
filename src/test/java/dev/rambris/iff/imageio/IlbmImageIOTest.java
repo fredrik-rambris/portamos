@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Fredrik Rambris <fredrik@rambris.com>
+ * SPDX-License-Identifier: Apache-2.0
+ * See LICENSE in the project root.
+ */
+
 package dev.rambris.iff.imageio;
 
 import dev.rambris.iff.codec.BmhdChunk;
