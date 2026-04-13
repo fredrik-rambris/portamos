@@ -23,7 +23,7 @@ public interface AmosBank {
     enum Type {
         MUSIC("Music   ", RawBankReader::read),
         TRACKER("Tracker ", RawBankReader::read),
-        AMAL("Amal    ", RawBankReader::read),
+        AMAL("Amal    ", AmalBankReader::read),
         MENU("Menu    ", RawBankReader::read),
         DATAS("Datas   ", RawBankReader::read),
         DATA("Data    ", RawBankReader::read),

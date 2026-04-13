@@ -10,7 +10,9 @@
       "Bash(./gradlew build:*)",
       "Bash(./gradlew compileJava)",
       "Bash(./gradlew test:*)",
-      "Bash(xxd*)"
+      "Bash(xxd*)",
+      "Bash(./gradlew run:*)",
+      "Read(//tmp/amal-out/**)"
     ]
   }
 }

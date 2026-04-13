@@ -2,22 +2,25 @@
 
 ## What this project is
 
-**Portamos** is a portable, JVM-based re-implementation of the AMOS Professional compiler/tokenizer written in Java 21 / Gradle 8. The name is a play on "portable AMOS".
+**Portamos** is a portable, JVM-based re-implementation of the AMOS Professional compiler/tokenizer written in Java 21 /
+Gradle 8. The name is a play on "portable AMOS".
 
 The long-term goal is a full round-trip pipeline:
+
 - **ASCII → AmosFile → binary** (tokenizer/compiler, currently working)
 - **binary → AmosFile → ASCII** (detokenizer, not yet started)
 
-The immediate milestone is the tokenizer: given an AMOS Professional ASCII source file (`.Asc`), produce a byte-identical (or structurally equivalent) binary `.AMOS` file that AMOS Pro can load on an Amiga.
+The immediate milestone is the tokenizer: given an AMOS Professional ASCII source file (`.Asc`), produce a
+byte-identical (or structurally equivalent) binary `.AMOS` file that AMOS Pro can load on an Amiga.
 
 ## Reference material
 
-| Path | What it is |
-|------|------------|
-| `reference/AMOSProfessional/` | Full AMOS Pro disk image — original `.Lib` files, examples, accessories |
-| `reference/AmosProManual/` | The AMOS Pro manual (source for the JSON definition files) |
-| `reference/amiga-amos/` | A separate IntelliJ plugin project; its `src/main/resources/amos/definitions/*.json` are the canonical definition files we enriched and copied into this project |
-| `reference/amostools/extensions/` | Pre-decoded binary token tables: `00base.bin`, `01_music.h`, `02_compact.h`, etc.; also a large collection of third-party `.Lib` files |
+| Path                              | What it is                                                                                                                                                       |
+|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `reference/AMOSProfessional/`     | Full AMOS Pro disk image — original `.Lib` files, examples, accessories                                                                                          |
+| `reference/AmosProManual/`        | The AMOS Pro manual (source for the JSON definition files)                                                                                                       |
+| `reference/amiga-amos/`           | A separate IntelliJ plugin project; its `src/main/resources/amos/definitions/*.json` are the canonical definition files we enriched and copied into this project |
+| `reference/amostools/extensions/` | Pre-decoded binary token tables: `00base.bin`, `01_music.h`, `02_compact.h`, etc.; also a large collection of third-party `.Lib` files                           |
 
 ## Environment
 
@@ -103,6 +106,7 @@ AmosToken (sealed interface variants):
 ```
 
 Each line in the code section:
+
 ```
 [1 byte]    line length in 16-bit words (covers the whole line incl. header + EOL)
 [1 byte]    indent level (1-based)
@@ -112,28 +116,31 @@ Each line in the code section:
 
 ## Token encoding rules
 
-| Token | Encoding |
-|-------|----------|
+| Token                                         | Encoding                                                                                                                                        |
+|-----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
 | Named token (Variable/Label/ProcRef/LabelRef) | `[type:2][unk1:00][unk2:00][n:1][flags:1][name bytes][pad if odd]` — unk2 is a symbol-table slot offset filled by AMOS at load time; we write 0 |
-| Rem / SingleQuoteRem | `[type:2][00][len:1][text bytes][pad if odd]` |
-| Quoted string | `[type:2][len:2 BE][text bytes][pad if odd]` |
-| Integer | `[type:2][value:4 BE signed]` |
-| Float (Flt) | `[0046][AMOS FFP value:4 BE]` |
-| Double (Dbl) | `[2B6A][IEEE 754 double:8 BE]` |
-| Core keyword | `[offset:2 BE]` (+ extra zero bytes for control-flow tokens) |
-| Extension keyword | `[004E][slot:1][00][offset:2 BE]` |
+| Rem / SingleQuoteRem                          | `[type:2][00][len:1][text bytes][pad if odd]`                                                                                                   |
+| Quoted string                                 | `[type:2][len:2 BE][text bytes][pad if odd]`                                                                                                    |
+| Integer                                       | `[type:2][value:4 BE signed]`                                                                                                                   |
+| Float (Flt)                                   | `[0046][AMOS FFP value:4 BE]`                                                                                                                   |
+| Double (Dbl)                                  | `[2B6A][IEEE 754 double:8 BE]`                                                                                                                  |
+| Core keyword                                  | `[offset:2 BE]` (+ extra zero bytes for control-flow tokens)                                                                                    |
+| Extension keyword                             | `[004E][slot:1][00][offset:2 BE]`                                                                                                               |
 
 ## AMOS custom float (FFP)
 
 - 32 bits: bits 31-8 = mantissa (24-bit, MSB always set for non-zero); bits 6-0 = exponent; bit 7 unused
 - `value = mantissa × 2^(exponent − 88)`
 - Negatives are always encoded as `unary-minus-operator + positive-literal` — the Flt token itself is always positive
-- Amiga FFP rounding differs from IEEE 754; tests use ±4 ULP tolerance (observed max difference ~2.7 ULP for edge cases near the max FFP float)
+- Amiga FFP rounding differs from IEEE 754; tests use ±4 ULP tolerance (observed max difference ~2.7 ULP for edge cases
+  near the max FFP float)
 
 ## Token table / JSON definitions
 
 `TokenTable.java` loads the JSON files and builds:
-- `nameToSignatures`: normalized-uppercase name → `List<SignatureEntry(key, commaGroups)>` sorted ascending by `commaGroups`
+
+- `nameToSignatures`: normalized-uppercase name → `List<SignatureEntry(key, commaGroups)>` sorted ascending by
+  `commaGroups`
 - `keyToExtraBytes`: encoding key → count of zero bytes to write after the token
 
 **Slot 0 (core)** keys are used directly as `uint16` in the binary.
@@ -143,6 +150,7 @@ Each line in the code section:
 `XOR, <>, ><, <=, =<, >=, =>, =, <, >, +, -, MOD, *, /, ^, :, ,, ;, #`
 
 **`extraBytes`** (zero bytes after the token for runtime back-patch space):
+
 - For/Repeat/While/Do/If/Else/Data/Else If → 2 bytes
 - Exit/Exit If/On → 4 bytes
 - Procedure → 8 bytes
@@ -153,43 +161,65 @@ Each line in the code section:
 ```json
 {
   "extension": {
-    "id": "Core",        // or "Music", "Compact", etc.
-    "slot": 0,           // extension slot number
-    "start": -194,       // byte offset from tkoff to first entry (-194 for core, 6 for extensions)
-    "filename": "...",   // original .Lib filename
+    "id": "Core",
+    // or "Music", "Compact", etc.
+    "slot": 0,
+    // extension slot number
+    "start": -194,
+    // byte offset from tkoff to first entry (-194 for core, 6 for extensions)
+    "filename": "...",
+    // original .Lib filename
     "vendor": "..."
   },
   "definitions": [
     {
-      "name": "FOR",           // uppercase
-      "kind": "structure",     // instruction | function | structure | operator
-      "offset": 572,           // decimal byte offset in the token table (required for tokenization)
-      "extraBytes": 2,         // optional; zero bytes after token value
+      "name": "FOR",
+      // uppercase
+      "kind": "structure",
+      // instruction | function | structure | operator
+      "offset": 572,
+      // decimal byte offset in the token table (required for tokenization)
+      "extraBytes": 2,
+      // optional; zero bytes after token value
       "documentation": "...",
-      "signatures": [...],
+      "signatures": [
+        ...
+      ],
       "link": "..."
     }
   ]
 }
 ```
 
-Definitions **without** an `"offset"` field are documentation-only and are skipped by the tokenizer. This applies to ~66 entries in core.json (aliases, optional-suffix forms like "INVERSE ON/OFF", etc.).
+Definitions **without** an `"offset"` field are documentation-only and are skipped by the tokenizer. This applies to ~66
+entries in core.json (aliases, optional-suffix forms like "INVERSE ON/OFF", etc.).
 
-**Multiple signatures / multi-form keywords**: Many AMOS keywords have 2–4 binary table entries at different offsets, one per argument-count variant. Each signature in the JSON has its own `"offset"` field. `TokenTable` builds a list of `SignatureEntry(key, commaGroups)` per keyword, sorted ascending by `commaGroups`. `AsciiParser.countCommaGroups()` counts the top-level comma groups following the keyword on the source line (handling parenthesized function-call syntax), and `TokenTable.selectKey()` picks the highest `commaGroups ≤ actual` — falling back to the first signature if none qualify.
+**Multiple signatures / multi-form keywords**: Many AMOS keywords have 2–4 binary table entries at different offsets,
+one per argument-count variant. Each signature in the JSON has its own `"offset"` field. `TokenTable` builds a list of
+`SignatureEntry(key, commaGroups)` per keyword, sorted ascending by `commaGroups`. `AsciiParser.countCommaGroups()`
+counts the top-level comma groups following the keyword on the source line (handling parenthesized function-call
+syntax), and `TokenTable.selectKey()` picks the highest `commaGroups ≤ actual` — falling back to the first signature if
+none qualify.
 
-Keywords whose form ordering is non-obvious (e.g. `X Screen(x)` vs `X Screen(screen,x)`, `Paint x,y` vs `Paint x,y,colour`) are listed in `OVERRIDES` in `scripts/migrate_offsets.py`. When a new test reveals a wrong form, add the keyword there and re-run the migration script.
+Keywords whose form ordering is non-obvious (e.g. `X Screen(x)` vs `X Screen(screen,x)`, `Paint x,y` vs
+`Paint x,y,colour`) are listed in `OVERRIDES` in `scripts/migrate_offsets.py`. When a new test reveals a wrong form, add
+the keyword there and re-run the migration script.
 
 ## AsciiParser internals
 
 Key behaviors to know:
+
 - **Indent**: 1 space = 1 indent level (i.e. `indent = leadingSpaces + 1`). Note: `AMOS_INDENT_SPACES = 1`.
-- **Rem handling**: `'` at line start → `SingleQuoteRem`; `Rem ` at line start → `Rem`; `Rem` mid-line → `Rem` and stop parsing.
+- **Rem handling**: `'` at line start → `SingleQuoteRem`; `Rem ` at line start → `Rem`; `Rem` mid-line → `Rem` and stop
+  parsing.
 - **Numeric literals**: never emits negative literals; a leading `-` is an operator token.
 - **Scientific notation**: AMOS stores floats with a space before the exponent: `"9.22337 E+18"` — parser handles this.
 - **Keyword matching**: maximal munch up to 3 words; tries longest match first.
-- **Pre-scan**: `Tokenizer` pre-scans all lines before parsing to collect `procedureNames` and `arrayVarNames` — used by `AsciiParser` for context-sensitive identifier classification.
+- **Pre-scan**: `Tokenizer` pre-scans all lines before parsing to collect `procedureNames` and `arrayVarNames` — used by
+  `AsciiParser` for context-sensitive identifier classification.
 - **Variable flags**: INTEGER=0x00, FLOAT=0x01, STRING=0x02; array flag=0x40.
-- **Named token encoding**: n = `strlen` rounded up to even; for odd-length names, the padding byte is the null terminator. Even-length names have no null.
+- **Named token encoding**: n = `strlen` rounded up to even; for odd-length names, the padding byte is the null
+  terminator. Even-length names have no null.
 
 ## CLI usage
 
@@ -213,7 +243,8 @@ Key behaviors to know:
 
 **Always use `--diff` / `--dump` instead of `xxd`, `sed`, or raw binary diff tools.**
 
-`AmosDump` walks the token stream correctly (respecting variable-length payloads for named tokens, strings, REMs, etc.) so reported byte offsets are token-aligned and meaningful.
+`AmosDump` walks the token stream correctly (respecting variable-length payloads for named tokens, strings, REMs, etc.)
+so reported byte offsets are token-aligned and meaningful.
 
 Typical workflow when a test fails with `Line N offset M: token value differs (exp=0xXXXX, act=0xYYYY)`:
 
@@ -225,13 +256,17 @@ Typical workflow when a test fails with `Line N offset M: token value differs (e
    ```bash
    ./gradlew run --args="--diff src/test/resources/file.AMOS /tmp/actual.AMOS"
    ```
-3. The diff output shows the exact token where the encoder diverges, with decoded annotations (variable names, string contents, keyword offsets) alongside the raw hex — enough to identify which keyword form was selected incorrectly.
+3. The diff output shows the exact token where the encoder diverges, with decoded annotations (variable names, string
+   contents, keyword offsets) alongside the raw hex — enough to identify which keyword form was selected incorrectly.
 
-When diagnosing a wrong keyword form, look up the two candidate offsets in `src/main/resources/amos/definitions/core.json` (or the relevant extension JSON) to understand their `commaGroups` values, then check whether `countCommaGroups()` in `AsciiParser` is computing the right count for that source line.
+When diagnosing a wrong keyword form, look up the two candidate offsets in
+`src/main/resources/amos/definitions/core.json` (or the relevant extension JSON) to understand their `commaGroups`
+values, then check whether `countCommaGroups()` in `AsciiParser` is computing the right count for that source line.
 
 ## scripts/enrich_definitions.py
 
 Run to re-enrich the JSON definition files whenever the binary `.bin` files change or new offset data is needed:
+
 ```bash
 cd portamos
 python3 scripts/enrich_definitions.py
@@ -239,23 +274,39 @@ python3 scripts/enrich_definitions.py
 #   src/main/resources/amos/definitions/
 ```
 
-The script matches binary entries to JSON definitions by normalized uppercase name. Unmatched binary entries (operators, internal tokens) are reported but not written. JSON entries without a binary match get no `offset` and are silently skipped at tokenization time.
+The script matches binary entries to JSON definitions by normalized uppercase name. Unmatched binary entries (operators,
+internal tokens) are reported but not written. JSON entries without a binary match get no `offset` and are silently
+skipped at tokenization time.
 
 ## scripts/migrate_offsets.py
 
-Run after `enrich_definitions.py` whenever the reference JSON definitions change, to produce the per-signature-offset JSON consumed by the tokenizer:
+Run after `enrich_definitions.py` whenever the reference JSON definitions change, to produce the per-signature-offset
+JSON consumed by the tokenizer:
+
 ```bash
 cd portamos
 python3 scripts/migrate_offsets.py
 ```
-Reads from `reference/amiga-amos/src/main/resources/amos/definitions/` and writes to `src/main/resources/amos/definitions/`. The `OVERRIDES` dict in the script contains manual form-ordering for keywords whose argument-count mapping cannot be auto-derived (e.g. `MID$`, `SCREEN`, `PAINT`, `X SCREEN`, `Y SCREEN`). Add new entries there when tests reveal incorrect form selection.
+
+Reads from `reference/amiga-amos/src/main/resources/amos/definitions/` and writes to
+`src/main/resources/amos/definitions/`. The `OVERRIDES` dict in the script contains manual form-ordering for keywords
+whose argument-count mapping cannot be auto-derived (e.g. `MID$`, `SCREEN`, `PAINT`, `X SCREEN`, `Y SCREEN`). Add new
+entries there when tests reveal incorrect form selection.
 
 ## Known gaps / future work
 
 - **Detokenizer** (binary → AmosFile → ASCII): not started
-- **Bank data**: `AmosFile` is designed to hold bank data (graphics, samples) alongside lines, but banks are not yet parsed or written — `AmosFileWriter` always writes zero banks
-- **JSON coverage gaps**: ~66 core definitions lack offsets (documented aliases, optional-suffix variants); 3 compact entries (GET CBLOCK, PUT CBLOCK, DEL CBLOCK) have no binary counterpart; music "TRACK LOOP OFF" in JSON is spelled "TRACK LOOP OF" in the binary
-- **Third-party extensions**: `reference/amostools/extensions/` contains ~80 third-party `.Lib` files; use `--gen-ext-json` to generate JSON skeletons for them
-- **Symbol table offsets** (`unk2` in named tokens): AMOS fills in a slot offset (6 bytes per variable) into the second byte of each named token payload at tokenize time. We always write 0. This doesn't affect program semantics (AMOS recomputes these at load time), but the binary is not byte-identical.
-- **OVERRIDE coverage**: there are ~139 dual-form pairs in core.bin; only those exercised by test files have been verified. New test programs may expose further incorrect form selections requiring new OVERRIDES entries.
-- **Blank-line indent edge case**: AMOS editors occasionally save blank lines with `indent=0` rather than 1. These cannot be reproduced from ASCII source; the structural test skips indent comparison for empty lines.
+- **Bank data**: `AmosFile` is designed to hold bank data (graphics, samples) alongside lines, but banks are not yet
+  parsed or written — `AmosFileWriter` always writes zero banks
+- **JSON coverage gaps**: ~66 core definitions lack offsets (documented aliases, optional-suffix variants); 3 compact
+  entries (GET CBLOCK, PUT CBLOCK, DEL CBLOCK) have no binary counterpart; music "TRACK LOOP OFF" in JSON is spelled "
+  TRACK LOOP OF" in the binary
+- **Third-party extensions**: `reference/amostools/extensions/` contains ~80 third-party `.Lib` files; use
+  `--gen-ext-json` to generate JSON skeletons for them
+- **Symbol table offsets** (`unk2` in named tokens): AMOS fills in a slot offset (6 bytes per variable) into the second
+  byte of each named token payload at tokenize time. We always write 0. This doesn't affect program semantics (AMOS
+  recomputes these at load time), but the binary is not byte-identical.
+- **OVERRIDE coverage**: there are ~139 dual-form pairs in core.bin; only those exercised by test files have been
+  verified. New test programs may expose further incorrect form selections requiring new OVERRIDES entries.
+- **Blank-line indent edge case**: AMOS editors occasionally save blank lines with `indent=0` rather than 1. These
+  cannot be reproduced from ASCII source; the structural test skips indent comparison for empty lines.
