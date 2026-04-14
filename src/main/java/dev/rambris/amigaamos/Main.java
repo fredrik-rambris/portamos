@@ -146,6 +146,10 @@ public class Main implements Callable<Integer> {
                 description = "Output directory for JSON and data files")
         Path outDir;
 
+        @Option(names = "--ilbm",
+                description = "Export sprite/icon spritesheet as IFF ILBM instead of PNG")
+        boolean ilbm = false;
+
         @Override
         public Integer call() throws Exception {
             System.out.printf("Reading %s ...%n", input.getFileName());
@@ -155,11 +159,13 @@ public class Main implements Callable<Integer> {
             System.out.printf("Bank type: %s%n", bank.type());
 
             switch (bank) {
-                case SpriteBank sb -> new SpriteBankExporter().export(sb, outDir);
-                case ResourceBank rb -> new ResourceBankExporter().export(rb, outDir);
+                case SpriteBank sb -> new SpriteBankExporter().export(sb, outDir, ilbm);
+                case ResourceBank rb -> new ResourceBankExporter().export(rb, outDir, ilbm);
                 case AmalBank ab -> new AmalBankExporter().export(ab, outDir);
-                case PacPicBank pb ->
-                        new PacPicBankExporter().export(pb, outDir.resolve(stem + ".png"));
+                case PacPicBank pb -> {
+                    var ext = ilbm ? ".iff" : ".png";
+                    new PacPicBankExporter().export(pb, outDir.resolve(stem + ext), ilbm);
+                }
                 case RawBank rb ->
                         new RawBankExporter().export(rb, outDir.resolve(stem + ".bin"));
                 default -> {

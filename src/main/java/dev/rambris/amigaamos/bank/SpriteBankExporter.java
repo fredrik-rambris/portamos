@@ -37,16 +37,28 @@ public class SpriteBankExporter {
             .enable(SerializationFeature.INDENT_OUTPUT);
 
     /**
-     * Exports the sprite bank to {@code outDir}, creating the directory if needed.
+     * Exports the sprite bank to {@code outDir} as a PNG spritesheet (default).
      *
      * @param bank   the sprite bank to export
      * @param outDir target directory
      * @throws IOException if any file cannot be written
      */
     public void export(SpriteBank bank, Path outDir) throws IOException {
+        export(bank, outDir, false);
+    }
+
+    /**
+     * Exports the sprite bank to {@code outDir}.
+     *
+     * @param bank   the sprite bank to export
+     * @param outDir target directory
+     * @param ilbm   if {@code true}, write the spritesheet as an IFF ILBM; otherwise PNG
+     * @throws IOException if any file cannot be written
+     */
+    public void export(SpriteBank bank, Path outDir, boolean ilbm) throws IOException {
         Files.createDirectories(outDir);
-        var spritesheetName = "spritesheet.png";
-        exportSpritesheet(bank, outDir.resolve(spritesheetName));
+        var spritesheetName = ilbm ? "spritesheet.iff" : "spritesheet.png";
+        exportSpritesheet(bank, outDir.resolve(spritesheetName), ilbm ? "IFF" : "PNG");
         exportMetadata(bank, outDir, spritesheetName);
     }
 
@@ -54,7 +66,7 @@ public class SpriteBankExporter {
     // Spritesheet
     // -------------------------------------------------------------------------
 
-    private void exportSpritesheet(SpriteBank bank, Path dest) throws IOException {
+    private void exportSpritesheet(SpriteBank bank, Path dest, String format) throws IOException {
         // Determine sheet dimensions and max colour depth
         int sheetW = 0, sheetH = 0, maxPlanes = 0;
         for (var s : bank.sprites()) {
@@ -86,7 +98,7 @@ public class SpriteBankExporter {
             x += sprite.widthPixels();
         }
 
-        ImageIO.write(sheet, "PNG", dest.toFile());
+        ImageIO.write(sheet, format, dest.toFile());
         System.out.printf("Sprite sheet: %dx%d px, %d sprites → %s%n",
                 sheetW, sheetH, bank.sprites().size(), dest);
     }

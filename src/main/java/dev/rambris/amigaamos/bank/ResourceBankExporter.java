@@ -35,15 +35,27 @@ import java.util.regex.Pattern;
 public class ResourceBankExporter {
 
     private static final Pattern FILNAME_PATTERN = Pattern.compile(".*[/\\\\:](?<base>[^/\\\\:].+?)(\\.(?<ext>[^.]+))?$");
-    private static final String SPRITESHEET_FILE = "spritesheet.png";
     private static final ObjectMapper JSON = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT);
 
     public void export(ResourceBank bank, Path outDir) throws IOException {
-        var spritesheetFilename = normalizeFilename(bank.imagePath(), "png");
-        if (spritesheetFilename == null) spritesheetFilename = SPRITESHEET_FILE;
+        export(bank, outDir, false);
+    }
+
+    /**
+     * Exports the resource bank to {@code outDir}.
+     *
+     * @param bank   the resource bank to export
+     * @param outDir target directory
+     * @param ilbm   if {@code true}, write the spritesheet as an IFF ILBM; otherwise PNG
+     * @throws IOException if any file cannot be written
+     */
+    public void export(ResourceBank bank, Path outDir, boolean ilbm) throws IOException {
+        var ext = ilbm ? "iff" : "png";
+        var spritesheetFilename = normalizeFilename(bank.imagePath(), ext);
+        if (spritesheetFilename == null) spritesheetFilename = "spritesheet." + ext;
         Files.createDirectories(outDir);
-        exportSpriteSheet(bank, outDir.resolve(spritesheetFilename));
+        exportSpriteSheet(bank, outDir.resolve(spritesheetFilename), ilbm ? "IFF" : "PNG");
         exportPrograms(bank, outDir);
         exportMetadata(bank, outDir, spritesheetFilename);
     }
@@ -64,7 +76,7 @@ public class ResourceBankExporter {
     // Sprite sheet
     // -------------------------------------------------------------------------
 
-    private void exportSpriteSheet(ResourceBank bank, Path dest) throws IOException {
+    private void exportSpriteSheet(ResourceBank bank, Path dest, String format) throws IOException {
         // Compute bounding box of all images
         int sheetW = 0, sheetH = 0;
         int maxColour = 0;
@@ -113,7 +125,7 @@ public class ResourceBankExporter {
             }
         }
 
-        ImageIO.write(sheet, "PNG", dest.toFile());
+        ImageIO.write(sheet, format, dest.toFile());
         System.out.printf("Sprite sheet: %dx%d px, %d images decoded%s → %s%n",
                 sheetW, sheetH, decoded,
                 errors > 0 ? " (" + errors + " errors)" : "",

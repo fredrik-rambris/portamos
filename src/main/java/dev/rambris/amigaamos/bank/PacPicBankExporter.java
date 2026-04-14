@@ -29,7 +29,19 @@ public class PacPicBankExporter {
     private static final ObjectMapper JSON = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT);
 
-    public void export(PacPicBank bank, Path pngPath) throws IOException {
+    public void export(PacPicBank bank, Path imagePath) throws IOException {
+        export(bank, imagePath, false);
+    }
+
+    /**
+     * Exports the PacPic bank to {@code imagePath}.
+     *
+     * @param bank      the PacPic bank to export
+     * @param imagePath destination image file path (extension should match {@code ilbm})
+     * @param ilbm      if {@code true}, write as IFF ILBM; otherwise PNG
+     * @throws IOException if any file cannot be written
+     */
+    public void export(PacPicBank bank, Path imagePath, boolean ilbm) throws IOException {
         var pixels = PacPicDecoder.decompress(bank.picData());
         var height = pixels.length;
         var width = height > 0 ? pixels[0].length : 0;
@@ -41,14 +53,14 @@ public class PacPicBankExporter {
                 : new int[32];
 
         var image = toIndexedImage(pixels, width, height, palette, maxColors);
-        ImageIO.write(image, "PNG", pngPath.toFile());
+        ImageIO.write(image, ilbm ? "IFF" : "PNG", imagePath.toFile());
 
-        var jsonPath = Path.of(pngPath.toString() + ".json");
+        var jsonPath = Path.of(imagePath.toString() + ".json");
         var root = JSON.createObjectNode();
         root.put("type", "PacPic");
         root.put("bankNumber", bank.bankNumber());
         root.put("chipRam", bank.chipRam());
-        root.put("pngFile", pngPath.getFileName().toString());
+        root.put("imageFile", imagePath.getFileName().toString());
         root.put("srcX", readSrcX(bank.picData()));
         root.put("srcY", readSrcY(bank.picData()));
         root.put("planes", planes);

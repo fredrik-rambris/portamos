@@ -34,13 +34,15 @@ public class PacPicBankImporter {
         var planes = root.path("planes").asInt(1);
         var spack = root.path("spack").asBoolean(false);
 
-        var pngFile = root.path("pngFile").asText(defaultPngFilename(jsonPath));
-        var pngPath = jsonPath.resolveSibling(pngFile);
+        var imageFile = root.has("imageFile")
+                ? root.path("imageFile").asText()
+                : root.path("pngFile").asText(defaultImageFilename(jsonPath));
+        var imagePath = jsonPath.resolveSibling(imageFile);
 
-        var image = ImageIO.read(pngPath.toFile());
-        if (image == null) throw new IOException("Cannot read PNG: " + pngPath);
+        var image = ImageIO.read(imagePath.toFile());
+        if (image == null) throw new IOException("Cannot read image: " + imagePath);
         if (!(image.getColorModel() instanceof IndexColorModel cm)) {
-            throw new IllegalStateException("PNG must be indexed-colour: " + pngPath);
+            throw new IllegalStateException("Image must be indexed-colour: " + imagePath);
         }
 
         if (planes <= 0) {
@@ -74,7 +76,7 @@ public class PacPicBankImporter {
         return new PacPicBank(bankNumber, chipRam, screenHeader, picData);
     }
 
-    private static String defaultPngFilename(Path jsonPath) {
+    private static String defaultImageFilename(Path jsonPath) {
         var s = jsonPath.getFileName().toString();
         if (s.endsWith(".json")) {
             return s.substring(0, s.length() - 5);

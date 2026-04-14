@@ -67,7 +67,7 @@ public class ResourceBankImporter {
         BufferedImage sheet = ImageIO.read(spritesheetPath.toFile());
         if (sheet == null) throw new IOException("Cannot read spritesheet: " + spritesheetPath);
         if (!(sheet.getColorModel() instanceof IndexColorModel cm)) {
-            throw new IllegalStateException("Spritesheet must be an indexed-colour PNG: " + spritesheetPath);
+            throw new IllegalStateException("Spritesheet must be an indexed-colour image: " + spritesheetPath);
         }
         int numColours = root.path("numColours").asInt(0);
         int planes = numColours > 0 ? colorModelToPlanes(numColours) : colorModelToPlanes(cm.getMapSize());
