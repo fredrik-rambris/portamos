@@ -32,7 +32,7 @@ public interface AmosBank {
         CODE("Code    ", RawBankReader::read),
         PACPIC("Pac.Pic.", PacPicBankReader::read),
         RESOURCE("Resource", ResourceBankReader::read),
-        SAMPLES("Samples ", RawBankReader::read),
+        SAMPLES("Samples ", SampleBankReader::read),
         SPRITES("Sprites ", RawBankReader::read),
         ICONS("Icons   ", RawBankReader::read);
 

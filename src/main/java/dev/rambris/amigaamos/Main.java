@@ -150,6 +150,10 @@ public class Main implements Callable<Integer> {
                 description = "Export sprite/icon spritesheet as IFF ILBM instead of PNG")
         boolean ilbm = false;
 
+        @Option(names = "--svx8",
+                description = "Export samples as IFF 8SVX instead of RIFF WAVE")
+        boolean svx8 = false;
+
         @Override
         public Integer call() throws Exception {
             System.out.printf("Reading %s ...%n", input.getFileName());
@@ -162,6 +166,7 @@ public class Main implements Callable<Integer> {
                 case SpriteBank sb -> new SpriteBankExporter().export(sb, outDir, ilbm);
                 case ResourceBank rb -> new ResourceBankExporter().export(rb, outDir, ilbm);
                 case AmalBank ab -> new AmalBankExporter().export(ab, outDir);
+                case SampleBank sb -> new SampleBankExporter().export(sb, outDir, svx8);
                 case PacPicBank pb -> {
                     var ext = ilbm ? ".iff" : ".png";
                     new PacPicBankExporter().export(pb, outDir.resolve(stem + ext), ilbm);
@@ -389,6 +394,7 @@ public class Main implements Callable<Integer> {
             case "pacpic" -> new PacPicBankImporter().importFrom(jsonPath);
             case "work", "data" -> new RawBankImporter().importFrom(jsonPath);
             case "amal" -> new AmalBankImporter().importFrom(jsonPath);
+            case "samples" -> new SampleBankImporter().importFrom(jsonPath);
             default -> throw new IllegalArgumentException(
                     "Unknown bank type in JSON: \"" + type + "\". "
                             + "Expected: resource, sprite, icon, pacpic, work, data");
