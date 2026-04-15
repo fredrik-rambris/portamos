@@ -95,6 +95,11 @@ public class Main implements Callable<Integer> {
                 description = "Assemble a bank from JSON + data files and attach it (repeatable)")
         List<Path> importBanks = new ArrayList<>();
 
+        @Option(names = "--definition", paramLabel = "<path.json>",
+                description = "Load an additional extension definition JSON file (repeatable). "
+                              + "Use this for third-party extensions not included in the built-in set.")
+        List<Path> definitions = new ArrayList<>();
+
         @Option(names = "--fold",
                 description = "Mark all Procedure blocks as folded in the AMOS editor by default.")
         boolean fold = false;
@@ -103,6 +108,10 @@ public class Main implements Callable<Integer> {
         public Integer call() throws Exception {
             System.out.println("Reading " + source);
             var tokenizer = new Tokenizer();
+            for (var defPath : definitions) {
+                System.out.println("Loading definition " + defPath);
+                tokenizer.withDefinition(defPath);
+            }
             if (fold) tokenizer.withFoldedProcedures();
             var amosFile = tokenizer.parse(source);
 

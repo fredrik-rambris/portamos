@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -145,6 +147,18 @@ class TokenTable {
     private void loadResource(String path) {
         try (InputStream is = TokenTable.class.getResourceAsStream(path)) {
             if (is == null) throw new RuntimeException("Missing resource: " + path);
+            var root = JSON.readTree(is);
+            parseDefinitions(root);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load token table from " + path, e);
+        }
+    }
+
+    /**
+     * Loads an additional token definition JSON file from the given path.
+     */
+    void loadFile(Path path) {
+        try (var is = Files.newInputStream(path)) {
             var root = JSON.readTree(is);
             parseDefinitions(root);
         } catch (IOException e) {

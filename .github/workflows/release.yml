@@ -69,22 +69,23 @@ jobs:
         run: |
           tar -czf build/native/nativeCompile/portamos-${{ env.TAG }}-${{ matrix.platform }}.tar.gz \
             -C build/native/nativeCompile ${{ matrix.binary }} \
-            -C ${{ github.workspace }} README.md
+            -C ${{ github.workspace }} README.md definitions
 
       - name: Package (macOS)
         if: runner.os == 'macOS'
         run: |
           tar -czf build/native/nativeCompile/portamos-${{ env.TAG }}-${{ matrix.platform }}.tar.gz \
             -C build/native/nativeCompile ${{ matrix.binary }} \
-            -C ${{ github.workspace }} README.md MacOS-README.txt
+            -C ${{ github.workspace }} README.md MacOS-README.txt definitions
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           Copy-Item README.md build/native/nativeCompile/README.md
+          Copy-Item -Recurse definitions build/native/nativeCompile/definitions
           Compress-Archive `
-            -Path build/native/nativeCompile/${{ matrix.binary }}, build/native/nativeCompile/README.md `
+            -Path build/native/nativeCompile/${{ matrix.binary }}, build/native/nativeCompile/README.md, build/native/nativeCompile/definitions `
             -DestinationPath build/native/nativeCompile/portamos-${{ env.TAG }}-${{ matrix.platform }}.zip
 
       - name: Upload artifact

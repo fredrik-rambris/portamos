@@ -56,11 +56,16 @@ Run `portamos help` or `portamos <subcommand> --help` for full option listings.
 portamos build source.Asc output.AMOS
 portamos build source.Asc output.AMOS --add-bank sprites.Abk --add-bank music.Abk
 portamos build source.Asc output.AMOS --import-bank sprites/bank.json
+portamos build source.Asc output.AMOS --definition definitions/turboplus.json
 portamos build source.Asc output.AMOS --fold
 ```
 
 Reads an AMOS Professional ASCII source file and writes the corresponding binary `.AMOS` file.
 Optionally attaches bank files directly (`--add-bank`) or assembles them from JSON (`--import-bank`).
+
+**`--definition <path.json>`** — Load an additional extension definition file before tokenizing
+(repeatable). Use this for third-party extensions not included in the built-in set. The release
+archives include a `definitions/` directory with definitions for known third-party extensions.
 
 **`--fold`** — Mark all `Procedure` blocks as folded in the AMOS editor by default (bit 7 of the
 procedure flags byte). Without this flag, procedures are saved in the unfolded state.
@@ -297,6 +302,9 @@ src/main/java/dev/rambris/amigaamos/
 
 src/main/resources/amos/definitions/
   core.json, music.json, compact.json, request.json, ioports.json
+
+definitions/                            Third-party extension definitions (shipped in release archives)
+  turboplus.json                        TURBO Plus extension (slot 12, Manuel Andre)
 
 reference/
   AMOSProfessional/                   Original AMOS Pro disk image and .Lib files

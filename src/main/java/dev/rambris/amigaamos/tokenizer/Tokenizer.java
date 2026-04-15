@@ -42,15 +42,13 @@ public class Tokenizer {
     static final int AMOS_INDENT_SPACES = 1;
 
     private final AmosVersion version;
+    private final TokenTable tokenTable;
     private final AsciiParser parser;
     private final BinaryEncoder encoder;
     private final AmosFileWriter writer;
 
     /**
-     * When {@code true}, all {@code Procedure} blocks are marked folded in the
-     * AMOS editor by default (bit 7 of the procedure flags byte).
-     * Procedures with a {@code !!LOCKED!!} or {@code !!ENCRYPTED!!} magic comment
-     * are always folded regardless of this setting.
+     * When {@code true}, all {@code Procedure} blocks are marked folded in the AMOS editor.
      */
     private boolean foldProcedures = false;
 
@@ -60,10 +58,22 @@ public class Tokenizer {
 
     public Tokenizer(AmosVersion version) {
         this.version = version;
-        var tokenTable = new TokenTable();
-        this.parser  = new AsciiParser(tokenTable);
+        this.tokenTable = new TokenTable();
+        this.parser = new AsciiParser(tokenTable);
         this.encoder = new BinaryEncoder(tokenTable);
-        this.writer  = new AmosFileWriter();
+        this.writer = new AmosFileWriter();
+    }
+
+    /**
+     * Loads an additional extension definition JSON file into the token table.
+     * Must be called before {@link #parse}.
+     *
+     * @param path path to a definition JSON file (same format as the built-in ones)
+     * @return {@code this} for chaining
+     */
+    public Tokenizer withDefinition(Path path) {
+        tokenTable.loadFile(path);
+        return this;
     }
 
     /**

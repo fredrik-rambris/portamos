@@ -1,0 +1,4071 @@
+{
+  "extension": {
+    "id": "AMOSPro_TURBO_Plus",
+    "name": "TURBO Plus extension",
+    "filename": "AMOSPro_TURBO_Plus.Lib",
+    "slot": 12,
+    "start": 6,
+    "vendor": "Manuel Andre"
+  },
+  "definitions": [
+    {
+      "name": "MULTI YES",
+      "kind": "instruction",
+      "documentation": "Set AMOS task priority to normal (0). Restores normal multitasking.",
+      "signatures": [
+        {
+          "offset": 6,
+          "commaGroups": 0,
+          "presentation": "Multi Yes",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "MULTI NO",
+      "kind": "instruction",
+      "documentation": "Turn off multitasking, giving more CPU time to AMOS. Warning: disables keyboard under AMOS (not AMOS Pro). Use Left Click and Raw Key for input when multitasking is off.",
+      "signatures": [
+        {
+          "offset": 22,
+          "commaGroups": 0,
+          "presentation": "Multi No",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "LSL.B",
+      "kind": "function",
+      "documentation": "Logical shift left of the lower 8 bits of value by shift count. Returns the result.",
+      "signatures": [
+        {
+          "offset": 36,
+          "commaGroups": 2,
+          "presentation": "Lsl.b(value, shift)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LSL.W",
+      "kind": "function",
+      "documentation": "Logical shift left of the lower 16 bits of value by shift count. Returns the result.",
+      "signatures": [
+        {
+          "offset": 50,
+          "commaGroups": 2,
+          "presentation": "Lsl.w(value, shift)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LSL.L",
+      "kind": "function",
+      "documentation": "Logical shift left of the full 32-bit longword of value by shift count. Returns the result.",
+      "signatures": [
+        {
+          "offset": 64,
+          "commaGroups": 2,
+          "presentation": "Lsl.l(value, shift)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LSR.B",
+      "kind": "function",
+      "documentation": "Logical shift right of the lower 8 bits of value by shift count. Returns the result.",
+      "signatures": [
+        {
+          "offset": 78,
+          "commaGroups": 2,
+          "presentation": "Lsr.b(value, shift)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LSR.W",
+      "kind": "function",
+      "documentation": "Logical shift right of the lower 16 bits of value by shift count. Returns the result.",
+      "signatures": [
+        {
+          "offset": 92,
+          "commaGroups": 2,
+          "presentation": "Lsr.w(value, shift)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LSR.L",
+      "kind": "function",
+      "documentation": "Logical shift right of the full 32-bit longword of value by shift count. Returns the result.",
+      "signatures": [
+        {
+          "offset": 106,
+          "commaGroups": 2,
+          "presentation": "Lsr.l(value, shift)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "L SWAP",
+      "kind": "function",
+      "documentation": "Swap the lower 16 bits with the upper 16 bits of a longword. Returns the result.",
+      "signatures": [
+        {
+          "offset": 120,
+          "commaGroups": 1,
+          "presentation": "L Swap(value)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TEST.B",
+      "kind": "function",
+      "documentation": "Compare the lower 8 bits of x with the lower 8 bits of y. Returns -1 if equal, 0 if not. Equivalent to (x And $FF)=(y And $FF).",
+      "signatures": [
+        {
+          "offset": 134,
+          "commaGroups": 2,
+          "presentation": "Test.b(x, y)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TEST.W",
+      "kind": "function",
+      "documentation": "Compare the lower 16 bits of x with the lower 16 bits of y. Returns -1 if equal, 0 if not. Equivalent to (x And $FFFF)=(y And $FFFF).",
+      "signatures": [
+        {
+          "offset": 150,
+          "commaGroups": 2,
+          "presentation": "Test.w(x, y)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "VBL WAIT",
+      "kind": "instruction",
+      "documentation": "Wait until the raster beam has reached scan line x (0-256). More precise than Wait Vbl and works even with multitasking disabled.",
+      "signatures": [
+        {
+          "offset": 166,
+          "commaGroups": 1,
+          "presentation": "Vbl Wait line",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "line",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RESERVE CHECK",
+      "kind": "instruction",
+      "documentation": "Reserve memory for x TURBO check zones. Must be called before Set Check.",
+      "signatures": [
+        {
+          "offset": 182,
+          "commaGroups": 1,
+          "presentation": "Reserve Check count",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "count",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CHECK ERASE",
+      "kind": "instruction",
+      "documentation": "Release memory used by Reserve Check and erase all check zone definitions.",
+      "signatures": [
+        {
+          "offset": 202,
+          "commaGroups": 0,
+          "presentation": "Check Erase",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "CHECK",
+      "kind": "function",
+      "documentation": "Check if coordinates x,y fall within any check zone from start to end. Returns 1 if inside a zone, 0 if not.",
+      "signatures": [
+        {
+          "offset": 220,
+          "commaGroups": 3,
+          "presentation": "Check(start To end, x, y)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SET CHECK",
+      "kind": "instruction",
+      "documentation": "Define check zone z as the rectangular screen area from x1,y1 to x2,y2.",
+      "signatures": [
+        {
+          "offset": 238,
+          "commaGroups": 4,
+          "presentation": "Set Check z, x1, y1 To x2, y2",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "z",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x2",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y2",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RESET CHECK",
+      "kind": "instruction",
+      "documentation": "Erase the definition of check zone z.",
+      "signatures": [
+        {
+          "offset": 262,
+          "commaGroups": 1,
+          "presentation": "Reset Check z",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "z",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HIT SPR ZONE",
+      "kind": "function",
+      "documentation": "Check if sprite n (offset by dx,dy from its hot spot) is inside any AMOS zone. Returns the zone number or 0.",
+      "signatures": [
+        {
+          "offset": 280,
+          "commaGroups": 3,
+          "presentation": "Hit Spr Zone(dx, dy, n)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "dx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dy",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "n",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HIT BOB ZONE",
+      "kind": "function",
+      "documentation": "Check if bob n (offset by dx,dy from its hot spot) is inside any AMOS zone. Returns the zone number or 0.",
+      "signatures": [
+        {
+          "offset": 304,
+          "commaGroups": 3,
+          "presentation": "Hit Bob Zone(dx, dy, n)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "dx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dy",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "n",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HIT SPR CHECK",
+      "kind": "function",
+      "documentation": "Check if sprite n (offset by dx,dy) is inside any TURBO check zone from start to end. Returns 1 if inside, 0 if not.",
+      "signatures": [
+        {
+          "offset": 328,
+          "commaGroups": 4,
+          "presentation": "Hit Spr Check(start To end, dx, dy, n)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dy",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "n",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RAW KEY",
+      "kind": "function",
+      "documentation": "Check if key with scancode n is currently pressed. Works even when multitasking is disabled. Returns -1 if pressed.",
+      "signatures": [
+        {
+          "offset": 356,
+          "commaGroups": 1,
+          "presentation": "Raw Key(scancode)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scancode",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "R MOVE",
+      "kind": "instruction",
+      "documentation": "Move the graphics cursor by dx,dy relative to its current position. Equivalent to Gr Locate Xgr+dx,Ygr+dy.",
+      "signatures": [
+        {
+          "offset": 370,
+          "commaGroups": 2,
+          "presentation": "R Move dx, dy",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "dx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dy",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "R DRAW",
+      "kind": "instruction",
+      "documentation": "Draw a line from the current graphics cursor position by dx,dy relative offset. Cursor moves to end of line.",
+      "signatures": [
+        {
+          "offset": 386,
+          "commaGroups": 2,
+          "presentation": "R Draw dx, dy",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "dx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dy",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "R BOX",
+      "kind": "instruction",
+      "documentation": "Draw a box relative to the current graphics cursor position using dx,dy as the opposite corner offset.",
+      "signatures": [
+        {
+          "offset": 402,
+          "commaGroups": 2,
+          "presentation": "R Box dx, dy",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "dx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dy",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "R HOME",
+      "kind": "instruction",
+      "documentation": "Move the graphics cursor home (0,0) relative to the screen.",
+      "signatures": [
+        {
+          "offset": 416,
+          "commaGroups": 2,
+          "presentation": "R Home dx, dy",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "dx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dy",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "R BAR",
+      "kind": "instruction",
+      "documentation": "Draw a filled bar relative to the current graphics cursor using dx,dy as the opposite corner offset.",
+      "signatures": [
+        {
+          "offset": 432,
+          "commaGroups": 2,
+          "presentation": "R Bar dx, dy",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "dx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dy",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RESERVE OBJECT",
+      "kind": "instruction",
+      "documentation": "Reserve memory for object number object with count vector definitions. Use 'Reserve Object' for chip memory.",
+      "signatures": [
+        {
+          "offset": 446,
+          "commaGroups": 2,
+          "presentation": "Reserve Object object, count",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "count",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEFINE DRAW",
+      "kind": "instruction",
+      "documentation": "Define vector element in object as a Draw instruction to coordinates x,y.",
+      "signatures": [
+        {
+          "offset": 470,
+          "commaGroups": 3,
+          "presentation": "Define Draw object, element To x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "element",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEFINE MOVE",
+      "kind": "instruction",
+      "documentation": "Define vector element in object as a Move instruction to coordinates x,y (no line drawn).",
+      "signatures": [
+        {
+          "offset": 494,
+          "commaGroups": 3,
+          "presentation": "Define Move object, element To x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "element",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEFINE STOP",
+      "kind": "instruction",
+      "documentation": "Define vector element in object as a Stop instruction (marks end of object definition).",
+      "signatures": [
+        {
+          "offset": 518,
+          "commaGroups": 2,
+          "presentation": "Define Stop object, element",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "element",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEFINE ATTR",
+      "kind": "instruction",
+      "documentation": "Define vector element in object as an Attribute instruction changing colour and draw mode.",
+      "signatures": [
+        {
+          "offset": 538,
+          "commaGroups": 3,
+          "presentation": "Define Attr object, element To colour, drawmode",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "element",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "colour",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "drawmode",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OBJECT DRAW",
+      "kind": "instruction",
+      "documentation": "Draw vector object to the current screen.",
+      "signatures": [
+        {
+          "offset": 562,
+          "commaGroups": 1,
+          "presentation": "Object Draw object",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "R OBJECT DRAW",
+      "kind": "instruction",
+      "documentation": "Draw vector object relative to screen coordinates x,y.",
+      "signatures": [
+        {
+          "offset": 580,
+          "commaGroups": 3,
+          "presentation": "R Object Draw object, x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OBJECT MAG DRAW",
+      "kind": "instruction",
+      "documentation": "Draw vector object scaled by factor mul. Positive mul enlarges, negative divides.",
+      "signatures": [
+        {
+          "offset": 604,
+          "commaGroups": 2,
+          "presentation": "Object Mag Draw object, mul",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "mul",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "R OBJECT MAG DRAW",
+      "kind": "instruction",
+      "documentation": "Draw vector object relative to x,y and scaled by factor mul.",
+      "signatures": [
+        {
+          "offset": 628,
+          "commaGroups": 4,
+          "presentation": "R Object Mag Draw object, x, y, mul",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "mul",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OBJECT ERASE",
+      "kind": "instruction",
+      "documentation": "Erase object definition and free its memory. If object is negative, erase all objects.",
+      "signatures": [
+        {
+          "offset": 658,
+          "commaGroups": 1,
+          "presentation": "Object Erase object",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "object",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LINE 3D",
+      "kind": "instruction",
+      "documentation": "Draw a 3D perspective line from x,y,z to x1,y1,z1. Uses Eye 3d for the vanishing point.",
+      "signatures": [
+        {
+          "offset": 678,
+          "commaGroups": 5,
+          "presentation": "Line 3d x, y, z To x1, y1, z1",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "z",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "z1",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "EYE 3D",
+      "kind": "instruction",
+      "documentation": "Set the vanishing point for Line 3d to screen coordinates x,y. Default is 160,100.",
+      "signatures": [
+        {
+          "offset": 702,
+          "commaGroups": 2,
+          "presentation": "Eye 3d x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OBJECT SAVE",
+      "kind": "instruction",
+      "documentation": "Save chip objects from start to end into file name.",
+      "signatures": [
+        {
+          "offset": 718,
+          "commaGroups": 2,
+          "presentation": "Object Save name, start To end",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "name",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OBJECT LOAD",
+      "kind": "instruction",
+      "documentation": "Load object file name and place objects starting at index start.",
+      "signatures": [
+        {
+          "offset": 740,
+          "commaGroups": 2,
+          "presentation": "Object Load name, start",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "name",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT STORE LEFT",
+      "kind": "instruction",
+      "documentation": "Predefine horizontal scroll zone blitnr on screen. Area from x,y to x1,y1. Positive shift scrolls right, negative left (range -15 to +15).",
+      "signatures": [
+        {
+          "offset": 760,
+          "commaGroups": 6,
+          "presentation": "Blit Store Left screen, blitnr, x, y To x1, y1, shift",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "screen",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "blitnr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MULTI BLIT",
+      "kind": "instruction",
+      "documentation": "Execute all predefined scroll zones from start to end. Zones must be defined with Blit Store Left/Up.",
+      "signatures": [
+        {
+          "offset": 794,
+          "commaGroups": 1,
+          "presentation": "Multi Blit start To end",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT ERASE",
+      "kind": "instruction",
+      "documentation": "Free memory used by scroll zone blitnr. If blitnr is negative, erase all blit definitions.",
+      "signatures": [
+        {
+          "offset": 814,
+          "commaGroups": 1,
+          "presentation": "Blit Erase blitnr",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "blitnr",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT SPEED",
+      "kind": "instruction",
+      "documentation": "Change the shift (speed) value of a previously defined scroll zone.",
+      "signatures": [
+        {
+          "offset": 832,
+          "commaGroups": 2,
+          "presentation": "Blit Speed blitnr, shift",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "blitnr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT LEFT",
+      "kind": "instruction",
+      "documentation": "Immediately execute a horizontal scroll on screen from x,y to x1,y1 with given shift.",
+      "signatures": [
+        {
+          "offset": 852,
+          "commaGroups": 5,
+          "presentation": "Blit Left screen, x, y To x1, y1, shift",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "screen",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F PLOT",
+      "kind": "instruction",
+      "documentation": "Plot a point of colour at x,y on the current screen. 2-3x faster than standard AMOS Plot.",
+      "signatures": [
+        {
+          "offset": 878,
+          "commaGroups": 3,
+          "presentation": "F Plot x, y, colour",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "colour",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT CLEAR",
+      "kind": "instruction",
+      "documentation": "Clear bitplane x of the current screen. If x<0 all bitplanes are cleared. About 80% faster than Cls.",
+      "signatures": [
+        {
+          "offset": 896,
+          "commaGroups": 1,
+          "presentation": "Blit Clear bitplane",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bitplane",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "LEFT CLICK",
+      "kind": "function",
+      "documentation": "Check the left mouse button. Works even when multitasking is disabled. Returns -1 if pressed.",
+      "signatures": [
+        {
+          "offset": 914,
+          "commaGroups": 0,
+          "presentation": "Left Click",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "RESERVE STARS",
+      "kind": "instruction",
+      "documentation": "Reserve memory for count star definitions on the current screen.",
+      "signatures": [
+        {
+          "offset": 930,
+          "commaGroups": 1,
+          "presentation": "Reserve Stars count",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "count",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEFINE STAR",
+      "kind": "instruction",
+      "documentation": "Define star nr at initial position x,y with x speed and y speed.",
+      "signatures": [
+        {
+          "offset": 950,
+          "commaGroups": 5,
+          "presentation": "Define Star nr, x, y, xspeed, yspeed",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "nr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xspeed",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yspeed",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DISPLAY STARS",
+      "kind": "instruction",
+      "documentation": "Display all stars and compute their next position. Equivalent to Stars Draw : Stars Compute.",
+      "signatures": [
+        {
+          "offset": 976,
+          "commaGroups": 0,
+          "presentation": "Display Stars",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "STARS ERASE",
+      "kind": "instruction",
+      "documentation": "Free the memory used by Reserve Stars.",
+      "signatures": [
+        {
+          "offset": 996,
+          "commaGroups": 0,
+          "presentation": "Stars Erase",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "STARS COMPUTE",
+      "kind": "instruction",
+      "documentation": "Compute the next position of stars from start to end without displaying them.",
+      "signatures": [
+        {
+          "offset": 1014,
+          "commaGroups": 1,
+          "presentation": "Stars Compute start To end",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "STARS DRAW",
+      "kind": "instruction",
+      "documentation": "Display all stars on screen without computing their next position.",
+      "signatures": [
+        {
+          "offset": 1036,
+          "commaGroups": 0,
+          "presentation": "Stars Draw",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "STARS SPEED",
+      "kind": "instruction",
+      "documentation": "Change the x and y speed of stars from start to end.",
+      "signatures": [
+        {
+          "offset": 1052,
+          "commaGroups": 3,
+          "presentation": "Stars Speed start To end, xspeed, yspeed",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xspeed",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yspeed",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "STARS CLIP",
+      "kind": "instruction",
+      "documentation": "Limit all stars to the rectangular screen region from x,y (top-left) to x1,y1 (bottom-right).",
+      "signatures": [
+        {
+          "offset": 1076,
+          "commaGroups": 4,
+          "presentation": "Stars Clip x, y, x1, y1",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F POINT",
+      "kind": "function",
+      "documentation": "Return the colour register of the pixel at x,y. 2-3x faster than standard AMOS Point.",
+      "signatures": [
+        {
+          "offset": 1100,
+          "commaGroups": 2,
+          "presentation": "F Point(x, y)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F CIRCLE",
+      "kind": "instruction",
+      "documentation": "Draw a circle centered at x,y with given radius and colour. Up to 550% faster than standard Circle.",
+      "signatures": [
+        {
+          "offset": 1116,
+          "commaGroups": 4,
+          "presentation": "F Circle x, y, radius, colour",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "radius",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "colour",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F SQR",
+      "kind": "function",
+      "documentation": "Fast integer square root. Returns the integer square root of value.",
+      "signatures": [
+        {
+          "offset": 1138,
+          "commaGroups": 1,
+          "presentation": "F Sqr(value)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "STARS INT ON",
+      "kind": "instruction",
+      "documentation": "Add a VBL interrupt server that calls Display Stars every vertical blank. If clear is non-zero, bitplane 1 is cleared before drawing.",
+      "signatures": [
+        {
+          "offset": 1150,
+          "commaGroups": 1,
+          "presentation": "Stars Int On clear",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "clear",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "STARS INT OFF",
+      "kind": "instruction",
+      "documentation": "Remove the stars VBL interrupt server.",
+      "signatures": [
+        {
+          "offset": 1170,
+          "commaGroups": 0,
+          "presentation": "Stars Int Off",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "BLIT INT ON",
+      "kind": "instruction",
+      "documentation": "Add a VBL interrupt server that calls Multi Blit start To end every vertical blank. Scrolling begins when Blit Int Wait is False.",
+      "signatures": [
+        {
+          "offset": 1190,
+          "commaGroups": 1,
+          "presentation": "Blit Int On start To end",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT INT OFF",
+      "kind": "instruction",
+      "documentation": "Remove the blitter VBL interrupt server.",
+      "signatures": [
+        {
+          "offset": 1210,
+          "commaGroups": 0,
+          "presentation": "Blit Int Off",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "F DRAW",
+      "kind": "instruction",
+      "documentation": "Fast line draw. With two coordinates draws from current graphics position to x,y. With four coordinates draws from x,y to x1,y1. Up to 200% faster than standard Draw.",
+      "signatures": [
+        {
+          "offset": 1228,
+          "commaGroups": 3,
+          "presentation": "F Draw x, y To x1, y1",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            }
+          ]
+        },
+        {
+          "offset": 1248,
+          "commaGroups": 2,
+          "presentation": "F Draw x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "OBJECT LIMIT",
+      "kind": "instruction",
+      "documentation": "Set the maximum number of vector objects. Must be called before Reserve Object. Set to 0 to free all object memory.",
+      "signatures": [
+        {
+          "offset": 1258,
+          "commaGroups": 1,
+          "presentation": "Object Limit limit",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "limit",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SET PLANES",
+      "kind": "instruction",
+      "documentation": "Restrict drawing operations to a set of bitplanes defined by mask (each bit = one plane). Reset to 255 after use.",
+      "signatures": [
+        {
+          "offset": 1278,
+          "commaGroups": 1,
+          "presentation": "Set Planes mask",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "mask",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PLANE OFFSET",
+      "kind": "instruction",
+      "documentation": "Set the x/y display offset for bitplane planenr of screen scrnr. Use negative planenr to reset all planes.",
+      "signatures": [
+        {
+          "offset": 1296,
+          "commaGroups": 4,
+          "presentation": "Plane Offset scrnr, planenr, xoffset, yoffset",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scrnr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "planenr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xoffset",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yoffset",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PLANE SWAP",
+      "kind": "instruction",
+      "documentation": "Swap bitplane plane1 with bitplane plane2 on screen scrnr.",
+      "signatures": [
+        {
+          "offset": 1322,
+          "commaGroups": 3,
+          "presentation": "Plane Swap scrnr, plane1, plane2",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scrnr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "plane1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "plane2",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PLANE SHIFT UP",
+      "kind": "instruction",
+      "documentation": "Shift bitplanes from start to end up by one on screen scrnr.",
+      "signatures": [
+        {
+          "offset": 1344,
+          "commaGroups": 2,
+          "presentation": "Plane Shift Up scrnr, start To end",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scrnr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PLANE SHIFT DOWN",
+      "kind": "instruction",
+      "documentation": "Shift bitplanes from start to end down by one on screen scrnr.",
+      "signatures": [
+        {
+          "offset": 1370,
+          "commaGroups": 2,
+          "presentation": "Plane Shift Down scrnr, start To end",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scrnr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PLANE UPDATE",
+      "kind": "instruction",
+      "documentation": "Apply pending plane changes to the display. Use instead of AMOS View command when using Plane commands.",
+      "signatures": [
+        {
+          "offset": 1398,
+          "commaGroups": 1,
+          "presentation": "Plane Update scrnr",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scrnr",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F PASTE ICON",
+      "kind": "instruction",
+      "documentation": "Fast general-purpose icon paste at x,y. X is aligned to 16-bit boundary. Masking supported. 2-3.5x faster than Paste Icon.",
+      "signatures": [
+        {
+          "offset": 1418,
+          "commaGroups": 3,
+          "presentation": "F Paste Icon x, y, icon",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "icon",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F 32 ICON",
+      "kind": "instruction",
+      "documentation": "Optimised icon paste for icons 17 to 32 pixels wide, any height. Masking supported.",
+      "signatures": [
+        {
+          "offset": 1442,
+          "commaGroups": 3,
+          "presentation": "F 32 Icon x, y, icon",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "icon",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F 16 ICON",
+      "kind": "instruction",
+      "documentation": "Optimised icon paste for icons 1 to 16 pixels wide, any height. Masking supported. 2.5-3.5x faster than Paste Icon.",
+      "signatures": [
+        {
+          "offset": 1462,
+          "commaGroups": 3,
+          "presentation": "F 16 Icon x, y, icon",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "icon",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F 16PROC ICON",
+      "kind": "instruction",
+      "documentation": "CPU-based icon paste for exactly 16-pixel wide icons. Faster than blitter on 68020+. No masking support.",
+      "signatures": [
+        {
+          "offset": 1482,
+          "commaGroups": 3,
+          "presentation": "F 16proc Icon x, y, icon",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "icon",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "F 32PROC ICON",
+      "kind": "instruction",
+      "documentation": "CPU-based icon paste for exactly 32-pixel wide icons. Equivalent to F 16proc Icon but for 32-pixel icons.",
+      "signatures": [
+        {
+          "offset": 1506,
+          "commaGroups": 3,
+          "presentation": "F 32proc Icon x, y, icon",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "icon",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "X ICON",
+      "kind": "function",
+      "documentation": "Return the width in words of icon nr.",
+      "signatures": [
+        {
+          "offset": 1530,
+          "commaGroups": 1,
+          "presentation": "X Icon(nr)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "nr",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Y ICON",
+      "kind": "function",
+      "documentation": "Return the height in lines of icon nr.",
+      "signatures": [
+        {
+          "offset": 1544,
+          "commaGroups": 1,
+          "presentation": "Y Icon(nr)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "nr",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PLANES ICON",
+      "kind": "function",
+      "documentation": "Return the number of bitplanes of icon nr.",
+      "signatures": [
+        {
+          "offset": 1558,
+          "commaGroups": 1,
+          "presentation": "Planes Icon(nr)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "nr",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CPU INFO",
+      "kind": "function",
+      "documentation": "Return the CPU type: 0=68000, 10=68010, 20=68020, 30=68030, 40=68040.",
+      "signatures": [
+        {
+          "offset": 1576,
+          "commaGroups": 0,
+          "presentation": "Cpu Info",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "MATH INFO",
+      "kind": "function",
+      "documentation": "Return the math coprocessor type: 0=none, 881=MC68881, 882=MC68882.",
+      "signatures": [
+        {
+          "offset": 1590,
+          "commaGroups": 0,
+          "presentation": "Math Info",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "F PUT BLOCK",
+      "kind": "instruction",
+      "documentation": "Fast general-purpose block display at x,y. X aligned to 16-bit boundary. Masking supported. 20-180% faster than Put Block.",
+      "signatures": [
+        {
+          "offset": 1606,
+          "commaGroups": 3,
+          "presentation": "F Put Block block, x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "block",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RESERVE STATIC BLOCK",
+      "kind": "instruction",
+      "documentation": "Reserve memory for converting x AMOS blocks from a linked list to a static list. Reserves x*8 bytes.",
+      "signatures": [
+        {
+          "offset": 1628,
+          "commaGroups": 1,
+          "presentation": "Reserve Static Block count",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "count",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "STATIC BLOCK ERASE",
+      "kind": "instruction",
+      "documentation": "Return the memory used by the static block list.",
+      "signatures": [
+        {
+          "offset": 1656,
+          "commaGroups": 0,
+          "presentation": "Static Block Erase",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "BUILD STATIC BLOCK",
+      "kind": "instruction",
+      "documentation": "Convert AMOS's linked block list into a static block list for faster access.",
+      "signatures": [
+        {
+          "offset": 1680,
+          "commaGroups": 0,
+          "presentation": "Build Static Block",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "F PUT STATIC BLOCK",
+      "kind": "instruction",
+      "documentation": "Fast static block display at x,y. Uses pre-built static block list for 40-260% speedup over Put Block.",
+      "signatures": [
+        {
+          "offset": 1704,
+          "commaGroups": 3,
+          "presentation": "F Put Static Block block, x, y",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "block",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE BANK",
+      "kind": "instruction",
+      "documentation": "Specify which memory bank contains the scene data.",
+      "signatures": [
+        {
+          "offset": 1734,
+          "commaGroups": 1,
+          "presentation": "Scene Bank bank",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE CHECK",
+      "kind": "function",
+      "documentation": "Return the icon number at scene coordinates x,y minus 1. Add 1 before pasting.",
+      "signatures": [
+        {
+          "offset": 1752,
+          "commaGroups": 2,
+          "presentation": "Scene Check(x, y)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 CHECK",
+      "kind": "function",
+      "documentation": "Return the icon number at screen coordinates x,y according to the viewport (16x16 icon scenes).",
+      "signatures": [
+        {
+          "offset": 1772,
+          "commaGroups": 2,
+          "presentation": "Scene 16 Check(x, y)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE CHANGE",
+      "kind": "instruction",
+      "documentation": "Change the tile at scene coordinates x,y to value v.",
+      "signatures": [
+        {
+          "offset": 1796,
+          "commaGroups": 3,
+          "presentation": "Scene Change x, y, v",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "v",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 CHANGE",
+      "kind": "instruction",
+      "documentation": "Change the tile at screen coordinates x,y to value v (16x16 icon scenes). Updates both screen and bank.",
+      "signatures": [
+        {
+          "offset": 1820,
+          "commaGroups": 3,
+          "presentation": "Scene 16 Change x, y, v",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "v",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 DRAW",
+      "kind": "instruction",
+      "documentation": "Fast scene draw for 16x16 pixel icons. Draw xamt*yamt icons starting from scene coordinates scenex,sceney to screen position xscreen,yscreen.",
+      "signatures": [
+        {
+          "offset": 1846,
+          "commaGroups": 6,
+          "presentation": "Scene 16 Draw scenex, sceney, xamt, yamt, xscreen, yscreen",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scenex",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "sceney",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xamt",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yamt",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xscreen",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscreen",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 DEF",
+      "kind": "instruction",
+      "documentation": "Store a scene 16 draw definition for use with Scene 16 Restore. scr=screen, n=definition number.",
+      "signatures": [
+        {
+          "offset": 1876,
+          "commaGroups": 8,
+          "presentation": "Scene 16 Def scr, n, scenex, sceney, xamt, yamt, xscreen, yscreen",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "n",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "scenex",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "sceney",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xamt",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yamt",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xscreen",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscreen",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 RESTORE",
+      "kind": "instruction",
+      "documentation": "Draw the scene 16 definition nr onto the screen.",
+      "signatures": [
+        {
+          "offset": 1910,
+          "commaGroups": 1,
+          "presentation": "Scene 16 Restore nr",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "nr",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 LIMIT",
+      "kind": "instruction",
+      "documentation": "Allocate memory for x scene 16 definitions. Set to 0 to free memory.",
+      "signatures": [
+        {
+          "offset": 1934,
+          "commaGroups": 1,
+          "presentation": "Scene 16 Limit count",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "count",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 32 CHECK",
+      "kind": "function",
+      "documentation": "Return the icon number at screen coordinates x,y according to the viewport (32x32 icon scenes).",
+      "signatures": [
+        {
+          "offset": 1956,
+          "commaGroups": 2,
+          "presentation": "Scene 32 Check(x, y)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 32 CHANGE",
+      "kind": "instruction",
+      "documentation": "Change the tile at screen coordinates x,y to value v (32x32 icon scenes). Updates both screen and bank.",
+      "signatures": [
+        {
+          "offset": 1980,
+          "commaGroups": 3,
+          "presentation": "Scene 32 Change x, y, v",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "v",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 32 DRAW",
+      "kind": "instruction",
+      "documentation": "Fast scene draw for 32x32 pixel icons. Draw xamt*yamt icons starting from scene coordinates scenex,sceney to screen position xscreen,yscreen.",
+      "signatures": [
+        {
+          "offset": 2006,
+          "commaGroups": 6,
+          "presentation": "Scene 32 Draw scenex, sceney, xamt, yamt, xscreen, yscreen",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scenex",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "sceney",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xamt",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yamt",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xscreen",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscreen",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 VIEW",
+      "kind": "instruction",
+      "documentation": "Set up a viewport for Scene 16 Do/Left/Right/Top/Bottom commands on screen scrnr, from x1,y1 to x2,y2.",
+      "signatures": [
+        {
+          "offset": 2036,
+          "commaGroups": 4,
+          "presentation": "Scene 16 View scrnr, x1, y1 To x2, y2",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scrnr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x2",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y2",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 32 VIEW",
+      "kind": "instruction",
+      "documentation": "Set up a viewport for Scene 32 Do/Left/Right/Top/Bottom commands on screen scrnr, from x1,y1 to x2,y2.",
+      "signatures": [
+        {
+          "offset": 2064,
+          "commaGroups": 4,
+          "presentation": "Scene 32 View scrnr, x1, y1 To x2, y2",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "scrnr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x2",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y2",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 DO",
+      "kind": "instruction",
+      "documentation": "Fill the viewport (set by Scene 16 View) with the scene starting at scene coordinates xscene,yscene.",
+      "signatures": [
+        {
+          "offset": 2092,
+          "commaGroups": 2,
+          "presentation": "Scene 16 Do xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 32 DO",
+      "kind": "instruction",
+      "documentation": "Fill the viewport (set by Scene 32 View) with the scene starting at scene coordinates xscene,yscene.",
+      "signatures": [
+        {
+          "offset": 2112,
+          "commaGroups": 2,
+          "presentation": "Scene 32 Do xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 TOP",
+      "kind": "instruction",
+      "documentation": "Redraw the top edge of the viewport with scene starting at xscene,yscene (16x16 icons).",
+      "signatures": [
+        {
+          "offset": 2132,
+          "commaGroups": 2,
+          "presentation": "Scene 16 Top xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 32 TOP",
+      "kind": "instruction",
+      "documentation": "Redraw the top edge of the viewport with scene starting at xscene,yscene (32x32 icons).",
+      "signatures": [
+        {
+          "offset": 2154,
+          "commaGroups": 2,
+          "presentation": "Scene 32 Top xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 BOTTOM",
+      "kind": "instruction",
+      "documentation": "Redraw the bottom edge of the viewport with scene starting at xscene,yscene (16x16 icons).",
+      "signatures": [
+        {
+          "offset": 2176,
+          "commaGroups": 2,
+          "presentation": "Scene 16 Bottom xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 32 BOTTOM",
+      "kind": "instruction",
+      "documentation": "Redraw the bottom edge of the viewport with scene starting at xscene,yscene (32x32 icons).",
+      "signatures": [
+        {
+          "offset": 2200,
+          "commaGroups": 2,
+          "presentation": "Scene 32 Bottom xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 LEFT",
+      "kind": "instruction",
+      "documentation": "Redraw the left edge of the viewport with scene starting at xscene,yscene (16x16 icons).",
+      "signatures": [
+        {
+          "offset": 2224,
+          "commaGroups": 2,
+          "presentation": "Scene 16 Left xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 32 LEFT",
+      "kind": "instruction",
+      "documentation": "Redraw the left edge of the viewport with scene starting at xscene,yscene (32x32 icons).",
+      "signatures": [
+        {
+          "offset": 2246,
+          "commaGroups": 2,
+          "presentation": "Scene 32 Left xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 16 RIGHT",
+      "kind": "instruction",
+      "documentation": "Redraw the right edge of the viewport with scene starting at xscene,yscene (16x16 icons).",
+      "signatures": [
+        {
+          "offset": 2268,
+          "commaGroups": 2,
+          "presentation": "Scene 16 Right xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE 32 RIGHT",
+      "kind": "instruction",
+      "documentation": "Redraw the right edge of the viewport with scene starting at xscene,yscene (32x32 icons).",
+      "signatures": [
+        {
+          "offset": 2292,
+          "commaGroups": 2,
+          "presentation": "Scene 32 Right xscene, yscene",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "xscene",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yscene",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE X",
+      "kind": "function",
+      "documentation": "Return the width (number of tiles horizontally) of the current scene bank.",
+      "signatures": [
+        {
+          "offset": 2316,
+          "commaGroups": 0,
+          "presentation": "Scene X",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "SCENE Y",
+      "kind": "function",
+      "documentation": "Return the height (number of tiles vertically) of the current scene bank.",
+      "signatures": [
+        {
+          "offset": 2330,
+          "commaGroups": 0,
+          "presentation": "Scene Y",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "AMOS PRI",
+      "kind": "instruction",
+      "documentation": "Set the AmigaOS priority of the AMOS task. Range -128 to 20. Default is 0.",
+      "signatures": [
+        {
+          "offset": 2344,
+          "commaGroups": 1,
+          "presentation": "Amos Pri priority",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "priority",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BIT FIELD INS",
+      "kind": "function",
+      "documentation": "Insert width bits from value into var starting at startbit. Returns the modified value.",
+      "signatures": [
+        {
+          "offset": 2360,
+          "commaGroups": 4,
+          "presentation": "Bit Field Ins(var, startbit, width, value)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "var",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "startbit",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "width",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BIT FIELD EXT",
+      "kind": "function",
+      "documentation": "Extract width bits from var starting at startbit. Returns the extracted bits.",
+      "signatures": [
+        {
+          "offset": 2386,
+          "commaGroups": 3,
+          "presentation": "Bit Field Ext(var, startbit, width)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "var",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "startbit",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "width",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "HIT BOB CHECK",
+      "kind": "function",
+      "documentation": "Check if bob n (offset by dx,dy) is inside any TURBO check zone from start to end. Returns 1 if inside, 0 if not.",
+      "signatures": [
+        {
+          "offset": 2410,
+          "commaGroups": 4,
+          "presentation": "Hit Bob Check(start To end, dx, dy, n)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "dy",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "n",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BYTE HUNT",
+      "kind": "function",
+      "documentation": "Search memory from start to end for a byte value. action=0: exact match of val1; action=1: range val1 To val2 (inside); action=-1: outside val1 To val2. Returns address or 0.",
+      "signatures": [
+        {
+          "offset": 2438,
+          "commaGroups": 3,
+          "presentation": "Byte Hunt(start To end, action, val1 To val2)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "action",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "val1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "val2",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WORKBENCH OPEN",
+      "kind": "instruction",
+      "documentation": "Reopen the Workbench screen if sufficient memory is available.",
+      "signatures": [
+        {
+          "offset": 2462,
+          "commaGroups": 0,
+          "presentation": "Workbench Open",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "SCENE LOAD",
+      "kind": "instruction",
+      "documentation": "Load scene file into memory bank. Use Scene Bank afterwards to activate it.",
+      "signatures": [
+        {
+          "offset": 2482,
+          "commaGroups": 2,
+          "presentation": "Scene Load file, bank",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "file",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "bank",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MEMORY FILL",
+      "kind": "instruction",
+      "documentation": "Fill memory from start to end with the repeating pattern in string variable.",
+      "signatures": [
+        {
+          "offset": 2502,
+          "commaGroups": 2,
+          "presentation": "Memory Fill start To end, pattern",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "pattern",
+              "valueType": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT INT CHANGE",
+      "kind": "instruction",
+      "documentation": "Change which blit zones are executed by the blitter interrupt (start To end) without turning the interrupt off.",
+      "signatures": [
+        {
+          "offset": 2524,
+          "commaGroups": 1,
+          "presentation": "Blit Int Change start To end",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT INT WAIT",
+      "kind": "instruction",
+      "documentation": "Set the blitter interrupt wait flag. True=pause execution; False=resume. Initially True at program start.",
+      "signatures": [
+        {
+          "offset": 2548,
+          "commaGroups": 1,
+          "presentation": "Blit Int Wait flag",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "flag",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RANGE",
+      "kind": "function",
+      "documentation": "Return var clamped to the range lowvalue To highvalue. Equivalent to Min(highvalue, Max(var, lowvalue)).",
+      "signatures": [
+        {
+          "offset": 2568,
+          "commaGroups": 2,
+          "presentation": "Range(var, lowvalue To highvalue)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "var",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "lowvalue",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "highvalue",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TEXP",
+      "kind": "function",
+      "documentation": "Ternary expression: evaluate ex. If true (-1) return trueval, if false (0) return falseval.",
+      "signatures": [
+        {
+          "offset": 2584,
+          "commaGroups": 3,
+          "presentation": "Texp(ex, trueval, falseval)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "ex",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "trueval",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "falseval",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT UP",
+      "kind": "instruction",
+      "documentation": "Immediately execute a vertical scroll on screen from x,y to x1,y1 with given shift.",
+      "signatures": [
+        {
+          "offset": 2600,
+          "commaGroups": 5,
+          "presentation": "Blit Up screen, x, y To x1, y1, shift",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "screen",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BLIT STORE UP",
+      "kind": "instruction",
+      "documentation": "Predefine vertical scroll zone blitnr on screen. Area from x,y to x1,y1. Positive shift scrolls down, negative scrolls up.",
+      "signatures": [
+        {
+          "offset": 2624,
+          "commaGroups": 6,
+          "presentation": "Blit Store Up screen, blitnr, x, y To x1, y1, shift",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "screen",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "blitnr",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "x1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "shift",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ICON CHECK",
+      "kind": "function",
+      "documentation": "Check if icon x is defined. Returns -1 if defined without mask, 1 if defined with mask, 0 if not defined.",
+      "signatures": [
+        {
+          "offset": 2656,
+          "commaGroups": 1,
+          "presentation": "Icon Check(icon)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "icon",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE ICON BANK",
+      "kind": "instruction",
+      "documentation": "Assign icon bank x for use with the Scene commands. Default is bank 2.",
+      "signatures": [
+        {
+          "offset": 2674,
+          "commaGroups": 1,
+          "presentation": "Scene Icon Bank bank",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "T CLIP",
+      "kind": "function",
+      "documentation": "Clip var to the nearest lower multiple of clipat. Returns (var/clipat)*clipat.",
+      "signatures": [
+        {
+          "offset": 2696,
+          "commaGroups": 2,
+          "presentation": "T Clip(var, clipat)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "var",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "clipat",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BETWEEN",
+      "kind": "function",
+      "documentation": "Return true if value is between low and high (inclusive). Low and high are swapped if out of order.",
+      "signatures": [
+        {
+          "offset": 2712,
+          "commaGroups": 3,
+          "presentation": "Between(low, value, high)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "low",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "high",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE PALETTE",
+      "kind": "instruction",
+      "documentation": "Load the palette from icon bank x into the current screen, respecting Scene Mask Palette.",
+      "signatures": [
+        {
+          "offset": 2730,
+          "commaGroups": 1,
+          "presentation": "Scene Palette bank",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE MASK PALETTE",
+      "kind": "instruction",
+      "documentation": "Set the colour mask for Scene Palette. Each bit represents a colour. Set bits are replaced when Scene Palette runs.",
+      "signatures": [
+        {
+          "offset": 2750,
+          "commaGroups": 1,
+          "presentation": "Scene Mask Palette mask",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "mask",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "BANK END",
+      "kind": "function",
+      "documentation": "Return the end address of memory bank banknumber. Returns negative count for sprite/icon banks.",
+      "signatures": [
+        {
+          "offset": 2776,
+          "commaGroups": 1,
+          "presentation": "Bank End(banknumber)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "banknumber",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE SCAN X",
+      "kind": "function",
+      "documentation": "Scan a rectangular area of the scene for a tile value. Returns the X coordinate of the first match.",
+      "signatures": [
+        {
+          "offset": 2792,
+          "commaGroups": 4,
+          "presentation": "Scene Scan X(bank, x, y, value)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE SCAN Y",
+      "kind": "function",
+      "documentation": "Scan a rectangular area of the scene for a tile value. Returns the Y coordinate of the first match.",
+      "signatures": [
+        {
+          "offset": 2818,
+          "commaGroups": 4,
+          "presentation": "Scene Scan Y(bank, x, y, value)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "x",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "y",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE COPY",
+      "kind": "instruction",
+      "documentation": "Copy a rectangular area of tiles from one scene bank to another.",
+      "signatures": [
+        {
+          "offset": 2844,
+          "commaGroups": 7,
+          "presentation": "Scene Copy bank_from, scenex, sceney, amountx, amounty To bank_to, destx, desty",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank_from",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "scenex",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "sceney",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "amountx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "amounty",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "bank_to",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "destx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "desty",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE FILL",
+      "kind": "instruction",
+      "documentation": "Fill a rectangular area of scene bank with the tile value.",
+      "signatures": [
+        {
+          "offset": 2876,
+          "commaGroups": 6,
+          "presentation": "Scene Fill bank, scenex, sceney, amountx, amounty, value",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "scenex",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "sceney",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "amountx",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "amounty",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "value",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE CONVERT",
+      "kind": "instruction",
+      "documentation": "Convert a V1.0 byte-format scene bank to V2.0 word-format.",
+      "signatures": [
+        {
+          "offset": 2904,
+          "commaGroups": 1,
+          "presentation": "Scene Convert bank_from To bank_to",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank_from",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "bank_to",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RESERVE SCENE",
+      "kind": "instruction",
+      "documentation": "Reserve a new scene bank with width*height tiles, all initialised to 0.",
+      "signatures": [
+        {
+          "offset": 2926,
+          "commaGroups": 3,
+          "presentation": "Reserve Scene bank, width, height",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "width",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "height",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "WORD HUNT",
+      "kind": "function",
+      "documentation": "Search memory from start to end for a 16-bit word value. Same action parameter as Byte Hunt but for words. Start and end are automatically even-aligned.",
+      "signatures": [
+        {
+          "offset": 2950,
+          "commaGroups": 3,
+          "presentation": "Word Hunt(start To end, action, val1 To val2)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "action",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "val1",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "val2",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "SCENE REPLACE",
+      "kind": "instruction",
+      "documentation": "Search and replace all occurrences of ic_search with ic_replace in a rectangular area of scene bank.",
+      "signatures": [
+        {
+          "offset": 2974,
+          "commaGroups": 7,
+          "presentation": "Scene Replace bank, xstart, ystart, xamount, yamount, ic_search, ic_replace",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "bank",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xstart",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "ystart",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "xamount",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "yamount",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "ic_search",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "ic_replace",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CHIP LARGEST",
+      "kind": "function",
+      "documentation": "Return the size in bytes of the largest contiguous chip memory block.",
+      "signatures": [
+        {
+          "offset": 3006,
+          "commaGroups": 0,
+          "presentation": "Chip Largest",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "FAST LARGEST",
+      "kind": "function",
+      "documentation": "Return the size in bytes of the largest contiguous fast memory block.",
+      "signatures": [
+        {
+          "offset": 3024,
+          "commaGroups": 0,
+          "presentation": "Fast Largest",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "STRING HUNT",
+      "kind": "function",
+      "documentation": "Search memory from start to end for a string pattern. action and step control search direction and stride. Returns address of match or 0.",
+      "signatures": [
+        {
+          "offset": 3042,
+          "commaGroups": 4,
+          "presentation": "String Hunt(start To end, action, step, pattern)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "start",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "end",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "action",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "step",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "pattern",
+              "valueType": "string"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RIGHT CLICK",
+      "kind": "function",
+      "documentation": "Check the right mouse button. Works even when multitasking is disabled. Returns -1 if pressed.",
+      "signatures": [
+        {
+          "offset": 3068,
+          "commaGroups": 0,
+          "presentation": "Right Click",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "IS RAW KEY",
+      "kind": "function",
+      "documentation": "Return the last key press in raw (scancode) format. Works even when multitasking is disabled.",
+      "signatures": [
+        {
+          "offset": 3086,
+          "commaGroups": 0,
+          "presentation": "Is Raw Key",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "MULTI BLOAD",
+      "kind": "instruction",
+      "documentation": "Load file1 and file2 into memory starting at address. Loads asynchronously.",
+      "signatures": [
+        {
+          "offset": 3102,
+          "commaGroups": 3,
+          "presentation": "Multi Bload file1, file2, address",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "file1",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "file2",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "address",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MULTI BL ERROR",
+      "kind": "instruction",
+      "documentation": "Signal an error in the multi-bload operation.",
+      "signatures": [
+        {
+          "offset": 3124,
+          "commaGroups": 0,
+          "presentation": "Multi Bl Error",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "MULTI BL ENDED",
+      "kind": "function",
+      "documentation": "Return true when a Multi Bload operation has completed.",
+      "signatures": [
+        {
+          "offset": 3144,
+          "commaGroups": 0,
+          "presentation": "Multi Bl Ended",
+          "parameters": []
+        }
+      ]
+    },
+    {
+      "name": "PARSE$",
+      "kind": "function",
+      "documentation": "Parse string source starting at position pos for delimiter delim. Returns the extracted token and updates pos.",
+      "signatures": [
+        {
+          "offset": 3164,
+          "commaGroups": 4,
+          "presentation": "Parse$(source, pos, delim, flags)",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "source",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "pos",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "delim",
+              "valueType": "string"
+            },
+            {
+              "kind": "value",
+              "name": "flags",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MOVE MEM",
+      "kind": "instruction",
+      "documentation": "Copy length bytes from address src to address dest.",
+      "signatures": [
+        {
+          "offset": 3184,
+          "commaGroups": 2,
+          "presentation": "Move Mem src, length To dest",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "src",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "length",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "dest",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DEBUG",
+      "kind": "instruction",
+      "documentation": "Trigger a TURBO Plus debug breakpoint.",
+      "signatures": [
+        {
+          "offset": 3204,
+          "commaGroups": 0,
+          "presentation": "Debug",
+          "parameters": []
+        }
+      ]
+    }
+  ]
+}
