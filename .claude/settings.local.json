@@ -16,7 +16,10 @@
       "Bash(ls /home/boost/Data/Coding/portamos/reference/*.wiki)",
       "Bash(git -C /home/boost/Data/Coding/portamos status --short)",
       "Bash(sed -n '15600,15615p' /home/boost/Data/Coding/portamos/reference/AMOSProfessional/+Lib.s)",
-      "Bash(sed -n '17220,17260p' /home/boost/Data/Coding/portamos/reference/AMOSProfessional/+Lib.s)"
+      "Bash(sed -n '17220,17260p' /home/boost/Data/Coding/portamos/reference/AMOSProfessional/+Lib.s)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(java:*)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }

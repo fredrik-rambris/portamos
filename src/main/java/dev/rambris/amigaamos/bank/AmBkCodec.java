@@ -102,7 +102,9 @@ public final class AmBkCodec {
         buf.put("AmBk".getBytes(StandardCharsets.US_ASCII));
         buf.putShort(bankNumber);
         buf.putShort((short) flags);
-        buf.putInt(nameAndPayload);
+        // AMOS sets bit 31 of the length field for chip-RAM banks.
+        int sizeField = chipRam ? (nameAndPayload | 0x80000000) : nameAndPayload;
+        buf.putInt(sizeField);
         buf.put(nameBytes);
         buf.put(payload);
         return buf.array();

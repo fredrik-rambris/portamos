@@ -167,6 +167,7 @@ public class Main implements Callable<Integer> {
                 case ResourceBank rb -> new ResourceBankExporter().export(rb, outDir, ilbm);
                 case AmalBank ab -> new AmalBankExporter().export(ab, outDir);
                 case MenuBank mb -> new MenuBankExporter().export(mb, outDir);
+                case MusicBank mb -> new MusicBankExporter().export(mb, outDir, svx8);
                 case SampleBank sb -> new SampleBankExporter().export(sb, outDir, svx8);
                 case TrackerBank tb -> new TrackerBankExporter().export(tb, outDir);
                 case PacPicBank pb -> {
@@ -399,6 +400,7 @@ public class Main implements Callable<Integer> {
             case "menu" -> new MenuBankImporter().importFrom(jsonPath);
             case "samples" -> new SampleBankImporter().importFrom(jsonPath);
             case "tracker" -> new TrackerBankImporter().importFrom(jsonPath);
+            case "music" -> new MusicBankImporter().importFrom(jsonPath);
             default -> throw new IllegalArgumentException(
                     "Unknown bank type in JSON: \"" + type + "\". "
                             + "Expected: resource, sprite, icon, pacpic, work, data");
