@@ -7,11 +7,11 @@ Gradle 8. The name is a play on "portable AMOS".
 
 The long-term goal is a full round-trip pipeline:
 
-- **ASCII → AmosFile → binary** (tokenizer/compiler, currently working)
-- **binary → AmosFile → ASCII** (detokenizer, not yet started)
+- **ASCII → AmosFile → binary** (tokenizer/compiler, working)
+- **binary → AmosFile → ASCII** (detokenizer, working)
 
-The immediate milestone is the tokenizer: given an AMOS Professional ASCII source file (`.Asc`), produce a
-byte-identical (or structurally equivalent) binary `.AMOS` file that AMOS Pro can load on an Amiga.
+Both directions of the round-trip are implemented. Compiled procedures (produced by the AMOSPro Compiler)
+are preserved as PEM-style base64 comment blocks in the ASCII output so the round-trip is lossless.
 
 ## Reference material
 
@@ -38,10 +38,13 @@ byte-identical (or structurally equivalent) binary `.AMOS` file that AMOS Pro ca
 src/main/java/dev/rambris/amigaamos/
   Main.java                          CLI entry point (subcommands: build/disasm/asm/raw/dump/diff/…)
   tokenizer/
-    Tokenizer.java                   Public API: parse() + encode()
+    Tokenizer.java                   Public API: parse() + encode() + print() + decode()
     AsciiParser.java                 ASCII source line → List<AmosToken>
+    AsciiPrinter.java                AmosFile → List<String> ASCII lines (detokenizer)
     BinaryEncoder.java               List<AmosToken> → binary line bytes
+    BinaryDecoder.java               Binary line bytes → List<AmosToken>
     AmosFileWriter.java              List<line-bytes> → complete .AMOS file
+    AmosFileReader.java              .AMOS file bytes → AmosFile
     TokenTable.java                  JSON definitions → name→key lookup table
     ExtJsonGenerator.java            .Lib binary → JSON skeleton generator
     AmosDump.java                    Token-level dump and diff tool (use instead of xxd/diff)
@@ -76,6 +79,7 @@ src/test/resources/
   Numbers.Asc / Numbers.AMOS           Integration test pair (BASIC_13)
   PaletteEditor.Asc / PaletteEditor.AMOS  Integration test pair (PRO_101)
   Procedures_2.Asc / Procedures_2.AMOS Integration test pair (BASIC_134)
+  Compiled.AMOS                        AMOSPro Compiler output — compiled procedure round-trip test
   Music.abk                            Reference Music bank (byte-identical round-trip verified)
   Samples.abk                          Reference Sample bank
   (various other .abk files)           One per supported bank type
@@ -223,6 +227,25 @@ Keywords whose form ordering is non-obvious (e.g. `X Screen(x)` vs `X Screen(scr
 `Paint x,y,colour`) are listed in `OVERRIDES` in `scripts/migrate_offsets.py`. When a new test reveals a wrong form, add
 the keyword there and re-run the migration script.
 
+## AsciiPrinter internals
+
+`AsciiPrinter` is the inverse of `AsciiParser`: it converts an `AmosFile` back to a `List<String>` of
+ASCII source lines. Key behaviors:
+
+- **Spacing**: space before each token except after `(` / `[`, and before `)`, `]`, `,`, `;`, `#`.
+  Operators (from `TokenTable.isOperator`) are written without surrounding spaces.
+- **`:` special case** (token `0x0054`): excluded from both `isCloseTok` and `isOperatorTok` so that
+  a leading space is always emitted — preventing `name:` mid-line from being re-parsed as a label.
+- **Label token**: printed as `name:` (colon directly appended), no space.
+- **Compiled body marker** (`$2BF4`): replaced by a PEM-style block of `'` comment lines with the
+  body base64-encoded at 60 chars/line:
+  ```
+  ' ----- BEGIN COMPILED CODE -----
+  ' <base64 chunk>
+  ' ----- END COMPILED CODE -----
+  ```
+  `Tokenizer.parse()` detects these blocks and converts them back to a marker line plus `compiledBody` bytes.
+
 ## AsciiParser internals
 
 Key behaviors to know:
@@ -242,6 +265,10 @@ Key behaviors to know:
 ## CLI usage
 
 ```bash
+# Detokenize a binary to ASCII source
+./gradlew run --args="list input.AMOS output.Asc"
+./gradlew run --args="list input.AMOS output.Asc --definition definitions/turboplus.json"
+
 # Tokenize ASCII source to binary (optionally attaching banks)
 ./gradlew run --args="build source.Asc output.AMOS"
 ./gradlew run --args="build source.Asc output.AMOS --add-bank sprites.Abk"
@@ -280,7 +307,7 @@ Typical workflow when a test fails with `Line N offset M: token value differs (e
 
 1. Tokenize the `.Asc` file to a temp file:
    ```bash
-   ./gradlew run --args="source.Asc /tmp/actual.AMOS"
+   ./gradlew run --args="build source.Asc /tmp/actual.AMOS"
    ```
 2. Diff against the reference:
    ```bash
@@ -325,7 +352,6 @@ entries there when tests reveal incorrect form selection.
 
 ## Known gaps / future work
 
-- **Detokenizer** (binary → AmosFile → ASCII): not started
 - **JSON coverage gaps**: ~66 core definitions lack offsets (documented aliases, optional-suffix variants); 3 compact
   entries (GET CBLOCK, PUT CBLOCK, DEL CBLOCK) have no binary counterpart; music "TRACK LOOP OFF" in JSON is spelled
   "TRACK LOOP OF" in the binary

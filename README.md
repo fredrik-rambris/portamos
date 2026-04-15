@@ -11,20 +11,21 @@ are stored as tokenised binary files (`.AMOS`), and multimedia data is stored in
 
 ## Features
 
-| Feature                                           | Status         |
-|---------------------------------------------------|----------------|
-| ASCII source (`.Asc`) → binary (`.AMOS`)          | ✅ Working      |
-| Binary (`.AMOS`) → ASCII source (`.Asc`)          | 🔲 Not started |
-| Banks embedded in `.AMOS` files                   | ✅ Working      |
-| Resource bank read/write/export/import            | ✅ Working      |
-| Sprite / Icon bank read/write/export/import       | ✅ Working      |
-| Pac.Pic bank read/write/export/import             | ✅ Working      |
-| Work / Data bank read/write/export/import         | ✅ Working      |
-| AMAL bank read/write/export/import                | ✅ Working      |
-| Menu bank read/write/export/import                | ✅ Working      |
-| Sample bank read/write/export/import (WAV / 8SVX) | ✅ Working      |
-| Music bank read/write/export/import (WAV / 8SVX)  | ✅ Working      |
-| Tracker bank read/write/export/import             | ✅ Working      |
+| Feature                                           | Status      |
+|---------------------------------------------------|-------------|
+| ASCII source (`.Asc`) → binary (`.AMOS`)          | ✅ Working   |
+| Binary (`.AMOS`) → ASCII source (`.Asc`)          | ✅ Working   |
+| Compiled procedures (AMOSPro Compiler output)     | ✅ Preserved |
+| Banks embedded in `.AMOS` files                   | ✅ Working   |
+| Resource bank read/write/export/import            | ✅ Working   |
+| Sprite / Icon bank read/write/export/import       | ✅ Working   |
+| Pac.Pic bank read/write/export/import             | ✅ Working   |
+| Work / Data bank read/write/export/import         | ✅ Working   |
+| AMAL bank read/write/export/import                | ✅ Working   |
+| Menu bank read/write/export/import                | ✅ Working   |
+| Sample bank read/write/export/import (WAV / 8SVX) | ✅ Working   |
+| Music bank read/write/export/import (WAV / 8SVX)  | ✅ Working   |
+| Tracker bank read/write/export/import             | ✅ Working   |
 
 ## Requirements
 
@@ -49,6 +50,21 @@ You can also run directly via Gradle:
 ## CLI Reference
 
 Run `portamos help` or `portamos <subcommand> --help` for full option listings.
+
+### `list` — detokenize a binary to ASCII source
+
+```bash
+portamos list input.AMOS output.Asc
+portamos list input.AMOS output.Asc --definition definitions/turboplus.json
+```
+
+Reads a binary `.AMOS` file and writes the corresponding AMOS Professional ASCII source file.
+Compiled procedures (produced by the AMOSPro Compiler) are preserved as PEM-style base64 blocks in
+the output so that the source can be round-tripped back through `build` without losing the compiled
+body.
+
+**`--definition <path.json>`** — Load an additional extension definition file before detokenizing
+(repeatable).
 
 ### `build` — tokenize an ASCII source file
 
@@ -275,12 +291,15 @@ determined by the note periods at runtime.
 
 ```
 src/main/java/dev/rambris/amigaamos/
-  Main.java                           CLI entry point (subcommands: build/disasm/asm/raw/…)
+  Main.java                           CLI entry point (subcommands: list/build/disasm/asm/raw/…)
   tokenizer/
-    Tokenizer.java                    Public API: parse() + encode()
+    Tokenizer.java                    Public API: parse() + encode() + print()
     AsciiParser.java                  ASCII source line → token list
+    AsciiPrinter.java                 Token list → ASCII source line (detokenizer)
     BinaryEncoder.java                Token list → binary bytes
+    BinaryDecoder.java                Binary bytes → token list
     AmosFileWriter.java               Lines + banks → .AMOS file
+    AmosFileReader.java               .AMOS file → AmosFile
     TokenTable.java                   JSON definitions → token lookup
     AmosDump.java                     Token dump and diff tool
     ExtJsonGenerator.java             .Lib binary → JSON skeleton
@@ -338,10 +357,11 @@ python3 scripts/migrate_offsets.py
 
 ## Known Limitations
 
-- **Detokenizer** (binary → ASCII) is not yet implemented
 - Symbol-table slot offsets (`unk2` in named tokens) are written as zero; AMOS recomputes them
   at load time so programs run correctly, but the binary is not byte-identical to AMOS-produced files
 - ~66 core keyword definitions lack binary offsets (aliases and optional-suffix variants) and are
   silently skipped during tokenisation
+- Compiled procedure bodies (AMOSPro Compiler output) are preserved opaquely as base64 in the ASCII
+  source — the machine code is not disassembled or modifiable at the source level
 - Third-party extensions beyond the five bundled JSON files require running `gen-ext-json` to
   generate definition skeletons
