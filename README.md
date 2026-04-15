@@ -11,20 +11,20 @@ are stored as tokenised binary files (`.AMOS`), and multimedia data is stored in
 
 ## Features
 
-| Feature                                             | Status         |
-|-----------------------------------------------------|----------------|
-| ASCII source (`.Asc`) → binary (`.AMOS`)            | ✅ Working      |
-| Binary (`.AMOS`) → ASCII source (`.Asc`)            | 🔲 Not started |
-| Banks embedded in `.AMOS` files                     | ✅ Working      |
-| Resource bank read/write/export/import              | ✅ Working      |
-| Sprite / Icon bank read/write/export/import         | ✅ Working      |
-| Pac.Pic bank read/write/export/import               | ✅ Working      |
-| Work / Data bank read/write/export/import           | ✅ Working      |
-| AMAL bank read/write/export/import                  | ✅ Working      |
-| Menu bank read/write/export/import                  | ✅ Working      |
-| Sample bank read/write/export/import (WAV / 8SVX)  | ✅ Working      |
-| Music bank read/write/export/import (WAV / 8SVX)   | ✅ Working      |
-| Tracker bank read/write/export/import               | ✅ Working      |
+| Feature                                           | Status         |
+|---------------------------------------------------|----------------|
+| ASCII source (`.Asc`) → binary (`.AMOS`)          | ✅ Working      |
+| Binary (`.AMOS`) → ASCII source (`.Asc`)          | 🔲 Not started |
+| Banks embedded in `.AMOS` files                   | ✅ Working      |
+| Resource bank read/write/export/import            | ✅ Working      |
+| Sprite / Icon bank read/write/export/import       | ✅ Working      |
+| Pac.Pic bank read/write/export/import             | ✅ Working      |
+| Work / Data bank read/write/export/import         | ✅ Working      |
+| AMAL bank read/write/export/import                | ✅ Working      |
+| Menu bank read/write/export/import                | ✅ Working      |
+| Sample bank read/write/export/import (WAV / 8SVX) | ✅ Working      |
+| Music bank read/write/export/import (WAV / 8SVX)  | ✅ Working      |
+| Tracker bank read/write/export/import             | ✅ Working      |
 
 ## Requirements
 
@@ -56,10 +56,14 @@ Run `portamos help` or `portamos <subcommand> --help` for full option listings.
 portamos build source.Asc output.AMOS
 portamos build source.Asc output.AMOS --add-bank sprites.Abk --add-bank music.Abk
 portamos build source.Asc output.AMOS --import-bank sprites/bank.json
+portamos build source.Asc output.AMOS --fold
 ```
 
 Reads an AMOS Professional ASCII source file and writes the corresponding binary `.AMOS` file.
 Optionally attaches bank files directly (`--add-bank`) or assembles them from JSON (`--import-bank`).
+
+**`--fold`** — Mark all `Procedure` blocks as folded in the AMOS editor by default (bit 7 of the
+procedure flags byte). Without this flag, procedures are saved in the unfolded state.
 
 ### `disasm` — export a bank to files
 
@@ -72,16 +76,16 @@ portamos disasm --svx8 input.Abk output-dir/    # samples as IFF 8SVX instead of
 Exports the contents of any supported bank type to a directory. The output always includes a
 `bank.json` metadata file plus type-specific data files:
 
-| Bank type  | Data files                                             |
-|------------|--------------------------------------------------------|
-| Resource   | `spritesheet.png` (or `.iff`), `program_NNN.amui`      |
-| Sprite/Icon | `spritesheet.png` (or `.iff`)                         |
-| Pac.Pic    | `<name>.png` (or `.iff`)                               |
-| Music      | `instrument_NNN.wav` (or `.8svx`)                      |
-| Sample     | `sample_NNN.wav` (or `.8svx`)                          |
-| Tracker    | `<name>.mod`                                           |
-| AMAL       | `script_NNN.amal`                                      |
-| Work/Data  | `<name>.bin`                                           |
+| Bank type   | Data files                                        |
+|-------------|---------------------------------------------------|
+| Resource    | `spritesheet.png` (or `.iff`), `program_NNN.amui` |
+| Sprite/Icon | `spritesheet.png` (or `.iff`)                     |
+| Pac.Pic     | `<name>.png` (or `.iff`)                          |
+| Music       | `instrument_NNN.wav` (or `.8svx`)                 |
+| Sample      | `sample_NNN.wav` (or `.8svx`)                     |
+| Tracker     | `<name>.mod`                                      |
+| AMAL        | `script_NNN.amal`                                 |
+| Work/Data   | `<name>.bin`                                      |
 
 ### `asm` — assemble a bank from files
 
@@ -140,10 +144,34 @@ All bank JSON files have a `"type"` field that identifies the bank and drives `a
       "name": "My Song",
       "tempo": 15,
       "sequence": [
-        [0, 1, 2, 3, 65534],
-        [0, 1, 2, 3, 65534],
-        [0, 1, 2, 3, 65534],
-        [0, 1, 2, 3, 65534]
+        [
+          0,
+          1,
+          2,
+          3,
+          65534
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          65534
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          65534
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          65534
+        ]
       ]
     }
   ],
@@ -151,9 +179,18 @@ All bank JSON files have a `"type"` field that identifies the bank and drives `a
     {
       "voices": [
         [
-          {"command": "SET_INSTR", "parameter": 0},
-          {"period": 254, "duration": 16134},
-          {"period": 190, "duration": 16134}
+          {
+            "command": "SET_INSTR",
+            "parameter": 0
+          },
+          {
+            "period": 254,
+            "duration": 16134
+          },
+          {
+            "period": 190,
+            "duration": 16134
+          }
         ],
         ...
       ]
@@ -187,8 +224,18 @@ determined by the note periods at runtime.
   "bankNumber": 1,
   "chipRam": true,
   "samples": [
-    { "index": 0, "name": "BanjoSyn", "frequencyHz": 8363, "file": "sample_000.wav" },
-    { "index": 1, "name": "Empty",    "frequencyHz": 8363, "empty": true }
+    {
+      "index": 0,
+      "name": "BanjoSyn",
+      "frequencyHz": 8363,
+      "file": "sample_000.wav"
+    },
+    {
+      "index": 1,
+      "name": "Empty",
+      "frequencyHz": 8363,
+      "empty": true
+    }
   ]
 }
 ```
@@ -262,14 +309,14 @@ reference/
 
 ## Reference Material
 
-| Path                           | Description                                                                 |
-|--------------------------------|-----------------------------------------------------------------------------|
-| `reference/AMOSProfessional/`  | Full AMOS Pro disk image — original `.Lib` files, examples, accessories     |
-| `reference/AmosProManual/`     | [AMOS Pro manual](https://amospromanual.dev)                                |
-| `reference/amiga-amos/`        | JSON token definitions from [intellij-amos](https://github.com/fredrik-rambris/intellij-amos) |
-| `reference/amostools/extensions/` | Third-party `.Lib` extension files                                       |
-| `reference/amos-file-formats.wiki` | File format docs from [Exotica](https://www.exotica.org.uk/wiki/AMOS_file_formats) |
-| `reference/amos-music-bank-format.wiki` | Music bank format docs from Exotica                               |
+| Path                                    | Description                                                                                   |
+|-----------------------------------------|-----------------------------------------------------------------------------------------------|
+| `reference/AMOSProfessional/`           | Full AMOS Pro disk image — original `.Lib` files, examples, accessories                       |
+| `reference/AmosProManual/`              | [AMOS Pro manual](https://amospromanual.dev)                                                  |
+| `reference/amiga-amos/`                 | JSON token definitions from [intellij-amos](https://github.com/fredrik-rambris/intellij-amos) |
+| `reference/amostools/extensions/`       | Third-party `.Lib` extension files                                                            |
+| `reference/amos-file-formats.wiki`      | File format docs from [Exotica](https://www.exotica.org.uk/wiki/AMOS_file_formats)            |
+| `reference/amos-music-bank-format.wiki` | Music bank format docs from Exotica                                                           |
 
 ## Scripts
 

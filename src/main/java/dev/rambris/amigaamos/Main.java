@@ -95,10 +95,15 @@ public class Main implements Callable<Integer> {
                 description = "Assemble a bank from JSON + data files and attach it (repeatable)")
         List<Path> importBanks = new ArrayList<>();
 
+        @Option(names = "--fold",
+                description = "Mark all Procedure blocks as folded in the AMOS editor by default.")
+        boolean fold = false;
+
         @Override
         public Integer call() throws Exception {
             System.out.println("Reading " + source);
             var tokenizer = new Tokenizer();
+            if (fold) tokenizer.withFoldedProcedures();
             var amosFile = tokenizer.parse(source);
 
             var banks = new ArrayList<AmosBank>();

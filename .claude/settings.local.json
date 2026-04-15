@@ -19,7 +19,8 @@
       "Bash(sed -n '17220,17260p' /home/boost/Data/Coding/portamos/reference/AMOSProfessional/+Lib.s)",
       "Bash(echo \"Exit: $?\")",
       "Bash(java:*)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(./gradlew cleanTest test)"
     ]
   }
 }

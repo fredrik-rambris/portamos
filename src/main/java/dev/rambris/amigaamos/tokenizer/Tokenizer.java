@@ -46,6 +46,14 @@ public class Tokenizer {
     private final BinaryEncoder encoder;
     private final AmosFileWriter writer;
 
+    /**
+     * When {@code true}, all {@code Procedure} blocks are marked folded in the
+     * AMOS editor by default (bit 7 of the procedure flags byte).
+     * Procedures with a {@code !!LOCKED!!} or {@code !!ENCRYPTED!!} magic comment
+     * are always folded regardless of this setting.
+     */
+    private boolean foldProcedures = false;
+
     public Tokenizer() {
         this(AmosVersion.PRO_101);
     }
@@ -56,6 +64,21 @@ public class Tokenizer {
         this.parser  = new AsciiParser(tokenTable);
         this.encoder = new BinaryEncoder(tokenTable);
         this.writer  = new AmosFileWriter();
+    }
+
+    /**
+     * Enables default folding of all {@code Procedure} blocks.
+     *
+     * <p>When set, every {@code Procedure} without a magic-comment marker will
+     * have its fold flag (bit 7) set, causing the AMOS editor to display it
+     * collapsed.  This does not affect procedures that use {@code !!LOCKED!!}
+     * or {@code !!ENCRYPTED!!} — those always set their own combination of flags.
+     *
+     * @return {@code this} for chaining
+     */
+    public Tokenizer withFoldedProcedures() {
+        this.foldProcedures = true;
+        return this;
     }
 
     // -------------------------------------------------------------------------
@@ -175,7 +198,7 @@ public class Tokenizer {
                 throw new TokenizeException(i + 1, -1, null, e);
             }
         }
-        return writer.write(file.version(), encodedLines, file.banks());
+        return writer.write(file.version(), encodedLines, file.banks(), foldProcedures);
     }
 
     // -------------------------------------------------------------------------
