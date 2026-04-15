@@ -9,6 +9,11 @@ a play on *portable AMOS*.
 AMOS Professional is a BASIC-like programming language for the Commodore Amiga, developed by François Lionet. Programs
 are stored as tokenised binary files (`.AMOS`), and multimedia data is stored in memory bank files (`.Abk`).
 
+## Download
+
+Downloads for Linux, Mac and Windows as well as fat jar
+in [Releases](https://github.com/fredrik-rambris/portamos/releases/latest)
+
 ## Features
 
 | Feature                                           | Status      |
@@ -27,7 +32,7 @@ are stored as tokenised binary files (`.AMOS`), and multimedia data is stored in
 | Music bank read/write/export/import (WAV / 8SVX)  | ✅ Working   |
 | Tracker bank read/write/export/import             | ✅ Working   |
 
-## Requirements
+## Build requirements
 
 - Java 21 (tested with [Eclipse Temurin 21](https://adoptium.net/))
 
