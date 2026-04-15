@@ -62,8 +62,8 @@ class IffReaderTest {
                 chunk("KNOW", "hello"),
                 chunk("UNKN", "ignored"));
 
-        List<String> seen = new ArrayList<>();
-        String formType = new IffReader()
+        var seen = new ArrayList<String>();
+        var formType = new IffReader()
                 .on(FourCC.of("KNOW"), (id, d) -> seen.add(id))
                 .read(iff);
 
@@ -89,8 +89,8 @@ class IffReaderTest {
         byte[] payload = {1, 2, 3};
         byte[] iff = buildForm("TEST", chunk("CUST", payload));
 
-        List<String>   ids  = new ArrayList<>();
-        List<byte[]>   datas = new ArrayList<>();
+        var ids   = new ArrayList<String>();
+        var datas = new ArrayList<byte[]>();
 
         new IffReader()
                 .onUnknown((id, d) -> { ids.add(id); datas.add(d); })

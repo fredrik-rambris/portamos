@@ -8,7 +8,6 @@ package dev.rambris.amigaamos.bank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -150,12 +149,12 @@ public class SpriteBankExporter {
                 .max().orElse(0);
         root.put("numColours", maxPlanes > 0 ? 1 << maxPlanes : 0);
 
-        ArrayNode paletteNode = root.putArray("palette");
+        var paletteNode = root.putArray("palette");
         for (var color : bank.palette()) {
             paletteNode.add(AmigaPalette.toHexRgb(color));
         }
 
-        ArrayNode spritesNode = root.putArray("sprites");
+        var spritesNode = root.putArray("sprites");
         int sheetX = 0;
         for (int i = 0; i < bank.sprites().size(); i++) {
             var sprite = bank.sprites().get(i);

@@ -26,7 +26,7 @@ public class PacPicBankWriter implements BankWriter {
     @Override
     public byte[] toBytes(AmosBank bank) throws IOException {
         if (!(bank instanceof PacPicBank pb)) {
-            throw new IllegalArgumentException("Not a PacPicBank: " + bank.type());
+            throw new IllegalArgumentException("Not a PacPicBank, got: " + bank.getClass().getSimpleName());
         }
 
         var payload = serializePayload(pb);

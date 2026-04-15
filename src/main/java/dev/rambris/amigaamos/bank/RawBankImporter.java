@@ -6,7 +6,6 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -40,17 +39,17 @@ public class RawBankImporter {
      * @throws IllegalArgumentException if the {@code type} field is not {@code WORK} or {@code DATA}
      */
     public RawBank importFrom(Path jsonPath) throws IOException {
-        JsonNode root = JSON.readTree(jsonPath.toFile());
+        var root = JSON.readTree(jsonPath.toFile());
 
-        String typeName  = root.path("type").asText();
+        var typeName     = root.path("type").asText();
         short bankNumber = (short) root.path("bankNumber").asInt(1);
         boolean chipRam  = root.path("chipRam").asBoolean(false);
-        String dataFile  = root.path("dataFile").asText();
+        var dataFile     = root.path("dataFile").asText();
 
-        Path dataPath = jsonPath.resolveSibling(dataFile);
-        byte[] data = Files.readAllBytes(dataPath);
+        var dataPath = jsonPath.resolveSibling(dataFile);
+        var data     = Files.readAllBytes(dataPath);
 
-        AmosBank.Type type = switch (typeName) {
+        var type = switch (typeName) {
             case "WORK" -> AmosBank.Type.WORK;
             case "DATA" -> AmosBank.Type.DATA;
             default -> throw new IllegalArgumentException("Unknown bank type: " + typeName);

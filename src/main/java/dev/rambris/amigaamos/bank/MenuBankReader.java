@@ -12,7 +12,6 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Reads an AMOS Professional Menu bank ({@code AmBk / "Menu    "}) into a {@link MenuBank}.
@@ -36,7 +35,7 @@ public class MenuBankReader {
         var payload = hdr.payload();
         var buf = ByteBuffer.wrap(payload).order(ByteOrder.BIG_ENDIAN);
 
-        List<MenuNode> items = readChain(buf, 0);
+        var items = readChain(buf, 0);
         return new MenuBank(hdr.bankNumber(), hdr.chipRam(), List.copyOf(items));
     }
 
@@ -45,8 +44,8 @@ public class MenuBankReader {
      * following each node's {@code MnLat} chain to build the children list.
      */
     static List<MenuNode> readChain(ByteBuffer buf, int startOffset) {
-        List<MenuNode> result = new ArrayList<>();
-        Set<Integer> visited = new HashSet<>();
+        var result  = new ArrayList<MenuNode>();
+        var visited = new HashSet<Integer>();
 
         int offset = startOffset;
         // Note: offset == 0 is valid for the root node; 0 as MnNext means "no more siblings"
@@ -89,13 +88,13 @@ public class MenuBankReader {
             /* @formatter:on */
 
             // Read object blobs (opaque; first word = total byte length incl. itself)
-            byte[] fontObj     = readObject(buf, mnObF);
-            byte[] normalObj   = readObject(buf, mnOb1);
-            byte[] selectedObj = readObject(buf, mnOb2);
-            byte[] inactiveObj = readObject(buf, mnOb3);
+            var fontObj     = readObject(buf, mnObF);
+            var normalObj   = readObject(buf, mnOb1);
+            var selectedObj = readObject(buf, mnOb2);
+            var inactiveObj = readObject(buf, mnOb3);
 
             // Recurse into children via MnLat
-            List<MenuNode> children = (mnLat != 0) ? readChain(buf, mnLat) : List.of();
+            var children = (mnLat != 0) ? readChain(buf, mnLat) : List.<MenuNode>of();
 
             result.add(new MenuNode(
                     mnNb, mnFlag,
@@ -127,7 +126,7 @@ public class MenuBankReader {
         if (buf.remaining() < 2) return null;
         int size = buf.getShort() & 0xFFFF;
         if (size < 2 || offset + size > buf.capacity()) return null;
-        byte[] data = new byte[size];
+        var data = new byte[size];
         buf.position(offset);
         buf.get(data);
         return data;

@@ -59,13 +59,13 @@ public class MenuBankImporter {
         var bankNumber = (short) root.path("bankNumber").asInt(1);
         var chipRam    = root.path("chipRam").asBoolean(false);
 
-        List<MenuNode> items = readItems(root.path("items"), jsonPath.getParent(), 0);
+        var items = readItems(root.path("items"), jsonPath.getParent(), 0);
 
         return new MenuBank(bankNumber, chipRam, List.copyOf(items));
     }
 
     private static List<MenuNode> readItems(JsonNode arr, Path dir, int depth) throws IOException {
-        List<MenuNode> result = new ArrayList<>();
+        var result = new ArrayList<MenuNode>();
         if (arr == null || arr.isMissingNode()) return result;
         int idx = 0;
         for (var element : arr) {
@@ -80,7 +80,7 @@ public class MenuBankImporter {
 
         // ── flags ──────────────────────────────────────────────────────────────
         int flags;
-        JsonNode rawFlags = n.path("flags");
+        var rawFlags = n.path("flags");
         if (!rawFlags.isMissingNode() && rawFlags.isNumber()) {
             // Legacy JSON with a raw flags integer — use it directly.
             flags = rawFlags.asInt(0);
@@ -99,10 +99,10 @@ public class MenuBankImporter {
         int keyShift    = n.path("keyShift").asInt(0);
 
         // ── display objects ─────────────────────────────────────────────────────
-        byte[] fontObject     = readBlob(n.path("font"),            dir);
-        byte[] normalObject   = readBlob(n.path("normal"),          dir);
-        byte[] selectedObject = readBlob(n.path("selected"),        dir);
-        byte[] inactiveObject = readBlob(n.path("inactiveDisplay"), dir);
+        var fontObject     = readBlob(n.path("font"),            dir);
+        var normalObject   = readBlob(n.path("normal"),          dir);
+        var selectedObject = readBlob(n.path("selected"),        dir);
+        var inactiveObject = readBlob(n.path("inactiveDisplay"), dir);
 
         // ── inks ────────────────────────────────────────────────────────────────
         int inkA1 = n.path("pen").asInt(0);
@@ -114,9 +114,9 @@ public class MenuBankImporter {
 
         // ── children ────────────────────────────────────────────────────────────
         // Accept both "items" (new schema) and "children" (legacy schema).
-        JsonNode childArr = n.path("items");
+        var childArr = n.path("items");
         if (childArr.isMissingNode()) childArr = n.path("children");
-        List<MenuNode> children = readItems(childArr, dir, depth + 1);
+        var children = readItems(childArr, dir, depth + 1);
 
         return new MenuNode(
                 itemNumber, flags,
@@ -144,8 +144,8 @@ public class MenuBankImporter {
          || n.path("y").asInt(0) != 0)           flags |= FL_FIXED;  // manually positioned
 
         // Style: "bar" | "line" | "tline"; default depends on depth
-        String defaultStyle = (depth == 0) ? "tline" : "bar";
-        String style = n.path("style").asText(defaultStyle);
+        var defaultStyle = (depth == 0) ? "tline" : "bar";
+        var style = n.path("style").asText(defaultStyle);
         switch (style) {
             case "bar"   -> flags |= FL_BAR;
             case "tline" -> flags |= FL_TOTAL;
@@ -172,15 +172,15 @@ public class MenuBankImporter {
      */
     private static byte[] readBlob(JsonNode node, Path dir) throws IOException {
         if (node == null || node.isNull() || node.isMissingNode()) return null;
-        String value = node.asText(null);
+        var value = node.asText(null);
         if (value == null || value.isEmpty()) return null;
 
         if (value.endsWith(".bin")) {
-            Path blobPath = dir.resolve(value);
+            var blobPath = dir.resolve(value);
             if (!Files.exists(blobPath)) {
                 throw new IOException("Object blob not found: " + blobPath);
             }
-            byte[] data = Files.readAllBytes(blobPath);
+            var data = Files.readAllBytes(blobPath);
             if (data.length < 2) {
                 throw new IOException("Object blob too short: " + blobPath);
             }

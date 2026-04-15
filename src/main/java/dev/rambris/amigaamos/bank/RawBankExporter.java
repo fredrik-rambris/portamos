@@ -8,8 +8,6 @@ package dev.rambris.amigaamos.bank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,19 +53,19 @@ public class RawBankExporter {
      */
     public void export(AmosBank bank, Path dataPath) throws IOException {
         if (!(bank instanceof RawBank rb))
-            throw new IllegalArgumentException("Not a Work or Data bank: " + bank.type());
-        byte[] payload = rb.data();
+            throw new IllegalArgumentException("Not a Work or Data bank, got: " + bank.getClass().getSimpleName());
+        var payload = rb.data();
 
         Files.createDirectories(dataPath.toAbsolutePath().getParent());
         Files.write(dataPath, payload);
 
-        ObjectNode root = JSON.createObjectNode();
+        var root = JSON.createObjectNode();
         root.put("type",       bank.type().name());
         root.put("bankNumber", bank.bankNumber() & 0xFFFF);
         root.put("chipRam",    bank.chipRam());
         root.put("dataFile",   dataPath.getFileName().toString());
 
-        Path jsonPath = dataPath.resolveSibling(dataPath.getFileName() + ".json");
+        var jsonPath = dataPath.resolveSibling(dataPath.getFileName() + ".json");
         JSON.writeValue(jsonPath.toFile(), root);
     }
 }

@@ -37,11 +37,11 @@ public final class IlbmUtility {
         if (bmhd == null) {
             throw new IffParseException("IlbmImage has no BMHD");
         }
-        int[] palette = image.palette();
+        var palette = image.palette();
         if (palette == null || palette.length == 0) {
             throw new IffParseException("Not an indexed ILBM: no CMAP palette");
         }
-        byte[] body = image.body();
+        var body = image.body();
         if (body == null) {
             throw new IffParseException("IlbmImage has no BODY data");
         }
@@ -87,7 +87,7 @@ public final class IlbmUtility {
         int width    = image.getWidth();
         int height   = image.getHeight();
         int rowBytes = ((width + 15) / 16) * 2;
-        byte[] body  = new byte[height * planes * rowBytes];
+        var body  = new byte[height * planes * rowBytes];
         var raster   = image.getRaster();
 
         for (int y = 0; y < height; y++) {
@@ -112,9 +112,9 @@ public final class IlbmUtility {
      */
     public static IndexColorModel buildColorModel(int[] palette, int planes) {
         int size = palette.length;
-        byte[] r = new byte[size];
-        byte[] g = new byte[size];
-        byte[] b = new byte[size];
+        var r = new byte[size];
+        var g = new byte[size];
+        var b = new byte[size];
         for (int i = 0; i < size; i++) {
             r[i] = (byte)((palette[i] >> 16) & 0xFF);
             g[i] = (byte)((palette[i] >> 8)  & 0xFF);
@@ -135,7 +135,7 @@ public final class IlbmUtility {
                     "Not an indexed-color image: " + image.getColorModel().getClass().getSimpleName());
         }
         int size = icm.getMapSize();
-        int[] palette = new int[size];
+        var palette = new int[size];
         for (int i = 0; i < size; i++) {
             palette[i] = icm.getRGB(i) & 0x00FFFFFF;
         }

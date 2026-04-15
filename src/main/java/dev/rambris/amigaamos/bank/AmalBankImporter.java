@@ -67,14 +67,14 @@ public class AmalBankImporter {
      * @throws IOException if any referenced file cannot be read or the JSON is malformed
      */
     public AmalBank importFrom(Path jsonPath) throws IOException {
-        JsonNode root = JSON.readTree(jsonPath.toFile());
-        Path dir = jsonPath.toAbsolutePath().getParent();
+        var root = JSON.readTree(jsonPath.toFile());
+        var dir = jsonPath.toAbsolutePath().getParent();
 
-        short bankNumber = (short) root.path("bankNumber").asInt(1);
-        boolean chipRam  = root.path("chipRam").asBoolean(false);
+        var bankNumber = (short) root.path("bankNumber").asInt(1);
+        var chipRam  = root.path("chipRam").asBoolean(false);
 
-        List<AmalBank.Movement> movements = parseMovements(root.path("movements"), dir);
-        List<String> programs = parsePrograms(root.path("programs"), dir);
+        var movements = parseMovements(root.path("movements"), dir);
+        var programs = parsePrograms(root.path("programs"), dir);
 
         return new AmalBank(bankNumber, chipRam, List.copyOf(movements), List.copyOf(programs));
     }
@@ -84,22 +84,22 @@ public class AmalBankImporter {
     // -------------------------------------------------------------------------
 
     private List<AmalBank.Movement> parseMovements(JsonNode movementsNode, Path dir) throws IOException {
-        List<AmalBank.Movement> result = new ArrayList<>();
+        var result = new ArrayList<AmalBank.Movement>();
         if (movementsNode.isMissingNode()) return result;
 
-        for (JsonNode mn : movementsNode) {
-            String name = mn.path("name").asText("Empty");
+        for (var mn : movementsNode) {
+            var name = mn.path("name").asText("Empty");
             boolean empty = mn.path("empty").asBoolean(true);
             if (empty || !mn.has("file")) {
                 result.add(new AmalBank.Movement(name, null, null));
                 continue;
             }
 
-            Path movFile = dir.resolve(mn.get("file").asText());
-            JsonNode movRoot = JSON.readTree(movFile.toFile());
+            var movFile = dir.resolve(mn.get("file").asText());
+            var movRoot = JSON.readTree(movFile.toFile());
 
-            AmalBank.MovementData xMove = parseMovementData(movRoot.path("x"));
-            AmalBank.MovementData yMove = parseMovementData(movRoot.path("y"));
+            var xMove = parseMovementData(movRoot.path("x"));
+            var yMove = parseMovementData(movRoot.path("y"));
 
             result.add(new AmalBank.Movement(name, xMove, yMove));
         }
@@ -109,9 +109,9 @@ public class AmalBankImporter {
     private AmalBank.MovementData parseMovementData(JsonNode node) {
         if (node.isNull() || node.isMissingNode()) return null;
         int speed = node.path("speed").asInt(1);
-        List<AmalBank.Instruction> instructions = new ArrayList<>();
-        for (JsonNode inst : node.path("instructions")) {
-            String type = inst.path("type").asText();
+        var instructions = new ArrayList<AmalBank.Instruction>();
+        for (var inst : node.path("instructions")) {
+            var type = inst.path("type").asText();
             instructions.add(switch (type) {
                 case "wait"  -> new AmalBank.Instruction.Wait(inst.path("ticks").asInt());
                 case "delta" -> new AmalBank.Instruction.Delta(inst.path("pixels").asInt());
@@ -126,18 +126,18 @@ public class AmalBankImporter {
     // -------------------------------------------------------------------------
 
     private List<String> parsePrograms(JsonNode programsNode, Path dir) throws IOException {
-        List<String> result = new ArrayList<>();
+        var result = new ArrayList<String>();
         if (programsNode.isMissingNode()) return result;
 
-        for (JsonNode pn : programsNode) {
+        for (var pn : programsNode) {
             boolean empty = pn.path("empty").asBoolean(true);
             if (empty || !pn.has("file")) {
                 result.add("");
                 continue;
             }
-            Path progFile = dir.resolve(pn.get("file").asText());
+            var progFile = dir.resolve(pn.get("file").asText());
             // Convert newlines back to AMAL's ~ line separator
-            String text = Files.readString(progFile, StandardCharsets.UTF_8)
+            var text = Files.readString(progFile, StandardCharsets.UTF_8)
                                .replace("\r\n", "~")
                                .replace("\n", "~");
             result.add(text);

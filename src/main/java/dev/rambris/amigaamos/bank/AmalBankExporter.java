@@ -8,7 +8,6 @@ package dev.rambris.amigaamos.bank;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
@@ -46,11 +45,11 @@ public class AmalBankExporter {
     private void exportPrograms(AmalBank bank, Path outDir) throws IOException {
         int exported = 0;
         for (int i = 0; i < bank.programs().size(); i++) {
-            String program = bank.programs().get(i);
+            var program = bank.programs().get(i);
             if (program == null || program.isEmpty()) continue;
-            Path dest = outDir.resolve("program_%03d.amal".formatted(i));
+            var dest = outDir.resolve("program_%03d.amal".formatted(i));
             // AMAL uses ~ as a line separator; convert to newlines for human-readable text
-            String text = program.replace("~", "\n");
+            var text = program.replace("~", "\n");
             Files.writeString(dest, text, StandardCharsets.UTF_8);
             exported++;
         }
@@ -65,10 +64,10 @@ public class AmalBankExporter {
     private void exportMovements(AmalBank bank, Path outDir) throws IOException {
         int exported = 0;
         for (int i = 0; i < bank.movements().size(); i++) {
-            AmalBank.Movement mov = bank.movements().get(i);
+            var mov = bank.movements().get(i);
             if (mov.isEmpty()) continue;
-            Path dest = outDir.resolve("movement_%03d.json".formatted(i));
-            ObjectNode root = buildMovementJson(mov);
+            var dest = outDir.resolve("movement_%03d.json".formatted(i));
+            var root = buildMovementJson(mov);
             JSON.writeValue(dest.toFile(), root);
             exported++;
         }
@@ -77,7 +76,7 @@ public class AmalBankExporter {
     }
 
     private ObjectNode buildMovementJson(AmalBank.Movement mov) {
-        ObjectNode root = JSON.createObjectNode();
+        var root = JSON.createObjectNode();
         root.put("name", mov.name());
         if (mov.xMove() != null) {
             root.set("x", buildMovementDataJson(mov.xMove()));
@@ -93,11 +92,11 @@ public class AmalBankExporter {
     }
 
     private ObjectNode buildMovementDataJson(AmalBank.MovementData data) {
-        ObjectNode node = JSON.createObjectNode();
+        var node = JSON.createObjectNode();
         node.put("speed", data.speed());
-        ArrayNode instructions = node.putArray("instructions");
-        for (AmalBank.Instruction inst : data.instructions()) {
-            ObjectNode in = instructions.addObject();
+        var instructions = node.putArray("instructions");
+        for (var inst : data.instructions()) {
+            var in = instructions.addObject();
             switch (inst) {
                 case AmalBank.Instruction.Wait wait -> {
                     in.put("type", "wait");
@@ -117,15 +116,15 @@ public class AmalBankExporter {
     // -------------------------------------------------------------------------
 
     private void exportMetadata(AmalBank bank, Path outDir) throws IOException {
-        ObjectNode root = JSON.createObjectNode();
+        var root = JSON.createObjectNode();
         root.put("type", "Amal");
         root.put("bankNumber", bank.bankNumber() & 0xFFFF);
         root.put("chipRam", bank.chipRam());
 
-        ArrayNode movementsNode = root.putArray("movements");
+        var movementsNode = root.putArray("movements");
         for (int i = 0; i < bank.movements().size(); i++) {
-            AmalBank.Movement mov = bank.movements().get(i);
-            ObjectNode mn = movementsNode.addObject();
+            var mov = bank.movements().get(i);
+            var mn = movementsNode.addObject();
             mn.put("index", i);
             mn.put("name", mov.name());
             mn.put("empty", mov.isEmpty());
@@ -134,10 +133,10 @@ public class AmalBankExporter {
             }
         }
 
-        ArrayNode programsNode = root.putArray("programs");
+        var programsNode = root.putArray("programs");
         for (int i = 0; i < bank.programs().size(); i++) {
-            String prog = bank.programs().get(i);
-            ObjectNode pn = programsNode.addObject();
+            var prog = bank.programs().get(i);
+            var pn = programsNode.addObject();
             pn.put("index", i);
             boolean hasContent = prog != null && !prog.isEmpty();
             pn.put("empty", !hasContent);
@@ -146,7 +145,7 @@ public class AmalBankExporter {
             }
         }
 
-        Path dest = outDir.resolve("bank.json");
+        var dest = outDir.resolve("bank.json");
         JSON.writeValue(dest.toFile(), root);
         System.out.printf("Written %s%n", dest);
     }

@@ -9,13 +9,15 @@ package dev.rambris.amigaamos.tokenizer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Generates a JSON definition skeleton from an AMOS Professional extension binary (.Lib file).
@@ -60,12 +62,12 @@ public class ExtJsonGenerator {
      * Reads {@code binPath}, extracts all token groups, and writes a JSON skeleton to {@code outPath}.
      */
     public static void generate(Path binPath, int slot, int start, Path outPath) throws IOException {
-        byte[] data = Files.readAllBytes(binPath);
-        List<GroupedEntry> groups = parseExtension(data, start);
+        var data = Files.readAllBytes(binPath);
+        var groups = parseExtension(data, start);
 
-        ObjectNode root = JSON.createObjectNode();
+        var root = JSON.createObjectNode();
 
-        ObjectNode ext = root.putObject("extension");
+        var ext = root.putObject("extension");
         ext.put("id",       binPath.getFileName().toString().replaceFirst("(?i)\\.lib$", ""));
         ext.put("name",     "");
         ext.put("filename", binPath.getFileName().toString());
@@ -73,22 +75,22 @@ public class ExtJsonGenerator {
         ext.put("start",    start);
         ext.put("vendor",   "");
 
-        ArrayNode defs = root.putArray("definitions");
-        Set<String> seen = new HashSet<>();
+        var defs = root.putArray("definitions");
+        var seen = new HashSet<String>();
         int sigTotal = 0;
 
-        for (GroupedEntry group : groups) {
-            String normName = group.name().strip().toUpperCase();
+        for (var group : groups) {
+            var normName = group.name().strip().toUpperCase();
             if (!seen.add(normName)) continue;
 
-            ObjectNode def = defs.addObject();
+            var def = defs.addObject();
             def.put("name", normName);
             def.put("kind", inferKind(group));
             def.put("documentation", "");
 
-            ArrayNode sigsNode = def.putArray("signatures");
-            for (SignatureData sd : group.signatures()) {
-                ObjectNode sig = sigsNode.addObject();
+            var sigsNode = def.putArray("signatures");
+            for (var sd : group.signatures()) {
+                var sig = sigsNode.addObject();
                 sig.put("offset", sd.offset());
                 sig.put("commaGroups", cgFromParams(sd.params()));
                 sig.put("presentation", buildPresentation(normName, sd.params()));
@@ -127,7 +129,7 @@ public class ExtJsonGenerator {
      * </pre>
      */
     static List<GroupedEntry> parseExtension(byte[] src, int start) {
-        List<GroupedEntry> groups = new ArrayList<>();
+        var groups = new ArrayList<GroupedEntry>();
         if (src.length < 54) return groups;
         if (leek(src, 0) != 0x3F3L) { System.err.println("Bad hunk header"); return groups; }
         if (leek(src, 24) != 0x3E9L) { System.err.println("Bad code hunk"); return groups; }
@@ -137,7 +139,7 @@ public class ExtJsonGenerator {
 
         // Current open group (name + accumulated signatures)
         String currentName = null;
-        List<SignatureData> currentSigs = new ArrayList<>();
+        var currentSigs = new ArrayList<SignatureData>();
 
         int pos = tkoff + start;
         while (pos + 4 <= src.length) {
@@ -150,19 +152,19 @@ public class ExtJsonGenerator {
             while (pos < src.length && (src[pos] & 0x80) == 0) pos++;
             if (pos >= src.length) break;
             pos++;
-            byte[] nameBytes = Arrays.copyOfRange(src, nameStart, pos);
+            var nameBytes = Arrays.copyOfRange(src, nameStart, pos);
 
             // Parse param bytes (all < 0xFD)
             int paramStart = pos;
             while (pos < src.length && (src[pos] & 0xFF) < 0xFD) pos++;
             if (pos >= src.length) break;
             int terminator = src[pos] & 0xFF;
-            String params = new String(Arrays.copyOfRange(src, paramStart, pos),
+            var params = new String(Arrays.copyOfRange(src, paramStart, pos),
                     StandardCharsets.ISO_8859_1);
             pos++;
             if ((pos & 1) != 0) pos++;
 
-            String name = decodeName(nameBytes);
+            var name = decodeName(nameBytes);
             if (name != null && name.startsWith("!")) {
                 name = name.substring(1).strip();
             }
@@ -222,18 +224,18 @@ public class ExtJsonGenerator {
      * Parameter names are placeholders ("param1", "param2", …); fill in from the manual.
      */
     private static ArrayNode buildParameters(String params) {
-        ArrayNode arr = JSON.createArrayNode();
+        var arr = JSON.createArrayNode();
         if (params.isEmpty()) return arr;
         int idx = 1;
         for (int i = 1; i < params.length(); i++) {
             char c = params.charAt(i);
             if (c == '0' || c == '1' || c == '2' || c == '3') {
-                ObjectNode p = arr.addObject();
+                var p = arr.addObject();
                 p.put("kind", "value");
                 p.put("name", "param" + idx++);
                 p.put("valueType", c == '1' ? "float" : c == '2' || c == '3' ? "string" : "integer");
             } else if (c == 't') {
-                ObjectNode p = arr.addObject();
+                var p = arr.addObject();
                 p.put("kind", "keyword");
                 p.put("keyword", "To");
             }
@@ -247,13 +249,13 @@ public class ExtJsonGenerator {
      * Example: "SAM PLAY" + "I0,0,0" → "Sam Play param1, param2, param3"
      */
     private static String buildPresentation(String name, String params) {
-        String title = toTitleCase(name);
+        var title = toTitleCase(name);
         if (params.length() <= 1) return title;
 
         char type = params.charAt(0);
         boolean isFunc = (type == '0' || type == '1' || type == '2');
 
-        StringBuilder args = new StringBuilder();
+        var args = new StringBuilder();
         int idx = 1;
         for (int i = 1; i < params.length(); i++) {
             char c = params.charAt(i);
@@ -269,7 +271,7 @@ public class ExtJsonGenerator {
             }
         }
 
-        String argStr = args.toString().stripTrailing();
+        var argStr = args.toString().stripTrailing();
         if (argStr.isEmpty()) return title;
         return isFunc ? title + "(" + argStr + ")" : title + " " + argStr;
     }
@@ -280,7 +282,7 @@ public class ExtJsonGenerator {
 
     private static String inferKind(GroupedEntry group) {
         if (group.signatures().isEmpty()) return "instruction";
-        String params = group.signatures().get(0).params();
+        var params = group.signatures().get(0).params();
         if (params.isEmpty()) return "instruction";
         return switch (params.charAt(0)) {
             case '0', '1', '2' -> "function";
@@ -297,7 +299,7 @@ public class ExtJsonGenerator {
         if (raw.length == 0) return null;
         int first = raw[0] & 0xFF;
         if (first == 0x80) return null;
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         boolean capNext = true;
         for (byte b : raw) {
             char c = (char) (b & 0x7F);
@@ -305,12 +307,12 @@ public class ExtJsonGenerator {
             capNext = (c == ' ');
             sb.append(c);
         }
-        String s = sb.toString();
+        var s = sb.toString();
         return s.endsWith(" ") ? s.substring(0, s.length() - 1) : s;
     }
 
     private static String toTitleCase(String upper) {
-        StringBuilder sb = new StringBuilder();
+        var sb = new StringBuilder();
         boolean cap = true;
         for (char c : upper.toCharArray()) {
             if (c == ' ') { sb.append(c); cap = true; }

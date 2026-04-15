@@ -59,7 +59,7 @@ public class SampleBankReader {
             throw new IOException("Samples payload truncated in offset table");
         }
 
-        int[] offsets = new int[n];
+        var offsets = new int[n];
         for (int i = 0; i < n; i++) {
             offsets[i] = buf.getInt();
         }

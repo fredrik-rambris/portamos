@@ -52,7 +52,7 @@ public class Tokenizer {
 
     public Tokenizer(AmosVersion version) {
         this.version = version;
-        TokenTable tokenTable = new TokenTable();
+        var tokenTable = new TokenTable();
         this.parser  = new AsciiParser(tokenTable);
         this.encoder = new BinaryEncoder(tokenTable);
         this.writer  = new AmosFileWriter();
@@ -163,10 +163,10 @@ public class Tokenizer {
      * Encodes an {@link AmosFile} into a complete AMOS binary file.
      */
     public byte[] encode(AmosFile file) {
-        List<AmosLine> lines = file.lines();
-        List<byte[]> encodedLines = new ArrayList<>(lines.size());
+        var lines = file.lines();
+        var encodedLines = new ArrayList<byte[]>(lines.size());
         for (int i = 0; i < lines.size(); i++) {
-            AmosLine line = lines.get(i);
+            var line = lines.get(i);
             try {
                 encodedLines.add(encoder.encodeLine(line.indent(), line.tokens()));
             } catch (TokenizeException e) {
@@ -183,7 +183,7 @@ public class Tokenizer {
     // -------------------------------------------------------------------------
 
     private List<AmosLine> tokenizeLines(String[] rawLines) {
-        List<AmosLine> result = new ArrayList<>(rawLines.length);
+        var result = new ArrayList<AmosLine>(rawLines.length);
         for (int i = 0; i < rawLines.length; i++) {
             try {
                 result.add(tokenizeLine(rawLines[i]));

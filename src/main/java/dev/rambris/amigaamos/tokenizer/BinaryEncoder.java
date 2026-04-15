@@ -39,9 +39,9 @@ class BinaryEncoder {
      * @return the complete binary representation of the line
      */
     byte[] encodeLine(int indent, List<AmosToken> tokens) {
-        ByteArrayOutputStream body = new ByteArrayOutputStream();
+        var body = new ByteArrayOutputStream();
 
-        for (AmosToken token : tokens) {
+        for (var token : tokens) {
             try {
                 encodeToken(token, body);
             } catch (IOException e) {
@@ -50,7 +50,7 @@ class BinaryEncoder {
         }
 
         // EOL marker: 0x0000
-        byte[] bodyBytes = body.toByteArray();
+        var bodyBytes = body.toByteArray();
 
         // Total = 2 (header) + bodyBytes.length + 2 (EOL)
         int totalBytes = 2 + bodyBytes.length + 2;
@@ -60,7 +60,7 @@ class BinaryEncoder {
         }
         int totalWords = totalBytes / 2;
 
-        ByteArrayOutputStream line = new ByteArrayOutputStream(totalBytes);
+        var line = new ByteArrayOutputStream(totalBytes);
         line.write(totalWords);
         line.write(indent);
         try {
@@ -102,7 +102,7 @@ class BinaryEncoder {
      * The EOL's first byte (0x00) acts as null terminator for the C-string.
      */
     private void encodeRem(int tokenValue, String text, ByteArrayOutputStream out) throws IOException {
-        byte[] textBytes = text.getBytes(StandardCharsets.US_ASCII);
+        var textBytes = text.getBytes(StandardCharsets.US_ASCII);
         int n = textBytes.length;
         writeUint16(tokenValue, out);
         out.write(0x00); // unused byte
@@ -120,7 +120,7 @@ class BinaryEncoder {
      * Format: [token:2] [len_hi:1] [len_lo:1] [text:n] [pad if n odd:00]
      */
     private void encodeQuotedString(int tokenValue, String text, ByteArrayOutputStream out) throws IOException {
-        byte[] textBytes = text.getBytes(StandardCharsets.US_ASCII);
+        var textBytes = text.getBytes(StandardCharsets.US_ASCII);
         int n = textBytes.length;
         writeUint16(tokenValue, out);
         writeUint16(n, out); // 2-byte big-endian length
@@ -164,7 +164,7 @@ class BinaryEncoder {
      */
     private void encodeDouble(double value, ByteArrayOutputStream out) throws IOException {
         writeUint16(0x2B6A, out);
-        long bits = Double.doubleToRawLongBits(value);
+        var bits = Double.doubleToRawLongBits(value);
         writeUint64(bits, out);
     }
 
@@ -181,8 +181,8 @@ class BinaryEncoder {
      */
     private void encodeNamedToken(int tokenValue, String name, int flags, ByteArrayOutputStream out)
             throws IOException {
-        String lowerName = name.toLowerCase();
-        byte[] nameBytes = lowerName.getBytes(StandardCharsets.US_ASCII);
+        var lowerName = name.toLowerCase();
+        var nameBytes = lowerName.getBytes(StandardCharsets.US_ASCII);
         int nameLen = nameBytes.length;
         // n = nameLen rounded up to the next even number.
         // For odd-length names the rounding byte doubles as the null terminator.
@@ -272,7 +272,7 @@ class BinaryEncoder {
     }
 
     private static void writeUint64(long value, ByteArrayOutputStream out) throws IOException {
-        byte[] bytes = new byte[8];
+        var bytes = new byte[8];
         for (int i = 7; i >= 0; i--) {
             bytes[i] = (byte) (value & 0xFF);
             value >>= 8;

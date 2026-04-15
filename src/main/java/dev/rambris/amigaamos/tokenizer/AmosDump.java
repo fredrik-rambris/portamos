@@ -37,10 +37,10 @@ public class AmosDump {
 
     /** Dumps a single AMOS binary file to {@code out}. */
     public void dump(Path path, PrintStream out) throws Exception {
-        byte[] data = Files.readAllBytes(path);
+        var data = Files.readAllBytes(path);
         out.println("=== " + path + " ===");
         printHeader(data, out);
-        List<byte[]> lines = extractLines(data);
+        var lines = extractLines(data);
         out.printf("Lines: %d%n%n", lines.size());
         for (int i = 0; i < lines.size(); i++) {
             printLine(i, lines.get(i), out);
@@ -52,8 +52,8 @@ public class AmosDump {
      * line that differs.  Lines that are identical are skipped.
      */
     public void diff(Path expectedPath, Path actualPath, PrintStream out) throws Exception {
-        byte[] exp = Files.readAllBytes(expectedPath);
-        byte[] act = Files.readAllBytes(actualPath);
+        var exp = Files.readAllBytes(expectedPath);
+        var act = Files.readAllBytes(actualPath);
 
         out.println("=== DIFF ===");
         out.println("  EXP: " + expectedPath);
@@ -75,8 +75,8 @@ public class AmosDump {
             out.println();
         }
 
-        List<byte[]> expLines = extractLines(exp);
-        List<byte[]> actLines = extractLines(act);
+        var expLines = extractLines(exp);
+        var actLines = extractLines(act);
 
         int maxLines = Math.max(expLines.size(), actLines.size());
         if (expLines.size() != actLines.size()) {
@@ -85,8 +85,8 @@ public class AmosDump {
 
         int diffCount = 0;
         for (int i = 0; i < maxLines; i++) {
-            byte[] eLine = i < expLines.size() ? expLines.get(i) : new byte[0];
-            byte[] aLine = i < actLines.size() ? actLines.get(i) : new byte[0];
+            var eLine = i < expLines.size() ? expLines.get(i) : new byte[0];
+            var aLine = i < actLines.size() ? actLines.get(i) : new byte[0];
             if (!bytesEqual(eLine, aLine)) {
                 diffCount++;
                 printLineDiff(i, eLine, aLine, out);
@@ -116,7 +116,7 @@ public class AmosDump {
         int wordCount = line[0] & 0xFF;
         int indent    = line[1] & 0xFF;
         out.printf("Line %3d  indent=%d  words=%d:%n", lineIdx, indent, wordCount);
-        List<ParsedToken> tokens = parseTokens(line);
+        var tokens = parseTokens(line);
         for (ParsedToken t : tokens) {
             out.printf("  %s%n", t.format());
         }
@@ -139,15 +139,15 @@ public class AmosDump {
         }
 
         // Parse tokens from both lines and diff them
-        List<ParsedToken> expTokens = parseTokens(eLine);
-        List<ParsedToken> actTokens = parseTokens(aLine);
+        var expTokens = parseTokens(eLine);
+        var actTokens = parseTokens(aLine);
         int maxTok = Math.max(expTokens.size(), actTokens.size());
 
         for (int t = 0; t < maxTok; t++) {
-            ParsedToken et = t < expTokens.size() ? expTokens.get(t) : null;
-            ParsedToken at = t < actTokens.size() ? actTokens.get(t) : null;
+            var et = t < expTokens.size() ? expTokens.get(t) : null;
+            var at = t < actTokens.size() ? actTokens.get(t) : null;
             boolean same = et != null && at != null && bytesEqual(et.raw, at.raw);
-            String marker = same ? "    " : " <<<";
+            var marker = same ? "    " : " <<<";
             if (same) {
                 out.printf("  [%2d]%s  %s%n", t, marker, et.format());
             } else {
@@ -165,13 +165,13 @@ public class AmosDump {
     // -------------------------------------------------------------------------
 
     private List<ParsedToken> parseTokens(byte[] line) {
-        List<ParsedToken> result = new ArrayList<>();
+        var result = new ArrayList<ParsedToken>();
         int i = 2; // skip header bytes
         while (i + 1 < line.length) {
             int tok = readU16(line, i);
             int payloadSize = payloadSize(tok, line, i + 2);
             int totalSize = 2 + payloadSize;
-            byte[] raw = safeSlice(line, i, totalSize);
+            var raw = safeSlice(line, i, totalSize);
             result.add(new ParsedToken(tok, raw, line, i));
             i += totalSize;
             if (tok == 0x0000) break; // EOL
@@ -273,7 +273,7 @@ public class AmosDump {
                     yield "ExtKw(?)";
                 }
                 case 0x0006, 0x000C, 0x0012, 0x0018 -> {
-                    String kind = switch (tok) {
+                    var kind = switch (tok) {
                         case 0x0006 -> "Var";
                         case 0x000C -> "Label";
                         case 0x0012 -> "ProcRef";
@@ -283,14 +283,14 @@ public class AmosDump {
                     if (ps + 3 < line.length) {
                         int n     = line[ps + 2] & 0xFF;
                         int flags = line[ps + 3] & 0xFF;
-                        String name = readStr(line, ps + 4, n);
-                        String type = switch (flags & 0x03) {
+                        var name = readStr(line, ps + 4, n);
+                        var type = switch (flags & 0x03) {
                             case 0x01 -> "#";
                             case 0x02 -> "$";
                             default   -> "";
                         };
-                        String arr = (flags & 0x40) != 0 ? "()" : "";
-                        String proc = (flags & 0x80) != 0 ? "[proc-def]" : "";
+                        var arr = (flags & 0x40) != 0 ? "()" : "";
+                        var proc = (flags & 0x80) != 0 ? "[proc-def]" : "";
                         yield kind + "(" + name + type + arr + proc + ")";
                     }
                     yield kind + "(?)";

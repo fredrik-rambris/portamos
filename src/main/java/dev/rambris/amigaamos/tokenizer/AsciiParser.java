@@ -88,7 +88,7 @@ class AsciiParser {
     // -------------------------------------------------------------------------
 
     private List<AmosToken> parseTokens(String text) {
-        List<AmosToken> tokens = new ArrayList<>();
+        var tokens = new ArrayList<AmosToken>();
         // Reset per-line state
         nextIdentIsLabelRef = false;
         nextVarIsArray = false;
@@ -136,7 +136,7 @@ class AsciiParser {
                     || Character.isDigit(c)
                     || (c == '.' && pos + 1 < len && Character.isDigit(text.charAt(pos + 1)))) {
                 int[] end = {pos};
-                AmosToken numTok = parseNumericLiteral(text, pos, end);
+                var numTok = parseNumericLiteral(text, pos, end);
                 if (numTok != null) {
                     tokens.add(numTok);
                     pos = end[0];
@@ -146,7 +146,7 @@ class AsciiParser {
 
             // Try to match a keyword (maximal munch)
             int[] end = {pos};
-            AmosToken kwTok = parseKeyword(text, pos, end);
+            var kwTok = parseKeyword(text, pos, end);
             if (kwTok != null) {
                 tokens.add(kwTok);
                 pos = end[0];
@@ -155,14 +155,14 @@ class AsciiParser {
 
             // Operator / punctuation (try two-char compound first, e.g. >=, <=, <>)
             int[] opEnd = {pos};
-            AmosToken opTok = parseOperator(text, pos, opEnd);
+            var opTok = parseOperator(text, pos, opEnd);
             if (opTok != null) {
                 tokens.add(opTok);
                 pos = opEnd[0];
                 continue;
             }
 
-            AmosToken identTok = parseIdentifier(text, pos, end);
+            var identTok = parseIdentifier(text, pos, end);
             if (identTok != null) {
                 tokens.add(identTok);
                 pos = end[0];
@@ -187,7 +187,7 @@ class AsciiParser {
      */
     private AmosToken parseKeyword(String text, int start, int[] end) {
         // Collect up to 3 word boundaries
-        int[] wordEnds = new int[3];
+        var wordEnds = new int[3];
         int wordCount = 0;
         int pos = start;
         int len = text.length();
@@ -216,17 +216,17 @@ class AsciiParser {
 
         // Try longest match first (3 words, 2 words, 1 word)
         for (int n = wordCount; n >= 1; n--) {
-            String candidate = text.substring(start, wordEnds[n - 1]);
+            var candidate = text.substring(start, wordEnds[n - 1]);
             if (tokenTable.lookup(candidate) == null) continue;
 
             end[0] = wordEnds[n - 1];
 
             // Count comma groups after the keyword to select the right signature form.
             int commaGroups = countCommaGroups(text, wordEnds[n - 1]);
-            Integer key = tokenTable.selectKey(candidate, commaGroups);
+            var key = tokenTable.selectKey(candidate, commaGroups);
             if (key == null) continue;
 
-            AmosToken tok = keyToToken(key);
+            var tok = keyToToken(key);
                 // Track context for the next identifier token
                 if (tok instanceof AmosToken.Keyword kw) {
                     int v = kw.value();
@@ -318,9 +318,9 @@ class AsciiParser {
         while (pos < len && isIdentifierChar(text.charAt(pos))) pos++;
 
         int nameEnd = pos;
-        String name = text.substring(start, nameEnd);
+        var name = text.substring(start, nameEnd);
 
-        AmosToken.VarType type = AmosToken.VarType.INTEGER;
+        var type = AmosToken.VarType.INTEGER;
         if (pos < len) {
             char suffix = text.charAt(pos);
             if (suffix == '$') {
@@ -362,7 +362,7 @@ class AsciiParser {
         }
 
         // Array variable: flagged by a preceding Dim keyword, or if the name (with type suffix) is a known array
-        String arraySuffix = type == AmosToken.VarType.STRING ? "$" : type == AmosToken.VarType.FLOAT ? "#" : "";
+        var arraySuffix = type == AmosToken.VarType.STRING ? "$" : type == AmosToken.VarType.FLOAT ? "#" : "";
         boolean isArr = nextVarIsArray || arrayVarNames.contains(name.toLowerCase() + arraySuffix);
         if (nextVarIsArray) nextVarIsArray = false;
 
@@ -463,9 +463,9 @@ class AsciiParser {
         if (pos == numStart) return null;
 
         // Build the Java-parseable number string (remove the AMOS space-before-E)
-        String numStr = text.substring(numStart, pos);
+        var numStr = text.substring(numStart, pos);
         if (isDouble) numStr = numStr.substring(0, numStr.length() - 1); // strip '#'
-        String javaStr = numStr.replace(" E", "E").replace(" e", "e");
+        var javaStr = numStr.replace(" E", "E").replace(" e", "e");
 
         end[0] = pos;
 
@@ -489,8 +489,8 @@ class AsciiParser {
             // We can only peek if we have access to pos+1; but we don't here.
             // Instead, in parseTokens we call a two-char variant.
         }
-        String s = String.valueOf(c);
-        Integer key = tokenTable.lookup(s);
+        var s = String.valueOf(c);
+        var key = tokenTable.lookup(s);
         if (key != null) return keyToToken(key);
         return null;
     }
@@ -505,16 +505,16 @@ class AsciiParser {
         char c = text.charAt(pos);
         // Try two-char first
         if (pos + 1 < len) {
-            String two = text.substring(pos, pos + 2);
-            Integer key = tokenTable.lookup(two);
+            var two = text.substring(pos, pos + 2);
+            var key = tokenTable.lookup(two);
             if (key != null) {
                 end[0] = pos + 2;
                 return keyToToken(key);
             }
         }
         // Fall back to single char
-        String one = String.valueOf(c);
-        Integer key = tokenTable.lookup(one);
+        var one = String.valueOf(c);
+        var key = tokenTable.lookup(one);
         if (key != null) {
             end[0] = pos + 1;
             return keyToToken(key);

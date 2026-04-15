@@ -93,7 +93,7 @@ public class IlbmCodec {
      * }</pre>
      */
     public static byte[] write(IlbmImage image, IlbmOptions... options) {
-        boolean useByteRun1 = Arrays.asList(options).contains(IlbmOptions.COMPRESSION_BYTERUN1);
+        var useByteRun1 = Arrays.asList(options).contains(IlbmOptions.COMPRESSION_BYTERUN1);
 
         var bmhd = image.bmhd();
         int compression = useByteRun1
@@ -118,7 +118,7 @@ public class IlbmCodec {
                 bmhd.transparentColor(), xAspect, yAspect,
                 bmhd.pageWidth(), bmhd.pageHeight());
 
-        byte[] bodyBytes = (image.body() != null && useByteRun1)
+        var bodyBytes = (image.body() != null && useByteRun1)
                 ? compressByteRun1(image.body(), writeBmhd)
                 : (image.body() != null ? image.body() : new byte[0]);
 
@@ -286,7 +286,7 @@ public class IlbmCodec {
 
     private static int[] parseCmap(byte[] data) {
         int count = data.length / 3;
-        int[] palette = new int[count];
+        var palette = new int[count];
         for (int i = 0; i < count; i++) {
             palette[i] = ((data[i * 3]     & 0xFF) << 16)
                        | ((data[i * 3 + 1] & 0xFF) << 8)
@@ -296,7 +296,7 @@ public class IlbmCodec {
     }
 
     private static byte[] encodeCmap(int[] palette) {
-        byte[] cmap = new byte[palette.length * 3];
+        var cmap = new byte[palette.length * 3];
         for (int i = 0; i < palette.length; i++) {
             cmap[i * 3]     = (byte)((palette[i] >> 16) & 0xFF);
             cmap[i * 3 + 1] = (byte)((palette[i] >> 8)  & 0xFF);

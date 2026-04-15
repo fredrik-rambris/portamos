@@ -101,8 +101,8 @@ public class MenuBankExporter {
         // ── style (omit when it matches the depth-appropriate default) ──
         boolean isBar   = (flags & FL_BAR)   != 0;
         boolean isTotal = (flags & FL_TOTAL)  != 0;
-        String style = isBar ? "bar" : isTotal ? "tline" : "line";
-        String defaultStyle = (depth == 0) ? "tline" : "bar";
+        var style = isBar ? "bar" : isTotal ? "tline" : "line";
+        var defaultStyle = (depth == 0) ? "tline" : "bar";
         if (!style.equals(defaultStyle)) obj.put("style", style);
 
         // ── behaviour flags (omit when default/false) ──
@@ -144,7 +144,7 @@ public class MenuBankExporter {
 
     /** Decodes a blob to a string and adds it to the object; omits the key if null. */
     private static void putDecoded(ObjectNode obj, String key, byte[] blob) {
-        String decoded = MenuObjectDecoder.decode(blob);
+        var decoded = MenuObjectDecoder.decode(blob);
         if (decoded != null) obj.put(key, decoded);
     }
 

@@ -11,15 +11,20 @@ are stored as tokenised binary files (`.AMOS`), and multimedia data is stored in
 
 ## Features
 
-| Feature                                  | Status         |
-|------------------------------------------|----------------|
-| ASCII source (`.Asc`) → binary (`.AMOS`) | ✅ Working      |
-| Binary (`.AMOS`) → ASCII source (`.Asc`) | 🔲 Not started |
-| Resource bank read/write (`.Abk`)        | ✅ Working      |
-| Resource bank export/import (PNG + JSON) | ✅ Working      |
-| Work/Data bank read/write (`.Abk`)       | ✅ Working      |
-| Work/Data bank export/import             | ✅ Working      |
-| Banks embedded in `.AMOS` files          | ✅ Working      |
+| Feature                                             | Status         |
+|-----------------------------------------------------|----------------|
+| ASCII source (`.Asc`) → binary (`.AMOS`)            | ✅ Working      |
+| Binary (`.AMOS`) → ASCII source (`.Asc`)            | 🔲 Not started |
+| Banks embedded in `.AMOS` files                     | ✅ Working      |
+| Resource bank read/write/export/import              | ✅ Working      |
+| Sprite / Icon bank read/write/export/import         | ✅ Working      |
+| Pac.Pic bank read/write/export/import               | ✅ Working      |
+| Work / Data bank read/write/export/import           | ✅ Working      |
+| AMAL bank read/write/export/import                  | ✅ Working      |
+| Menu bank read/write/export/import                  | ✅ Working      |
+| Sample bank read/write/export/import (WAV / 8SVX)  | ✅ Working      |
+| Music bank read/write/export/import (WAV / 8SVX)   | ✅ Working      |
+| Tracker bank read/write/export/import               | ✅ Working      |
 
 ## Requirements
 
@@ -38,76 +43,155 @@ This produces a fat JAR at `build/libs/portamos-<version>-all.jar`.
 You can also run directly via Gradle:
 
 ```bash
-./gradlew run --args="<arguments>"
+./gradlew run --args="<subcommand> [options]"
 ```
 
 ## CLI Reference
 
-### Tokenize an ASCII source file to binary
+Run `portamos help` or `portamos <subcommand> --help` for full option listings.
+
+### `build` — tokenize an ASCII source file
 
 ```bash
-portamos source.Asc output.AMOS
+portamos build source.Asc output.AMOS
+portamos build source.Asc output.AMOS --add-bank sprites.Abk --add-bank music.Abk
+portamos build source.Asc output.AMOS --import-bank sprites/bank.json
 ```
 
 Reads an AMOS Professional ASCII source file and writes the corresponding binary `.AMOS` file.
+Optionally attaches bank files directly (`--add-bank`) or assembles them from JSON (`--import-bank`).
 
-### Dump a binary file as human-readable tokens
-
-```bash
-portamos --dump file.AMOS
-```
-
-Prints a token-by-token listing of a `.AMOS` binary file. More useful than `xxd` because it correctly handles
-variable-length token payloads (strings, variable names, REMs, etc.) and shows decoded annotations alongside the raw
-hex.
-
-Mainly used for debugging the tokenizer
-
-### Diff two binary files at the token level
+### `disasm` — export a bank to files
 
 ```bash
-portamos --diff expected.AMOS actual.AMOS
+portamos disasm input.Abk output-dir/
+portamos disasm --ilbm input.Abk output-dir/    # sprite sheet as IFF ILBM instead of PNG
+portamos disasm --svx8 input.Abk output-dir/    # samples as IFF 8SVX instead of WAV
 ```
 
-Compares two `.AMOS` binary files and reports every line that differs, with decoded token annotations. Use this instead
-of a raw binary diff when debugging tokenizer output.
+Exports the contents of any supported bank type to a directory. The output always includes a
+`bank.json` metadata file plus type-specific data files:
 
-### Disassemble a Resource bank
+| Bank type  | Data files                                             |
+|------------|--------------------------------------------------------|
+| Resource   | `spritesheet.png` (or `.iff`), `program_NNN.amui`      |
+| Sprite/Icon | `spritesheet.png` (or `.iff`)                         |
+| Pac.Pic    | `<name>.png` (or `.iff`)                               |
+| Music      | `instrument_NNN.wav` (or `.8svx`)                      |
+| Sample     | `sample_NNN.wav` (or `.8svx`)                          |
+| Tracker    | `<name>.mod`                                           |
+| AMAL       | `script_NNN.amal`                                      |
+| Work/Data  | `<name>.bin`                                           |
+
+### `asm` — assemble a bank from files
 
 ```bash
-portamos --disasm-bank input.Abk output-dir/
+portamos asm bank.json output.Abk
 ```
 
-Exports the contents of a Resource bank (`.Abk`) to a directory:
+Reads the `bank.json` produced by `disasm` and reassembles the binary `.Abk` file. The `"type"`
+field in the JSON determines which importer is used.
 
-| File               | Contents                                                                          |
-|--------------------|-----------------------------------------------------------------------------------|
-| `<name>.png`       | Indexed-colour sprite sheet (all images composited at their original coordinates) |
-| `program_NNN.amui` | DBL Interface programs (UTF-8 text)                                               |
-| `bank.json`        | Bank metadata: palette, screen mode, element list, texts                          |
-
-### Assemble a Resource bank from a directory
+### `raw` — wrap a raw file into a bank
 
 ```bash
-portamos --asm-bank input-dir/ output.Abk
+portamos raw payload.bin output.Abk --type WORK
+portamos raw payload.bin output.Abk --type MUSIC --chip --bank-number 3
 ```
 
-Reads a `bank.json` and the associated sprite sheet and program files, and writes a `.Abk` file. The inverse of
-`--disasm-bank`.
+Wraps raw bytes in an AmBk envelope with the specified type. Valid types: `WORK`, `DATA`, `MUSIC`,
+`SAMPLES`, `ASM`, `CODE`, `AMAL`, `MENU`, `TRACKER`, `DATAS`.
 
-### Generate a JSON definition skeleton from an extension binary
+### Developer commands
+
+These are hidden in `--help` but documented in `portamos dev-help`:
 
 ```bash
-portamos --gen-ext-json AMOSPro_MyExt.Lib --slot 4 output.json
+portamos dump file.AMOS                         # token-level dump
+portamos diff expected.AMOS actual.AMOS         # token-level diff
+portamos gen-ext-json input.Lib --slot N output.json  # generate JSON from .Lib
 ```
 
-Generates a JSON skeleton for an AMOS extension `.Lib` file. Useful when adding support for a new third-party extension.
+Always use `dump` / `diff` instead of `xxd` or binary diff tools — they correctly handle
+variable-length token payloads and show decoded annotations.
 
-Options:
+## Bank JSON Format
 
-- `--slot N` — extension slot number (required)
-- `--start S` — byte offset from the token-table base to the first entry (default: `-194` for slot 0, `6` for all
-  others)
+All bank JSON files have a `"type"` field that identifies the bank and drives `asm` import.
+
+### Music bank
+
+```json
+{
+  "type": "Music",
+  "bankNumber": 3,
+  "chipRam": true,
+  "instruments": [
+    {
+      "name": "Bass",
+      "volume": 45,
+      "loopStart": 112,
+      "loopLength": 3247,
+      "sample": "instrument_000.wav"
+    }
+  ],
+  "songs": [
+    {
+      "name": "My Song",
+      "tempo": 15,
+      "sequence": [
+        [0, 1, 2, 3, 65534],
+        [0, 1, 2, 3, 65534],
+        [0, 1, 2, 3, 65534],
+        [0, 1, 2, 3, 65534]
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "voices": [
+        [
+          {"command": "SET_INSTR", "parameter": 0},
+          {"period": 254, "duration": 16134},
+          {"period": 190, "duration": 16134}
+        ],
+        ...
+      ]
+    }
+  ]
+}
+```
+
+`songs[].sequence` — four per-channel playlists; each is a list of 0-based pattern indices
+terminated by `65534` (loop) or `65535` (stop). The four channels run independently — unlike
+tracker/MOD format there is no shared row grid.
+
+`patterns[].voices` — four independent note streams. Each item is either a note
+(`period` + `duration`) or a command (`command` name + optional `parameter`). The `duration` is
+the raw OldNote control word (bit 14 cleared); bits 13–8 encode per-note channel volume (0–63),
+bits 7–0 encode the tick count. `period` is the Amiga hardware period (inversely proportional to
+frequency; 0 = silence).
+
+Known command names: `SET_VOLUME`, `STOP_EFFECT`, `REPEAT`, `FILTER_ON`, `FILTER_OFF`,
+`SET_TEMPO`, `SET_INSTR`, `ARPEGGIO`, `TONE_PORTAMENTO`, `VIBRATO`, `VOLUME_SLIDE`,
+`PORTAMENTO_UP`, `PORTAMENTO_DOWN`, `DELAY`, `POSITION_JUMP`.
+
+Instrument samples are exported at 8363 Hz (Amiga standard tuning); actual playback pitch is
+determined by the note periods at runtime.
+
+### Sample bank
+
+```json
+{
+  "type": "Samples",
+  "bankNumber": 1,
+  "chipRam": true,
+  "samples": [
+    { "index": 0, "name": "BanjoSyn", "frequencyHz": 8363, "file": "sample_000.wav" },
+    { "index": 1, "name": "Empty",    "frequencyHz": 8363, "empty": true }
+  ]
+}
+```
 
 ## File Formats
 
@@ -126,151 +210,66 @@ Options:
 
 ### `.Abk` — Memory bank
 
-All bank files share a common 12-byte header:
-
 ```
-[4]   "AmBk"
+[4]   magic: "AmBk" / "AmSp" / "AmIc"
 [2]   bank number
-[2]   flags (0x0000 = chip RAM, 0x0001 = fast RAM)
-[4]   name + payload size
-[8]   bank name (space-padded): "Resource", "Work    ", "Data    ", …
+[2]   flags (bit 0: 0 = chip RAM, 1 = fast RAM)
+[4]   name+payload size (bit 31 set for chip-RAM AmBk banks)
+[8]   bank name (space-padded): "Music   ", "Samples ", "Resource", …
+[n]   payload (format depends on bank type)
 ```
-
-#### Resource bank
-
-Follows the header with a sub-header containing offsets to three sections: images (Pac.Pic compressed sprites with
-palette), texts, and DBL Interface programs.
-
-#### Work / Data bank
-
-Follows the header immediately with raw payload bytes. Work and Data banks are structurally identical; the bank name in
-the header distinguishes them.
-
-## Bank Export / Import
-
-Resource, Work and Data banks can be exported to files and imported back, making it possible to edit assets outside
-AMOS.
-
-### Resource bank
-
-```bash
-# Export
-portamos --disasm-bank MySprites.Abk sprites/
-
-# Import
-portamos --asm-bank sprites/ MySprites.Abk
-```
-
-The sprite sheet is a standard indexed-colour PNG. Edit it with any image editor that preserves the palette and colour
-indices (e.g. [Aseprite](https://www.aseprite.org/), [GIMP](https://www.gimp.org/) in indexed mode).
-
-### Work / Data bank
-
-Export via the Java API (`RawBankExporter`) or build one programmatically:
-
-```java
-// Read
-AmosBank bank = new RawBankReader().read(Path.of("MyData.Abk"));
-
-// Build
-RawBank work = RawBank.Work(data);      // WORK bank, fast RAM
-RawBank chipWork = RawBank.ChipWork(data);  // WORK bank, chip RAM
-RawBank data_ = RawBank.Data(data);      // DATA bank, fast RAM
-RawBank chipData = RawBank.ChipData(data);  // DATA bank, chip RAM
-
-// Export: writes MyData.bin and MyData.bin.json
-new
-
-RawBankExporter().
-
-export(bank, Path.of("MyData.bin"));
-
-// Import: reads JSON, resolves data file relative to the JSON
-AmosBank imported = new RawBankImporter().importFrom(Path.of("MyData.bin.json"));
-```
-
-The sidecar `.json` file stores `type`, `bankNumber`, `chipRam`, and `dataFile` (filename only). When importing you can
-point `dataFile` at a renamed or replaced file; the importer resolves it relative to the JSON file's location.
-
-## Java API
-
-The main entry points:
-
-```java
-// Tokenize an ASCII source file
-Tokenizer tokenizer = new Tokenizer();              // defaults to PRO_101
-AmosFile program = tokenizer.parse(path);
-byte[] binary = tokenizer.encode(program);
-
-// Attach banks before encoding
-program =program.
-
-withBanks(List.of(bank1, bank2));
-binary  =tokenizer.
-
-encode(program);               // banks written after AmBs
-
-// Read a Resource bank
-ResourceBank bank = new ResourceBankReader().read(Path.of("MyBank.Abk"));
-```
-
-If a parse error occurs, a `TokenizeException` is thrown with the 1-based line number, column (when known), and the
-source text of the offending line.
 
 ## Project Structure
 
 ```
-src/main/java/dev/rambris/amos/
-  Main.java                         CLI entry point
+src/main/java/dev/rambris/amigaamos/
+  Main.java                           CLI entry point (subcommands: build/disasm/asm/raw/…)
   tokenizer/
-    Tokenizer.java                  Public API: parse() + encode()
-    AsciiParser.java                ASCII source line → token list
-    BinaryEncoder.java              Token list → binary line bytes
-    AmosFileWriter.java             Binary lines + banks → .AMOS file
-    TokenTable.java                 JSON definitions → token lookup
-    TokenizeException.java          Parse error with line/column context
-    AmosDump.java                   Token dump and diff tool
-    ExtJsonGenerator.java           .Lib binary → JSON skeleton
+    Tokenizer.java                    Public API: parse() + encode()
+    AsciiParser.java                  ASCII source line → token list
+    BinaryEncoder.java                Token list → binary bytes
+    AmosFileWriter.java               Lines + banks → .AMOS file
+    TokenTable.java                   JSON definitions → token lookup
+    AmosDump.java                     Token dump and diff tool
+    ExtJsonGenerator.java             .Lib binary → JSON skeleton
     model/
-      AmosFile.java                 Program: version + lines + banks
-      AmosLine.java                 One source line: indent + tokens
-      AmosToken.java                Sealed interface, all token variants
-      AmosVersion.java              PRO_101 / BASIC_134 / BASIC_13
+      AmosFile.java, AmosLine.java, AmosToken.java, AmosVersion.java
   bank/
-    AmosBank.java                   Interface for all bank types
-    BankWriter.java                 Interface: write / toBytes
-    ResourceBank.java               Resource bank model + builder
-    ResourceBankReader.java         .Abk reader for Resource banks
-    ResourceBankWriter.java         .Abk writer for Resource banks
-    ResourceBankExporter.java       Resource bank → PNG + JSON
-    ResourceBankImporter.java       PNG + JSON → Resource bank
-    RawBank.java                    Work / Data bank model + factories
-    RawBankReader.java              .Abk reader for Work/Data banks
-    RawBankWriter.java              .Abk writer for Work/Data banks
-    RawBankExporter.java            Work/Data bank → data file + JSON
-    RawBankImporter.java            JSON → Work/Data bank
-    PacPicEncoder.java              Chunky pixels → Pac.Pic compression
-    PacPicDecoder.java              Pac.Pic → chunky pixels
+    AmosBank.java                     Interface + type dispatch
+    BankWriter.java                   Interface: write(bank, path) / toBytes(bank)
+    AmBkCodec.java                    Shared AmBk header encode/decode
+    ResourceBank{Reader,Writer,Exporter,Importer}.java
+    SpriteBank{Reader,Writer,Exporter,Importer}.java
+    PacPicBank{Reader,Writer,Exporter,Importer}.java
+    MusicBank{Reader,Writer,Exporter,Importer}.java   + MusicBank.java (model + Command enum)
+    SampleBank{Reader,Writer,Exporter,Importer}.java
+    TrackerBank{Reader,Writer,Exporter,Importer}.java
+    AmalBank{Reader,Writer,Exporter,Importer}.java
+    MenuBank{Reader,Writer,Exporter,Importer}.java
+    RawBank{Reader,Writer,Exporter,Importer}.java
 
 src/main/resources/amos/definitions/
-  core.json                         Core AMOS keywords
-  music.json                        Music extension (slot 1)
-  compact.json                      Compact extension (slot 2)
-  request.json                      Request extension (slot 3)
-  ioports.json                      IOPorts extension (slot 6)
+  core.json, music.json, compact.json, request.json, ioports.json
+
+reference/
+  AMOSProfessional/                   Original AMOS Pro disk image and .Lib files
+  AmosProManual/                      AMOS Pro manual
+  amiga-amos/                         Source JSON token definitions (IntelliJ plugin)
+  amostools/extensions/               Third-party .Lib files
+  amos-file-formats.wiki              Exotica file format docs
+  amos-music-bank-format.wiki         Exotica Music bank format docs
 ```
 
 ## Reference Material
 
-The `reference/` directory (not included in the repository) contains:
-
-| Dir                    | Description                                                                                                   |
-|------------------------|---------------------------------------------------------------------------------------------------------------|
-| AMOSProfessional/      | Full AMOS Pro disk image + source                                                                             |
-| AmosProManual/         | [AMOS Pro manual from](https://amospromanual.dev)                                                             |
-| amiga-amos/            | Original JSON token definitions from [AMOS IntelliJ plugin](https://github.com/fredrik-rambris/intellij-amos) |
-| amostools/extensions/  | Third-party .Lib extension files                                                                              |
-| amos-file-formats.wiki | File format documentation from [Exotica](https://www.exotica.org.uk/wiki/AMOS_file_formats)                   |
+| Path                           | Description                                                                 |
+|--------------------------------|-----------------------------------------------------------------------------|
+| `reference/AMOSProfessional/`  | Full AMOS Pro disk image — original `.Lib` files, examples, accessories     |
+| `reference/AmosProManual/`     | [AMOS Pro manual](https://amospromanual.dev)                                |
+| `reference/amiga-amos/`        | JSON token definitions from [intellij-amos](https://github.com/fredrik-rambris/intellij-amos) |
+| `reference/amostools/extensions/` | Third-party `.Lib` extension files                                       |
+| `reference/amos-file-formats.wiki` | File format docs from [Exotica](https://www.exotica.org.uk/wiki/AMOS_file_formats) |
+| `reference/amos-music-bank-format.wiki` | Music bank format docs from Exotica                               |
 
 ## Scripts
 
@@ -285,9 +284,9 @@ python3 scripts/migrate_offsets.py
 ## Known Limitations
 
 - **Detokenizer** (binary → ASCII) is not yet implemented
-- Symbol-table slot offsets (`unk2` in named tokens) are written as zero; AMOS recomputes them at load time, so programs
-  still run correctly
-- ~66 core definitions lack binary offsets (aliases and optional-suffix variants); they are silently skipped during
-  tokenisation
-- Third-party extensions beyond the five bundled JSON files require running `--gen-ext-json` to generate definition
-  skeletons
+- Symbol-table slot offsets (`unk2` in named tokens) are written as zero; AMOS recomputes them
+  at load time so programs run correctly, but the binary is not byte-identical to AMOS-produced files
+- ~66 core keyword definitions lack binary offsets (aliases and optional-suffix variants) and are
+  silently skipped during tokenisation
+- Third-party extensions beyond the five bundled JSON files require running `gen-ext-json` to
+  generate definition skeletons

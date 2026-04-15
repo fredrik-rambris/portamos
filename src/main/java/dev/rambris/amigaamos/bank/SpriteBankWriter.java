@@ -29,7 +29,7 @@ public class SpriteBankWriter implements BankWriter {
     @Override
     public byte[] toBytes(AmosBank bank) throws IOException {
         if (!(bank instanceof SpriteBank sb)) {
-            throw new IllegalArgumentException("Not a SpriteBank: " + bank.type());
+            throw new IllegalArgumentException("Not a SpriteBank, got: " + bank.getClass().getSimpleName());
         }
         return serialize(sb);
     }

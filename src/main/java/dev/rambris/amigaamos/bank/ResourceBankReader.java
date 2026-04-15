@@ -128,27 +128,27 @@ public class ResourceBankReader {
         buf.position(sectionStart);
 
         int nEntries = buf.getShort() & 0xFFFF;
-        int[] offsets = new int[nEntries];
+        var offsets = new int[nEntries];
         for (int i = 0; i < nEntries; i++) {
             offsets[i] = buf.getInt();
         }
 
         int nColors = buf.getShort() & 0xFFFF;
         int screenMode = buf.getShort() & 0xFFFF;
-        int[] palette = new int[32];
+        var palette = new int[32];
         for (int i = 0; i < 32; i++) {
             palette[i] = buf.getShort() & 0xFFFF;
         }
         int nameLen = buf.getShort() & 0xFFFF;
-        byte[] nameBuf = new byte[nameLen];
+        var nameBuf = new byte[nameLen];
         buf.get(nameBuf);
         if (nameLen % 2 != 0) buf.get(); // pad to word boundary
-        String imagePath = new String(nameBuf, StandardCharsets.ISO_8859_1);
+        var imagePath = new String(nameBuf, StandardCharsets.ISO_8859_1);
 
         // Parse each entry as either a named Element or a flat list of Images.
         // Named elements (Res_NN) keep their explicit type; simple Pac.Pics become
         // temporary Element(null,null,[image]) wrappers that the grouper will merge.
-        List<ResourceBank.Element> rawElements = new ArrayList<>(nEntries);
+        var rawElements = new ArrayList<ResourceBank.Element>(nEntries);
         for (int i = 0; i < nEntries; i++) {
             int entryStart = sectionStart + offsets[i];
             int entryEnd = (i + 1 < nEntries) ? sectionStart + offsets[i + 1] : sectionEnd;
@@ -179,9 +179,9 @@ public class ResourceBankReader {
 
         // Named element: 8-byte name, 2-byte count, 2-byte ABCD, then count × Pac.Pic
         buf.position(entryStart);
-        byte[] rawName = new byte[8];
+        var rawName = new byte[8];
         buf.get(rawName);
-        String name = new String(rawName, StandardCharsets.ISO_8859_1).stripTrailing();
+        var name = new String(rawName, StandardCharsets.ISO_8859_1).stripTrailing();
         int count = buf.getShort() & 0xFFFF;
         buf.getShort(); // 0xABCD marker
 
@@ -192,7 +192,7 @@ public class ResourceBankReader {
             default -> "GROUP"; // Technically possible, should not exist
         };
 
-        List<ResourceBank.Image> images = new ArrayList<>(count);
+        var images = new ArrayList<ResourceBank.Image>(count);
         int pos = buf.position();
         for (int k = 0; k < count && pos < entryEnd; k++) {
             int nextPos = findNextPacPic(buf.array(), pos + 1, entryEnd);
@@ -225,10 +225,10 @@ public class ResourceBankReader {
      * </ol>
      */
     private static List<ResourceBank.Element> groupElements(List<ResourceBank.Element> raw) {
-        List<ResourceBank.Element> result = new ArrayList<>();
+        var result = new ArrayList<ResourceBank.Element>();
         int i = 0;
         while (i < raw.size()) {
-            ResourceBank.Element el = raw.get(i);
+            var el = raw.get(i);
 
             // Only merge untyped single-image entries (simple Pac.Pics)
             if (el.type() != null || el.images().size() != 1) {
@@ -260,7 +260,7 @@ public class ResourceBankReader {
 
     private static boolean allUntypedSingle(List<ResourceBank.Element> elems, int start, int count) {
         for (int k = 0; k < count; k++) {
-            ResourceBank.Element el = elems.get(start + k);
+            var el = elems.get(start + k);
             if (el.type() != null || el.images().size() != 1) return false;
         }
         return true;
@@ -270,11 +270,11 @@ public class ResourceBankReader {
      * Checks whether nine consecutive single-image elements form a 3×3 coordinate grid.
      */
     private static boolean isBox(List<ResourceBank.Element> elems, int start) {
-        ResourceBank.Image ref = elems.get(start).images().get(0);
+        var ref = elems.get(start).images().get(0);
         int w = ref.width(), h = ref.height();
         int x0 = ref.x(), y0 = ref.y();
         for (int k = 0; k < 9; k++) {
-            ResourceBank.Image img = elems.get(start + k).images().get(0);
+            var img = elems.get(start + k).images().get(0);
             if (img.width() != w || img.height() != h) return false;
             if (img.x() != x0 + (k % 3) * w) return false;
             if (img.y() != y0 + (k / 3) * h) return false;
@@ -286,9 +286,9 @@ public class ResourceBankReader {
      * Checks whether three consecutive single-image elements form a horizontal or vertical line.
      */
     private static boolean isLine(List<ResourceBank.Element> elems, int start) {
-        ResourceBank.Image a = elems.get(start).images().get(0);
-        ResourceBank.Image b = elems.get(start + 1).images().get(0);
-        ResourceBank.Image c = elems.get(start + 2).images().get(0);
+        var a = elems.get(start).images().get(0);
+        var b = elems.get(start + 1).images().get(0);
+        var c = elems.get(start + 2).images().get(0);
         int w = a.width(), h = a.height();
         if (b.width() != w || b.height() != h || c.width() != w || c.height() != h) return false;
         boolean hLine = b.x() == a.x() + w && c.x() == a.x() + 2 * w
@@ -299,7 +299,7 @@ public class ResourceBankReader {
     }
 
     private static List<ResourceBank.Image> flatImages(List<ResourceBank.Element> elems, int start, int count) {
-        List<ResourceBank.Image> imgs = new ArrayList<>(count);
+        var imgs = new ArrayList<ResourceBank.Image>(count);
         for (int k = 0; k < count; k++) {
             imgs.add(elems.get(start + k).images().get(0));
         }
@@ -335,7 +335,7 @@ public class ResourceBankReader {
         int pktcar = buf.getShort() & 0xFFFF;
         int pkplan = buf.getShort() & 0xFFFF;
 
-        byte[] data = new byte[end - start];
+        var data = new byte[end - start];
         buf.position(start);
         buf.get(data);
 
@@ -361,13 +361,13 @@ public class ResourceBankReader {
     // -------------------------------------------------------------------------
 
     private static List<String> parseTexts(ByteBuffer buf) {
-        List<String> texts = new ArrayList<>();
+        var texts = new ArrayList<String>();
         while (buf.hasRemaining()) {
             int marker = buf.get() & 0xFF;
             if (marker != 0x00) break;
             int len = buf.get() & 0xFF;
             if (len == 0xFF) break;
-            byte[] strBytes = new byte[len];
+            var strBytes = new byte[len];
             buf.get(strBytes);
             texts.add(new String(strBytes, StandardCharsets.ISO_8859_1));
         }
@@ -381,17 +381,17 @@ public class ResourceBankReader {
     private static List<String> parseDBL(ByteBuffer buf) {
         int dblStart = buf.position();
         int nPrograms = buf.getShort() & 0xFFFF;
-        int[] offsets = new int[nPrograms];
+        var offsets = new int[nPrograms];
         for (int i = 0; i < nPrograms; i++) {
             offsets[i] = buf.getInt();
         }
 
-        List<String> programs = new ArrayList<>(nPrograms);
+        var programs = new ArrayList<String>(nPrograms);
         for (int i = 0; i < nPrograms; i++) {
             buf.position(dblStart + offsets[i]);
             // Length word spans from Prog_N to Prog_N_End (includes the 2-byte length word itself)
             int progLen = (buf.getShort() & 0xFFFF) - 2;
-            byte[] progBytes = new byte[progLen];
+            var progBytes = new byte[progLen];
             buf.get(progBytes);
             int strLen = progLen;
             while (strLen > 0 && progBytes[strLen - 1] == 0) strLen--;

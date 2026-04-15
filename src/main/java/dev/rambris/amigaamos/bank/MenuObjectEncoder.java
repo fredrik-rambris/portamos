@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -70,7 +69,7 @@ public class MenuObjectEncoder {
         if (menuString == null) return null;
 
         // Split the input into tokens: text segments and command segments
-        List<Segment> segments = tokenize(menuString);
+        var segments = tokenize(menuString);
 
         // Calculate the payload size first
         int payloadSize = 2; // the leading size word itself
@@ -101,8 +100,8 @@ public class MenuObjectEncoder {
     // -------------------------------------------------------------------------
 
     private static List<Segment> tokenize(String input) {
-        List<Segment> result = new ArrayList<>();
-        Matcher m = TOKEN.matcher(input);
+        var result = new ArrayList<Segment>();
+        var m = TOKEN.matcher(input);
         int last = 0;
 
         while (m.find()) {
@@ -116,8 +115,8 @@ public class MenuObjectEncoder {
                 result.add(new RawHexSegment(Integer.parseInt(m.group(3), 16)));
             } else {
                 // (XX params)
-                String mnemonic = m.group(1);
-                String params   = m.group(2).trim();
+                var mnemonic = m.group(1);
+                var params   = m.group(2).trim();
                 result.add(new CommandSegment(mnemonic, params));
             }
 
@@ -145,14 +144,14 @@ public class MenuObjectEncoder {
     private record TextSegment(String text) implements Segment {
         @Override
         public int encodedSize() {
-            byte[] bytes = text.getBytes(StandardCharsets.ISO_8859_1);
+            var bytes = text.getBytes(StandardCharsets.ISO_8859_1);
             int len = bytes.length;
             return 2 + 2 + len + (len & 1); // code + strlen + text + optional pad
         }
 
         @Override
         public void writeTo(DataOutputStream out) throws IOException {
-            byte[] bytes = text.getBytes(StandardCharsets.ISO_8859_1);
+            var bytes = text.getBytes(StandardCharsets.ISO_8859_1);
             int len = bytes.length;
             out.writeShort(0x0004);
             out.writeShort(len);
@@ -201,7 +200,7 @@ public class MenuObjectEncoder {
             switch (paramCount) {
                 case 1 -> out.writeShort(parseOne(params));
                 case 2 -> {
-                    int[] p = parseTwo(params);
+                    var p = parseTwo(params);
                     out.writeShort(p[0]);
                     out.writeShort(p[1]);
                 }
@@ -212,7 +211,7 @@ public class MenuObjectEncoder {
         // PRoc: write delta:2 + nameLen:2 + nameBytes + pad_if_odd
         private int procEncodedSize() {
             if (params.isEmpty()) return 2 + 2; // code + delta (0) + empty
-            byte[] nameBytes = params.getBytes(StandardCharsets.ISO_8859_1);
+            var nameBytes = params.getBytes(StandardCharsets.ISO_8859_1);
             int nameLen = nameBytes.length;
             int padded  = nameLen + (nameLen & 1); // even-padded
             return 2 + 2 + 2 + padded; // code + delta + nameLen + name
@@ -223,7 +222,7 @@ public class MenuObjectEncoder {
                 out.writeShort(0); // delta = 0
                 return;
             }
-            byte[] nameBytes = params.getBytes(StandardCharsets.ISO_8859_1);
+            var nameBytes = params.getBytes(StandardCharsets.ISO_8859_1);
             int nameLen = nameBytes.length;
             int padded  = nameLen + (nameLen & 1);
             int delta   = 2 + padded; // nameLen word + name bytes
@@ -273,7 +272,7 @@ public class MenuObjectEncoder {
 
     private static int[] parseTwo(String params) {
         // params may be "x,y" or " x,y" (with a leading space for coordinate commands)
-        String[] parts = params.trim().split(",", 2);
+        var parts = params.trim().split(",", 2);
         if (parts.length != 2) {
             throw new IllegalArgumentException("Expected two comma-separated params, got: " + params);
         }

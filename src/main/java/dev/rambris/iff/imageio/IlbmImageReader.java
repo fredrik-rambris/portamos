@@ -70,7 +70,7 @@ public final class IlbmImageReader extends ImageReader {
                 stream.readFully(rawData);
             } else {
                 var baos = new ByteArrayOutputStream();
-                byte[] buf = new byte[8192];
+                var buf = new byte[8192];
                 int n;
                 while ((n = stream.read(buf)) != -1) {
                     baos.write(buf, 0, n);

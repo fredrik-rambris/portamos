@@ -34,7 +34,7 @@ public class MenuBankWriter implements BankWriter {
     @Override
     public byte[] toBytes(AmosBank bank) throws IOException {
         if (!(bank instanceof MenuBank mb)) {
-            throw new IllegalArgumentException("Not a MenuBank");
+            throw new IllegalArgumentException("Not a MenuBank, got: " + bank.getClass().getSimpleName());
         }
 
         int payloadSize = calculateSize(mb.items());

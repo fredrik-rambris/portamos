@@ -55,7 +55,7 @@ public class AmalBankWriter implements BankWriter {
         if (bank instanceof AmalBank ab) {
             return serialize(ab);
         }
-        throw new IllegalArgumentException("Not an AmalBank");
+        throw new IllegalArgumentException("Not an AmalBank, got: " + bank.getClass().getSimpleName());
     }
 
     // -------------------------------------------------------------------------
@@ -63,13 +63,13 @@ public class AmalBankWriter implements BankWriter {
     // -------------------------------------------------------------------------
 
     private byte[] serialize(AmalBank bank) {
-        byte[] movesSection = buildMovesSection(bank.movements());
-        byte[] progsSection = buildProgsSection(bank.programs());
+        var movesSection = buildMovesSection(bank.movements());
+        var progsSection = buildProgsSection(bank.programs());
 
         // Strings-Start = 4 (size of the Strings-Start field itself) + moves section size
         int stringsStart = 4 + movesSection.length;
 
-        ByteBuffer payload = ByteBuffer.allocate(4 + movesSection.length + progsSection.length)
+        var payload = ByteBuffer.allocate(4 + movesSection.length + progsSection.length)
                 .order(ByteOrder.BIG_ENDIAN);
         payload.putInt(stringsStart);
         payload.put(movesSection);
@@ -94,9 +94,9 @@ public class AmalBankWriter implements BankWriter {
         // Table header: 2(count) + 2n(x offsets) + 2n(y offsets) + 8n(names)
         int tableHeaderSize = 2 + 4 * n + 8 * n;
 
-        List<byte[]> xBlocks = new ArrayList<>(n);
-        List<byte[]> yBlocks = new ArrayList<>(n);
-        for (AmalBank.Movement mov : movements) {
+        var xBlocks = new ArrayList<byte[]>(n);
+        var yBlocks = new ArrayList<byte[]>(n);
+        for (var mov : movements) {
             xBlocks.add(mov.xMove() != null ? encodeXMove(mov.xMove()) : null);
             yBlocks.add(mov.yMove() != null ? encodeYMove(mov.yMove()) : null);
         }
@@ -105,8 +105,8 @@ public class AmalBankWriter implements BankWriter {
         // movesBase corresponds to offset 0 within the moves section, which starts 0 bytes
         // into the moves section — but the moves section itself is placed at payload[4],
         // so all offsets are (absolute_position_in_moves_section) / 2.
-        int[] xWordOffsets = new int[n];
-        int[] yWordOffsets = new int[n];
+        var xWordOffsets = new int[n];
+        var yWordOffsets = new int[n];
         int pos = tableHeaderSize; // current write position within moves section
         for (int i = 0; i < n; i++) {
             if (xBlocks.get(i) != null) {
@@ -120,16 +120,16 @@ public class AmalBankWriter implements BankWriter {
         }
         int totalSize = pos;
 
-        ByteBuffer buf = ByteBuffer.allocate(totalSize).order(ByteOrder.BIG_ENDIAN);
+        var buf = ByteBuffer.allocate(totalSize).order(ByteOrder.BIG_ENDIAN);
 
         // Count
         buf.putShort((short) n);
         // X offsets
-        for (int o : xWordOffsets) buf.putShort((short) o);
+        for (var o : xWordOffsets) buf.putShort((short) o);
         // Y offsets
-        for (int o : yWordOffsets) buf.putShort((short) o);
+        for (var o : yWordOffsets) buf.putShort((short) o);
         // Names (8 bytes each, space-padded)
-        for (AmalBank.Movement mov : movements) {
+        for (var mov : movements) {
             buf.put(paddedName(mov.name()));
         }
         // Movement data blocks
@@ -145,10 +145,10 @@ public class AmalBankWriter implements BankWriter {
      * Encodes an X-axis movement: [2] speed + [2] length + [0x00] + [encoded] + [0x00].
      */
     private byte[] encodeXMove(AmalBank.MovementData data) {
-        byte[] encoded = encodeInstructions(data.instructions());
+        var encoded = encodeInstructions(data.instructions());
         // data block: leading 0x00 sentinel + encoded bytes + trailing 0x00
         int dataLen = 1 + encoded.length + 1;
-        ByteBuffer buf = ByteBuffer.allocate(4 + dataLen).order(ByteOrder.BIG_ENDIAN);
+        var buf = ByteBuffer.allocate(4 + dataLen).order(ByteOrder.BIG_ENDIAN);
         buf.putShort((short) data.speed());
         buf.putShort((short) dataLen);
         buf.put((byte) 0x00);   // leading sentinel (for backwards playback)
@@ -161,8 +161,8 @@ public class AmalBankWriter implements BankWriter {
      * Encodes a Y-axis movement: [0x00] + [encoded] + [0x00] (no speed/length header).
      */
     private byte[] encodeYMove(AmalBank.MovementData data) {
-        byte[] encoded = encodeInstructions(data.instructions());
-        ByteBuffer buf = ByteBuffer.allocate(1 + encoded.length + 1).order(ByteOrder.BIG_ENDIAN);
+        var encoded = encodeInstructions(data.instructions());
+        var buf = ByteBuffer.allocate(1 + encoded.length + 1).order(ByteOrder.BIG_ENDIAN);
         buf.put((byte) 0x00);
         buf.put(encoded);
         buf.put((byte) 0x00);
@@ -170,7 +170,7 @@ public class AmalBankWriter implements BankWriter {
     }
 
     private byte[] encodeInstructions(List<AmalBank.Instruction> instructions) {
-        byte[] out = new byte[instructions.size()];
+        var out = new byte[instructions.size()];
         for (int i = 0; i < instructions.size(); i++) {
             out[i] = switch (instructions.get(i)) {
                 case AmalBank.Instruction.Wait w  -> (byte) (0x80 | (w.ticks() & 0x7F));
@@ -188,15 +188,15 @@ public class AmalBankWriter implements BankWriter {
         int n = programs.size();
 
         // Serialize non-empty programs; pad each to a word boundary.
-        List<byte[]> progBlocks = new ArrayList<>(n);
-        for (String prog : programs) {
+        var progBlocks = new ArrayList<byte[]>(n);
+        for (var prog : programs) {
             if (prog == null || prog.isEmpty()) {
                 progBlocks.add(null);
             } else {
-                byte[] textBytes = prog.getBytes(StandardCharsets.ISO_8859_1);
+                var textBytes = prog.getBytes(StandardCharsets.ISO_8859_1);
                 // Pad to word boundary
                 int padded = textBytes.length % 2 != 0 ? textBytes.length + 1 : textBytes.length;
-                ByteBuffer pb = ByteBuffer.allocate(2 + padded).order(ByteOrder.BIG_ENDIAN);
+                var pb = ByteBuffer.allocate(2 + padded).order(ByteOrder.BIG_ENDIAN);
                 pb.putShort((short) padded);   // length = bytes following the length word
                 pb.put(textBytes);
                 // trailing padding byte already zero
@@ -208,7 +208,7 @@ public class AmalBankWriter implements BankWriter {
         // A null slot gets offset 0 (the null sentinel).
         // progsBase+2 in absolute terms is where offset 0 would land — pointing into the
         // offset table, which is never a valid program location, so 0 = "empty".
-        int[] wordOffsets = new int[n];
+        var wordOffsets = new int[n];
         // Table: 2(count) + 2n(offsets) = 2+2n bytes; offset 0 cannot be used for real data.
         // We place real program data starting after the table (at byte 2+2n from progsBase).
         // The first real program's word offset from (progsBase+2) = (2n) / 2 = n.
@@ -227,11 +227,11 @@ public class AmalBankWriter implements BankWriter {
         // Offset=0 is the null sentinel — it points back into the offset table itself,
         // which is never a valid program location. No explicit placeholder needed.
         int totalSize = 2 + 2 * n + pos;
-        ByteBuffer buf = ByteBuffer.allocate(totalSize).order(ByteOrder.BIG_ENDIAN);
+        var buf = ByteBuffer.allocate(totalSize).order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort((short) n);
-        for (int o : wordOffsets) buf.putShort((short) o);
-        for (byte[] block : progBlocks) {
+        for (var o : wordOffsets) buf.putShort((short) o);
+        for (var block : progBlocks) {
             if (block != null) buf.put(block);
         }
 
@@ -244,9 +244,9 @@ public class AmalBankWriter implements BankWriter {
 
     /** Returns an 8-byte space-padded ASCII name. */
     private static byte[] paddedName(String name) {
-        byte[] out = new byte[8];
+        var out = new byte[8];
         Arrays.fill(out, (byte) ' ');
-        byte[] nameBytes = name.getBytes(StandardCharsets.ISO_8859_1);
+        var nameBytes = name.getBytes(StandardCharsets.ISO_8859_1);
         System.arraycopy(nameBytes, 0, out, 0, Math.min(nameBytes.length, 8));
         return out;
     }

@@ -46,7 +46,7 @@ public class PacPicDecoder {
      * @throws ArrayIndexOutOfBoundsException if the data streams are truncated
      */
     public static int[][] decompress(byte[] data) {
-        ByteBuffer hdr = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
+        var hdr = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
         hdr.getInt();                          // PK_MAGIC
         hdr.getShort();                        // Pkdx — source X in bytes (not used here)
         hdr.getShort();                        // Pkdy — source Y in pixels (not used here)
@@ -61,7 +61,7 @@ public class PacPicDecoder {
         int wPx    = wBytes * 8;
 
         // Planar buffers, one per bitplane, row-major: [row * wBytes + col]
-        byte[][] planes_buf = new byte[planes][height * wBytes];
+        var planes_buf = new byte[planes][height * wBytes];
 
         // Stream positions within data[]
         int picPos = PacPicFormat.PACK_HEADER_SIZE;      // PICDATA begins after header
@@ -78,7 +78,7 @@ public class PacPicDecoder {
         }
 
         for (int plane = 0; plane < planes; plane++) {
-            byte[] buf = planes_buf[plane];
+            var buf = planes_buf[plane];
             int lumpRow = 0; // first row of current lump
 
             for (int j = 0; j < lumps; j++) {
@@ -113,7 +113,7 @@ public class PacPicDecoder {
 
         // Interleave bitplanes into chunky palette indices
         // Amiga convention: MSB of each byte is the leftmost pixel
-        int[][] pixels = new int[height][wPx];
+        var pixels = new int[height][wPx];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < wPx; x++) {
                 int byteIdx = y * wBytes + (x >> 3);

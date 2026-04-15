@@ -98,7 +98,7 @@ public class MenuObjectDecoder {
         if (buf.remaining() < 2) return;
         int len = buf.getShort() & 0xFFFF;
         if (buf.remaining() < len) return;
-        byte[] bytes = new byte[len];
+        var bytes = new byte[len];
         buf.get(bytes);
         sb.append(new String(bytes, StandardCharsets.ISO_8859_1));
         if ((len & 1) == 1 && buf.hasRemaining()) buf.get(); // skip pad byte
@@ -145,10 +145,10 @@ public class MenuObjectDecoder {
             int nameLen = buf.getShort() & 0xFFFF;
             int consumed = 2;
             if (nameLen > 0 && buf.remaining() >= nameLen) {
-                byte[] nameBytes = new byte[nameLen];
+                var nameBytes = new byte[nameLen];
                 buf.get(nameBytes);
                 consumed += nameLen;
-                String name = new String(nameBytes, StandardCharsets.ISO_8859_1)
+                var name = new String(nameBytes, StandardCharsets.ISO_8859_1)
                         .replace("\0", ""); // strip null terminator
                 sb.append("(PR ").append(name).append(')');
                 if (consumed < delta) buf.position(buf.position() + (delta - consumed));

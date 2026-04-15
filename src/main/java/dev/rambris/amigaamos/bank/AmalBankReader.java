@@ -75,20 +75,20 @@ public class AmalBankReader {
         buf.position(movesBase);
         int numMovements = buf.getShort() & 0xFFFF;
 
-        int[] xOffsets = new int[numMovements];
-        int[] yOffsets = new int[numMovements];
+        var xOffsets = new int[numMovements];
+        var yOffsets = new int[numMovements];
         for (int i = 0; i < numMovements; i++) xOffsets[i] = buf.getShort() & 0xFFFF;
         for (int i = 0; i < numMovements; i++) yOffsets[i] = buf.getShort() & 0xFFFF;
 
-        String[] names = new String[numMovements];
+        var names = new String[numMovements];
         for (int i = 0; i < numMovements; i++) {
-            byte[] nameBuf = new byte[8];
+            var nameBuf = new byte[8];
             buf.get(nameBuf);
             names[i] = new String(nameBuf, StandardCharsets.ISO_8859_1).stripTrailing();
         }
 
         // ---- Decode movement data ----
-        List<AmalBank.Movement> movements = new ArrayList<>(numMovements);
+        var movements = new ArrayList<AmalBank.Movement>(numMovements);
         for (int i = 0; i < numMovements; i++) {
             AmalBank.MovementData xMove = null;
             AmalBank.MovementData yMove = null;
@@ -99,7 +99,7 @@ public class AmalBankReader {
                     buf.position(xBytePos);
                     int speed = buf.getShort() & 0xFFFF;
                     int length = buf.getShort() & 0xFFFF;
-                    byte[] data = new byte[Math.min(length, payload.length - buf.position())];
+                    var data = new byte[Math.min(length, payload.length - buf.position())];
                     buf.get(data);
                     xMove = new AmalBank.MovementData(speed, decodeMovement(data));
                 }
@@ -133,7 +133,7 @@ public class AmalBankReader {
     // -------------------------------------------------------------------------
 
     private static List<AmalBank.Instruction> decodeMovement(byte[] data) {
-        List<AmalBank.Instruction> instructions = new ArrayList<>();
+        var instructions = new ArrayList<AmalBank.Instruction>();
         int start = 0;
         // The movement table begins with a 0x00 sentinel (for backwards playback); skip it.
         if (data.length > 0 && (data[0] & 0xFF) == 0x00) start = 1;
@@ -151,7 +151,7 @@ public class AmalBankReader {
     }
 
     private static List<AmalBank.Instruction> decodeMovementUntilEnd(ByteBuffer buf, int limit) {
-        List<AmalBank.Instruction> instructions = new ArrayList<>();
+        var instructions = new ArrayList<AmalBank.Instruction>();
         while (buf.position() < limit && buf.hasRemaining()) {
             int v = buf.get() & 0xFF;
             if (v == 0x00) break;
@@ -171,12 +171,12 @@ public class AmalBankReader {
 
     private static List<String> parsePrograms(ByteBuffer buf, int progsBase) {
         int numPrograms = buf.getShort() & 0xFFFF;
-        int[] wordOffsets = new int[numPrograms];
+        var wordOffsets = new int[numPrograms];
         for (int i = 0; i < numPrograms; i++) {
             wordOffsets[i] = buf.getShort() & 0xFFFF;
         }
 
-        List<String> programs = new ArrayList<>(numPrograms);
+        var programs = new ArrayList<String>(numPrograms);
         for (int i = 0; i < numPrograms; i++) {
             // Offsets are word offsets from the byte AFTER the count word (progsBase+2).
             // An offset of 0 is the null/empty sentinel.
@@ -197,7 +197,7 @@ public class AmalBankReader {
                 programs.add("");
                 continue;
             }
-            byte[] textBytes = new byte[textLen];
+            var textBytes = new byte[textLen];
             buf.get(textBytes);
             // Strip trailing nulls
             int strLen = textLen;

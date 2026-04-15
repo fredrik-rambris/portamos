@@ -31,6 +31,6 @@ public class TrackerBankWriter implements BankWriter {
                     AmosBank.Type.TRACKER.identifier(),
                     tb.modData());
         }
-        throw new IllegalArgumentException("Not a TrackerBank");
+        throw new IllegalArgumentException("Not a TrackerBank, got: " + bank.getClass().getSimpleName());
     }
 }

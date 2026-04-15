@@ -89,7 +89,7 @@ public class PacPicEncoder {
 
     private static byte[][] buildPlaneBufs(int[][] pixels, int planes,
                                            int height, int wPx, int wBytes) {
-        byte[][] bufs = new byte[planes][height * wBytes];
+        var bufs = new byte[planes][height * wBytes];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < wPx; x++) {
                 int idx     = pixels[y][x];
@@ -112,7 +112,7 @@ public class PacPicEncoder {
         int lumps    = height / lumpH;
         int N        = planes * height * wBytes;   // total picture bytes
         int interSz  = N / 8 + 2;                  // intermediate buffer size
-        byte[] inter = new byte[interSz];
+        var inter = new byte[interSz];
 
         // Pass 1 simulation
         int picCount    = 1;   // starts at 1 for dummy byte
@@ -121,7 +121,7 @@ public class PacPicEncoder {
         int rleByteIdx  = 0;
 
         for (int plane = 0; plane < planes; plane++) {
-            byte[] buf  = planeBufs[plane];
+            var buf  = planeBufs[plane];
             int lumpRow = 0;
             for (int j = 0; j < lumps; j++) {
                 for (int col = 0; col < wBytes; col++) {
@@ -161,18 +161,18 @@ public class PacPicEncoder {
         int lumps    = height / lumpH;
         int N        = planes * height * wBytes;
         int interSz  = N / 8 + 2;
-        byte[] inter = new byte[interSz];
+        var inter = new byte[interSz];
 
         // ---- Pass 1: picture bytes → PICDATA + raw RLEDATA intermediate ----
         // PICDATA byte 0 = dummy initial value (0), matching initial prevPic=0
-        byte[] picdata     = new byte[N + 1]; // worst case: every byte is new
+        var picdata     = new byte[N + 1]; // worst case: every byte is new
         int    picLen      = 1;               // picdata[0] = 0 already (array init)
         int    prevPic     = 0;
         int    rlebit      = 7;
         int    rleByteIdx  = 0;
 
         for (int plane = 0; plane < planes; plane++) {
-            byte[] buf  = planeBufs[plane];
+            var buf  = planeBufs[plane];
             int lumpRow = 0;
             for (int j = 0; j < lumps; j++) {
                 for (int col = 0; col < wBytes; col++) {
@@ -192,10 +192,10 @@ public class PacPicEncoder {
 
         // ---- Pass 2: RLEDATA bytes → RLEDATA values + POINTS bitstream ----
         // RLEDATA[0] = dummy initial value (0), matching initial prevRle=0
-        byte[] rledata    = new byte[interSz + 1]; // worst case
-        int    rleLen     = 1;                       // rledata[0] = 0 already
-        int    ptsAreaSz  = interSz / 8 + 2;
-        byte[] pts        = new byte[ptsAreaSz];     // all zeros = no advance by default
+        var rledata    = new byte[interSz + 1]; // worst case
+        int rleLen     = 1;                       // rledata[0] = 0 already
+        int ptsAreaSz  = interSz / 8 + 2;
+        var pts        = new byte[ptsAreaSz];     // all zeros = no advance by default
         int    prevRle    = 0;
         int    ptsbit     = 7;
         int    ptsByteIdx = 0;
@@ -216,7 +216,7 @@ public class PacPicEncoder {
         int rawTotal = rleOff + rleLen;
         int total    = (rawTotal + 3) & ~1;   // round up to even
 
-        ByteBuffer out = ByteBuffer.allocate(total).order(ByteOrder.BIG_ENDIAN);
+        var out = ByteBuffer.allocate(total).order(ByteOrder.BIG_ENDIAN);
         out.putInt(PacPicFormat.PK_MAGIC);              // magic
         out.putShort((short) (srcX / 8));   // Pkdx: source X in bytes
         out.putShort((short) srcY);          // Pkdy: source Y in pixels

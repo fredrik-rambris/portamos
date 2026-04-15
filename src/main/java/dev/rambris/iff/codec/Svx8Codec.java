@@ -131,7 +131,7 @@ public class Svx8Codec {
      * }</pre>
      */
     public static byte[] write(Svx8Sound sound, Svx8Options... options) {
-        boolean useFib = Arrays.asList(options).contains(Svx8Options.COMPRESSION_FIBONACCI);
+        var useFib = Arrays.asList(options).contains(Svx8Options.COMPRESSION_FIBONACCI);
 
         int compression = useFib
                 ? VhdrChunk.COMPRESSION_FIBONACCI
@@ -143,7 +143,7 @@ public class Svx8Codec {
                 src.samplesPerHiCycle(), src.samplesPerSec(), src.octaves(),
                 compression, src.volume());
 
-        byte[] bodyBytes = useFib
+        var bodyBytes = useFib
                 ? compressFibDelta(sound.pcmData())
                 : sound.pcmData();
 
@@ -197,7 +197,7 @@ public class Svx8Codec {
         }
         int n          = source.length;
         int numSamples = 2 * (n - 2);
-        byte[] dest    = new byte[numSamples];
+        var dest    = new byte[numSamples];
         byte x         = source[1]; // initial value
 
         for (int i = 0; i < numSamples; i++) {
@@ -229,7 +229,7 @@ public class Svx8Codec {
         }
         int N        = pcm.length;
         int dataBytes = (N + 1) / 2;       // ceil(N/2) encoded bytes
-        byte[] comp  = new byte[2 + dataBytes];
+        var comp  = new byte[2 + dataBytes];
         comp[0]      = 0;        // pad byte
         comp[1]      = pcm[0];   // initial value
         byte x       = pcm[0];   // running value, mirrors decoder

@@ -29,7 +29,7 @@ public class RawBankWriter implements BankWriter {
         if (bank instanceof RawBank rb) {
             return serialize(rb);
         }
-        throw new IllegalArgumentException("Not a Work or Data bank: " + bank.type().identifier().stripTrailing());
+        throw new IllegalArgumentException("Not a Work or Data bank, got: " + bank.getClass().getSimpleName());
     }
 
     private static byte[] serialize(RawBank rb) {

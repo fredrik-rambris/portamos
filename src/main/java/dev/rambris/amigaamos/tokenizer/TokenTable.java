@@ -104,7 +104,7 @@ class TokenTable {
      * Used for operators and as a fallback; prefer {@link #selectKey} for keyword tokens.
      */
     Integer lookup(String name) {
-        List<SignatureEntry> sigs = nameToSignatures.get(name.toUpperCase());
+        var sigs = nameToSignatures.get(name.toUpperCase());
         if (sigs == null || sigs.isEmpty()) return null;
         return sigs.get(0).key();
     }
@@ -122,14 +122,14 @@ class TokenTable {
      * @return the encoding key, or null if the keyword is not in the table
      */
     Integer selectKey(String name, int actualCommaGroups) {
-        List<SignatureEntry> sigs = nameToSignatures.get(name.toUpperCase());
+        var sigs = nameToSignatures.get(name.toUpperCase());
         if (sigs == null || sigs.isEmpty()) return null;
         if (sigs.size() == 1) return sigs.get(0).key();
 
         // Walk through signatures (ordered fewest→most commaGroups).
         // Keep track of the best candidate = highest commaGroups ≤ actual.
-        SignatureEntry best = sigs.get(0);
-        for (SignatureEntry sig : sigs) {
+        var best = sigs.get(0);
+        for (var sig : sigs) {
             if (sig.commaGroups() <= actualCommaGroups) {
                 best = sig;
             }
@@ -145,7 +145,7 @@ class TokenTable {
     private void loadResource(String path) {
         try (InputStream is = TokenTable.class.getResourceAsStream(path)) {
             if (is == null) throw new RuntimeException("Missing resource: " + path);
-            JsonNode root = JSON.readTree(is);
+            var root = JSON.readTree(is);
             parseDefinitions(root);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load token table from " + path, e);
@@ -153,22 +153,21 @@ class TokenTable {
     }
 
     private void parseDefinitions(JsonNode root) {
-        JsonNode ext = root.path("extension");
+        var ext  = root.path("extension");
         int slot = ext.path("slot").asInt(0);
 
-        JsonNode definitions = root.path("definitions");
-        for (JsonNode defn : definitions) {
-            String name = defn.path("name").asText("").strip().toUpperCase();
+        var definitions = root.path("definitions");
+        for (var defn : definitions) {
+            var name = defn.path("name").asText("").strip().toUpperCase();
             if (name.isEmpty()) continue;
 
-            JsonNode extraNode = defn.path("extraBytes");
-
-            JsonNode signatures = defn.path("signatures");
+            var extraNode  = defn.path("extraBytes");
+            var signatures = defn.path("signatures");
             if (signatures.isMissingNode() || !signatures.isArray()) continue;
 
-            List<SignatureEntry> entries = new ArrayList<>();
-            for (JsonNode sig : signatures) {
-                JsonNode offsetNode = sig.path("offset");
+            var entries = new ArrayList<SignatureEntry>();
+            for (var sig : signatures) {
+                var offsetNode = sig.path("offset");
                 if (offsetNode.isMissingNode()) continue;
 
                 int offset = offsetNode.asInt();
@@ -177,16 +176,16 @@ class TokenTable {
                 // Use explicit "commaGroups" override if present (set on skeleton sigs),
                 // otherwise compute from the parameter list.
                 int commaGroups;
-                JsonNode cgOverride = sig.path("commaGroups");
+                var cgOverride = sig.path("commaGroups");
                 if (!cgOverride.isMissingNode()) {
                     commaGroups = cgOverride.asInt();
                 } else {
                     int valueParams = 0;
                     int keywordParams = 0;
-                    JsonNode params = sig.path("parameters");
+                    var params = sig.path("parameters");
                     if (params.isArray()) {
-                        for (JsonNode p : params) {
-                            String kind = p.path("kind").asText("");
+                        for (var p : params) {
+                            var kind = p.path("kind").asText("");
                             if ("value".equals(kind)) valueParams++;
                             else if ("keyword".equals(kind)) keywordParams++;
                         }

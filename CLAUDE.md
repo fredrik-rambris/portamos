@@ -15,12 +15,14 @@ byte-identical (or structurally equivalent) binary `.AMOS` file that AMOS Pro ca
 
 ## Reference material
 
-| Path                              | What it is                                                                                                                                                       |
-|-----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `reference/AMOSProfessional/`     | Full AMOS Pro disk image — original `.Lib` files, examples, accessories                                                                                          |
-| `reference/AmosProManual/`        | The AMOS Pro manual (source for the JSON definition files)                                                                                                       |
-| `reference/amiga-amos/`           | A separate IntelliJ plugin project; its `src/main/resources/amos/definitions/*.json` are the canonical definition files we enriched and copied into this project |
-| `reference/amostools/extensions/` | Pre-decoded binary token tables: `00base.bin`, `01_music.h`, `02_compact.h`, etc.; also a large collection of third-party `.Lib` files                           |
+| Path                                    | What it is                                                                                                                                                       |
+|-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `reference/AMOSProfessional/`           | Full AMOS Pro disk image — original `.Lib` files, examples, accessories                                                                                          |
+| `reference/AmosProManual/`              | The AMOS Pro manual (source for the JSON definition files)                                                                                                       |
+| `reference/amiga-amos/`                 | A separate IntelliJ plugin project; its `src/main/resources/amos/definitions/*.json` are the canonical definition files we enriched and copied into this project |
+| `reference/amostools/extensions/`       | Pre-decoded binary token tables: `00base.bin`, `01_music.h`, `02_compact.h`, etc.; also a large collection of third-party `.Lib` files                           |
+| `reference/amos-file-formats.wiki`      | Exotica wiki: general AMOS file format documentation                                                                                                             |
+| `reference/amos-music-bank-format.wiki` | Exotica wiki: detailed Music bank format (command labels, note encoding, song/pattern layout)                                                                    |
 
 ## Environment
 
@@ -33,8 +35,8 @@ byte-identical (or structurally equivalent) binary `.AMOS` file that AMOS Pro ca
 ## Project structure
 
 ```
-src/main/java/dev/rambris/amos/
-  Main.java                          CLI entry point
+src/main/java/dev/rambris/amigaamos/
+  Main.java                          CLI entry point (subcommands: build/disasm/asm/raw/dump/diff/…)
   tokenizer/
     Tokenizer.java                   Public API: parse() + encode()
     AsciiParser.java                 ASCII source line → List<AmosToken>
@@ -48,6 +50,19 @@ src/main/java/dev/rambris/amos/
       AmosLine.java                  record(int indent, List<AmosToken> tokens)
       AmosToken.java                 Sealed interface with all token variants
       AmosVersion.java               enum: PRO_101 / BASIC_134 / BASIC_13
+  bank/
+    AmosBank.java                    Interface + type dispatch (read by magic + bank-name header)
+    BankWriter.java                  Interface: write(bank, path) / toBytes(bank)
+    AmBkCodec.java                   Shared AmBk header encode/decode (including chip-RAM bit 31)
+    ResourceBank{Reader,Writer,Exporter,Importer}.java   sprites/icons + palette + AMUI programs
+    SpriteBank{Reader,Writer,Exporter,Importer}.java     AmSp / AmIc native sprite/icon format
+    PacPicBank{Reader,Writer,Exporter,Importer}.java     Pac.Pic compressed image
+    MusicBank{Reader,Writer,Exporter,Importer}.java      AMOS Music bank (see MusicBank.java for model)
+    SampleBank{Reader,Writer,Exporter,Importer}.java     Sample bank (PCM + frequency)
+    TrackerBank{Reader,Writer,Exporter,Importer}.java    ProTracker MOD
+    AmalBank{Reader,Writer,Exporter,Importer}.java       AMAL animation scripts
+    MenuBank{Reader,Writer,Exporter,Importer}.java       AMOS menu definitions
+    RawBank{Reader,Writer,Exporter,Importer}.java        Work / Data / ASM / Code / Datas (raw bytes)
 
 src/main/resources/amos/
   definitions/                       JSON token definitions (enriched with offsets)
@@ -61,6 +76,9 @@ src/test/resources/
   Numbers.Asc / Numbers.AMOS           Integration test pair (BASIC_13)
   PaletteEditor.Asc / PaletteEditor.AMOS  Integration test pair (PRO_101)
   Procedures_2.Asc / Procedures_2.AMOS Integration test pair (BASIC_134)
+  Music.abk                            Reference Music bank (byte-identical round-trip verified)
+  Samples.abk                          Reference Sample bank
+  (various other .abk files)           One per supported bank type
 
 scripts/
   enrich_definitions.py              One-time script: binary → JSON offset enrichment
@@ -224,24 +242,36 @@ Key behaviors to know:
 ## CLI usage
 
 ```bash
-# Tokenize ASCII source to binary
-./gradlew run --args="source.Asc output.AMOS"
+# Tokenize ASCII source to binary (optionally attaching banks)
+./gradlew run --args="build source.Asc output.AMOS"
+./gradlew run --args="build source.Asc output.AMOS --add-bank sprites.Abk"
+./gradlew run --args="build source.Asc output.AMOS --import-bank sprites/bank.json"
 
-# Dump an AMOS binary as a human-readable token listing
-./gradlew run --args="--dump file.AMOS"
+# Disassemble a bank to JSON + data files
+./gradlew run --args="disasm input.Abk output-dir/"
+./gradlew run --args="disasm --svx8 Music.abk music-out/"   # 8SVX samples instead of WAV
+./gradlew run --args="disasm --ilbm Sprites.Abk sprites/"   # IFF ILBM instead of PNG
+
+# Assemble a bank from JSON + data files
+./gradlew run --args="asm bank.json output.Abk"
+
+# Wrap raw bytes in a bank envelope
+./gradlew run --args="raw payload.bin output.Abk --type WORK"
+
+# Dump an AMOS binary as a human-readable token listing (dev command)
+./gradlew run --args="dump file.AMOS"
 
 # Diff two AMOS binary files at the token level — use this instead of xxd/diff
-# Shows each differing line with EXP/ACT token pairs; matching tokens shown for context
-./gradlew run --args="--diff expected.AMOS actual.AMOS"
+./gradlew run --args="diff expected.AMOS actual.AMOS"
 
-# Generate a JSON skeleton from any .Lib binary
-./gradlew run --args="--gen-ext-json AMOSPro_3d.Lib --slot 4 output.json"
+# Generate a JSON skeleton from any .Lib binary (dev command)
+./gradlew run --args="gen-ext-json AMOSPro_3d.Lib --slot 4 output.json"
 # Default start: -194 for slot 0, 6 for all other slots
 ```
 
 ## Debugging tokenizer differences
 
-**Always use `--diff` / `--dump` instead of `xxd`, `sed`, or raw binary diff tools.**
+**Always use `diff` / `dump` subcommands instead of `xxd`, `sed`, or raw binary diff tools.**
 
 `AmosDump` walks the token stream correctly (respecting variable-length payloads for named tokens, strings, REMs, etc.)
 so reported byte offsets are token-aligned and meaningful.
@@ -254,7 +284,7 @@ Typical workflow when a test fails with `Line N offset M: token value differs (e
    ```
 2. Diff against the reference:
    ```bash
-   ./gradlew run --args="--diff src/test/resources/file.AMOS /tmp/actual.AMOS"
+   ./gradlew run --args="diff src/test/resources/file.AMOS /tmp/actual.AMOS"
    ```
 3. The diff output shows the exact token where the encoder diverges, with decoded annotations (variable names, string
    contents, keyword offsets) alongside the raw hex — enough to identify which keyword form was selected incorrectly.
@@ -296,13 +326,11 @@ entries there when tests reveal incorrect form selection.
 ## Known gaps / future work
 
 - **Detokenizer** (binary → AmosFile → ASCII): not started
-- **Bank data**: `AmosFile` is designed to hold bank data (graphics, samples) alongside lines, but banks are not yet
-  parsed or written — `AmosFileWriter` always writes zero banks
 - **JSON coverage gaps**: ~66 core definitions lack offsets (documented aliases, optional-suffix variants); 3 compact
-  entries (GET CBLOCK, PUT CBLOCK, DEL CBLOCK) have no binary counterpart; music "TRACK LOOP OFF" in JSON is spelled "
-  TRACK LOOP OF" in the binary
+  entries (GET CBLOCK, PUT CBLOCK, DEL CBLOCK) have no binary counterpart; music "TRACK LOOP OFF" in JSON is spelled
+  "TRACK LOOP OF" in the binary
 - **Third-party extensions**: `reference/amostools/extensions/` contains ~80 third-party `.Lib` files; use
-  `--gen-ext-json` to generate JSON skeletons for them
+  `gen-ext-json` to generate JSON skeletons for them
 - **Symbol table offsets** (`unk2` in named tokens): AMOS fills in a slot offset (6 bytes per variable) into the second
   byte of each named token payload at tokenize time. We always write 0. This doesn't affect program semantics (AMOS
   recomputes these at load time), but the binary is not byte-identical.
@@ -310,3 +338,6 @@ entries there when tests reveal incorrect form selection.
   verified. New test programs may expose further incorrect form selections requiring new OVERRIDES entries.
 - **Blank-line indent edge case**: AMOS editors occasionally save blank lines with `indent=0` rather than 1. These
   cannot be reproduced from ASCII source; the structural test skips indent comparison for empty lines.
+- **Music bank OldNote upper bits**: bits 13–8 of the OldNote control word appear to encode per-note channel volume
+  (observed values 62–63), but this is inferred from data — not confirmed from AMOS source or documentation. The bits
+  are preserved verbatim for round-trip fidelity.

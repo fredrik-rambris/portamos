@@ -34,10 +34,10 @@ class AmosFileWriter {
     byte[] write(AmosVersion version, List<byte[]> encodedLines, List<AmosBank> banks) {
         int codeLen = encodedLines.stream().mapToInt(l -> l.length).sum();
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream(22 + codeLen + 6);
+        var out = new ByteArrayOutputStream(22 + codeLen + 6);
 
         // 16-byte version header
-        byte[] header = version.headerBytes();
+        var header = version.headerBytes();
         try {
             out.write(header);
 
@@ -48,7 +48,7 @@ class AmosFileWriter {
             out.write(codeLen & 0xFF);
 
             // Code section: all encoded lines
-            for (byte[] line : encodedLines) {
+            for (var line : encodedLines) {
                 out.write(line);
             }
 
@@ -63,7 +63,7 @@ class AmosFileWriter {
 
             // Serialize each bank
             if (!banks.isEmpty()) {
-                for (AmosBank bank : banks) {
+                for (var bank : banks) {
                     out.write(bank.writer().toBytes(bank));
                 }
             }

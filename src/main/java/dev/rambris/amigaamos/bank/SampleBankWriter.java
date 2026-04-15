@@ -31,7 +31,7 @@ public class SampleBankWriter implements BankWriter {
         if (bank instanceof SampleBank sb) {
             return serialize(sb);
         }
-        throw new IllegalArgumentException("Not a SampleBank");
+        throw new IllegalArgumentException("Not a SampleBank, got: " + bank.getClass().getSimpleName());
     }
 
     private byte[] serialize(SampleBank bank) {
@@ -51,13 +51,13 @@ public class SampleBankWriter implements BankWriter {
 
         // Compute and write offsets (relative to payload[0] = position of count field)
         // First sample starts at payload[2 + 4n]
-        int[] offsets = new int[n];
+        var offsets = new int[n];
         int pos = 2 + 4 * n;
         for (int i = 0; i < n; i++) {
             offsets[i] = pos;
             pos += 14 + samples.get(i).pcmData().length;
         }
-        for (int o : offsets) {
+        for (var o : offsets) {
             payload.putInt(o);
         }
 

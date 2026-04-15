@@ -15,7 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Serializes a {@link ResourceBank} to an AMOS Professional Resource Bank binary ({@code .Abk}).
@@ -70,7 +69,7 @@ public class ResourceBankWriter implements BankWriter {
     public byte[] toBytes(AmosBank bank) throws IOException {
         if (bank instanceof ResourceBank rb) {
             return serialize(rb);
-        } else throw new IllegalArgumentException("Not a ResourceBank");
+        } else throw new IllegalArgumentException("Not a ResourceBank, got: " + bank.getClass().getSimpleName());
     }
 
     // -------------------------------------------------------------------------
@@ -78,9 +77,9 @@ public class ResourceBankWriter implements BankWriter {
     // -------------------------------------------------------------------------
 
     private byte[] serialize(ResourceBank bank) throws IOException {
-        byte[] imgSection = buildImageSection(bank);
-        byte[] txtSection = buildTextSection(bank);
-        byte[] dblSection = buildDblSection(bank);
+        var imgSection = buildImageSection(bank);
+        var txtSection = buildTextSection(bank);
+        var dblSection = buildDblSection(bank);
 
         // Sub-header offsets are relative to DATA_START
         int imgOff = imgSection.length > 0 ? SUB_HEADER_SIZE : 0;
@@ -88,7 +87,7 @@ public class ResourceBankWriter implements BankWriter {
         int dblOff = dblSection.length > 0 ? SUB_HEADER_SIZE + imgSection.length + txtSection.length : 0;
 
         int dataSize = SUB_HEADER_SIZE + imgSection.length + txtSection.length + dblSection.length;
-        ByteBuffer payload = ByteBuffer.allocate(dataSize).order(ByteOrder.BIG_ENDIAN);
+        var payload = ByteBuffer.allocate(dataSize).order(ByteOrder.BIG_ENDIAN);
 
         // ---- Sub-header at payload start ----
         payload.putShort((short) 3); // BKCHUNKS
@@ -115,7 +114,7 @@ public class ResourceBankWriter implements BankWriter {
     // -------------------------------------------------------------------------
 
     private byte[] buildImageSection(ResourceBank bank) {
-        List<ResourceBank.Element> elements = bank.elements();
+        var elements = bank.elements();
         if (elements.isEmpty()) return new byte[0];
 
         // Flatten elements into individual offset-table entries:
@@ -123,12 +122,12 @@ public class ResourceBankWriter implements BankWriter {
         //   - Unnamed element (name == null) → one Image_NN entry per image
         // (Coordinate-grouped BOX/HLINE/VLINE elements with null name were originally
         //  stored as separate Pac.Pic entries and must be written back the same way.)
-        List<byte[]> entryPayloads = new ArrayList<>();
-        for (ResourceBank.Element el : elements) {
+        var entryPayloads = new ArrayList<byte[]>();
+        for (var el : elements) {
             if (el.name() != null) {
                 entryPayloads.add(serializeNamedEntry(el));
             } else {
-                for (ResourceBank.Image img : el.images()) {
+                for (var img : el.images()) {
                     entryPayloads.add(img.data());
                 }
             }
@@ -137,28 +136,28 @@ public class ResourceBankWriter implements BankWriter {
 
         // Header: 2(n) + 4×n(offsets) + 2(nColors) + 2(screenMode) + 64(palette)
         //       + 2(nameLen) + nameBytes + padding
-        byte[] nameBytes = bank.imagePath().getBytes(StandardCharsets.ISO_8859_1);
+        var nameBytes = bank.imagePath().getBytes(StandardCharsets.ISO_8859_1);
         int nameLen = nameBytes.length;
         int namePad = nameLen % 2 != 0 ? 1 : 0;
         int headerSz = 2 + 4 * n + 2 + 2 + 64 + 2 + nameLen + namePad;
 
         // Entry offsets are relative to the start of the images section
-        int[] offsets = new int[n];
+        var offsets = new int[n];
         int pos = headerSz;
         for (int i = 0; i < n; i++) {
             offsets[i] = pos;
             pos += entryPayloads.get(i).length;
         }
 
-        ByteBuffer buf = ByteBuffer.allocate(pos).order(ByteOrder.BIG_ENDIAN);
+        var buf = ByteBuffer.allocate(pos).order(ByteOrder.BIG_ENDIAN);
 
         buf.putShort((short) n);
-        for (int o : offsets) buf.putInt(o);
+        for (var o : offsets) buf.putInt(o);
 
         buf.putShort((short) bank.getNumCols());
         buf.putShort((short) bank.screenMode());
 
-        int[] palette = bank.palette();
+        var palette = bank.palette();
         for (int i = 0; i < 32; i++) {
             buf.putShort((short) (i < palette.length ? palette[i] : 0));
         }
@@ -167,7 +166,7 @@ public class ResourceBankWriter implements BankWriter {
         buf.put(nameBytes);
         if (namePad > 0) buf.put((byte) 0);
 
-        for (byte[] payload : entryPayloads) {
+        for (var payload : entryPayloads) {
             buf.put(payload);
         }
 
@@ -180,13 +179,13 @@ public class ResourceBankWriter implements BankWriter {
      */
     private byte[] serializeNamedEntry(ResourceBank.Element el) {
         int imgDataSize = el.images().stream().mapToInt(img -> img.data().length).sum();
-        ByteBuffer buf = ByteBuffer.allocate(8 + 2 + 2 + imgDataSize).order(ByteOrder.BIG_ENDIAN);
+        var buf = ByteBuffer.allocate(8 + 2 + 2 + imgDataSize).order(ByteOrder.BIG_ENDIAN);
 
-        byte[] nameBytes = Arrays.copyOf(el.name().getBytes(StandardCharsets.ISO_8859_1), 8);
+        var nameBytes = Arrays.copyOf(el.name().getBytes(StandardCharsets.ISO_8859_1), 8);
         buf.put(nameBytes);
         buf.putShort((short) el.images().size());
         buf.putShort((short) 0xABCD);
-        for (ResourceBank.Image img : el.images()) {
+        for (var img : el.images()) {
             buf.put(img.data());
         }
 
@@ -198,12 +197,12 @@ public class ResourceBankWriter implements BankWriter {
     // -------------------------------------------------------------------------
 
     private byte[] buildTextSection(ResourceBank bank) {
-        List<String> texts = bank.texts();
+        var texts = bank.texts();
         if (texts.isEmpty()) return new byte[0];
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        for (String text : texts) {
-            byte[] tb = text.getBytes(StandardCharsets.ISO_8859_1);
+        var baos = new ByteArrayOutputStream();
+        for (var text : texts) {
+            var tb = text.getBytes(StandardCharsets.ISO_8859_1);
             baos.write(0x00);
             baos.write(tb.length);
             baos.writeBytes(tb);
@@ -218,20 +217,20 @@ public class ResourceBankWriter implements BankWriter {
     // -------------------------------------------------------------------------
 
     private byte[] buildDblSection(ResourceBank bank) {
-        List<String> programs = bank.programs();
+        var programs = bank.programs();
         if (programs.isEmpty()) return new byte[0];
 
         int n = programs.size();
 
         // Serialize program payloads (length word + content + NUL, padded to even)
-        List<byte[]> payloads = new ArrayList<>(n);
-        for (String prog : programs) {
-            byte[] strBytes = prog.getBytes(StandardCharsets.ISO_8859_1);
+        var payloads = new ArrayList<byte[]>(n);
+        for (var prog : programs) {
+            var strBytes = prog.getBytes(StandardCharsets.ISO_8859_1);
             // Content stored: strBytes + NUL, padded to even total
             int contentLen = strBytes.length + 1; // +1 for NUL
             if (contentLen % 2 != 0) contentLen++;
             // length word = contentLen + 2 (includes the 2-byte length word itself)
-            byte[] entry = new byte[2 + contentLen];
+            var entry = new byte[2 + contentLen];
             entry[0] = (byte) ((contentLen + 2) >> 8);
             entry[1] = (byte) (contentLen + 2);
             System.arraycopy(strBytes, 0, entry, 2, strBytes.length);
@@ -241,17 +240,17 @@ public class ResourceBankWriter implements BankWriter {
 
         // Header: 2(n) + 4×n(offsets)
         int headerSz = 2 + 4 * n;
-        int[] offsets = new int[n];
+        var offsets = new int[n];
         int pos = headerSz;
         for (int i = 0; i < n; i++) {
             offsets[i] = pos;
             pos += payloads.get(i).length;
         }
 
-        ByteBuffer buf = ByteBuffer.allocate(pos).order(ByteOrder.BIG_ENDIAN);
+        var buf = ByteBuffer.allocate(pos).order(ByteOrder.BIG_ENDIAN);
         buf.putShort((short) n);
-        for (int o : offsets) buf.putInt(o);
-        for (byte[] payload : payloads) buf.put(payload);
+        for (var o : offsets) buf.putInt(o);
+        for (var payload : payloads) buf.put(payload);
 
         return buf.array();
     }

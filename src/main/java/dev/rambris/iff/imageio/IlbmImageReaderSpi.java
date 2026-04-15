@@ -40,7 +40,7 @@ public final class IlbmImageReaderSpi extends ImageReaderSpi {
         if (!(source instanceof ImageInputStream stream)) return false;
         stream.mark();
         try {
-            byte[] header = new byte[12];
+            var header = new byte[12];
             if (stream.read(header) < 12) return false;
             // "FORM" at bytes 0-3, "ILBM" at bytes 8-11
             return header[0] == 'F' && header[1] == 'O' && header[2] == 'R' && header[3] == 'M'
