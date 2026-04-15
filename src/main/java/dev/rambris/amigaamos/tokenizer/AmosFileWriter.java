@@ -31,6 +31,17 @@ class AmosFileWriter {
     private static final int TOK_PROCEDURE = 0x0376;
     /** Binary token value for the {@code End Proc} keyword. */
     private static final int TOK_END_PROC  = 0x0390;
+    /**
+     * Binary token value for the AMOSPro Compiler's compiled-body marker.
+     * A procedure that ends with this token (instead of {@code End Proc}) has its
+     * machine-code body stored after the sentinel byte in the code section.
+     */
+    private static final int TOK_COMPILED_BODY = AsciiPrinter.TOK_COMPILED_BODY;
+    /**
+     * Flags byte written on the Procedure line of a compiled procedure.
+     * {@code 0xD0 = 0x80 (folded) | 0x40 (compiled) | 0x10 (body-present)}.
+     */
+    private static final int PROC_COMPILED_FLAGS = 0xD0;
 
     /** Procedure flag: procedure is folded in the editor (bit 7). */
     private static final int PROC_FOLDED = 0x80;
@@ -67,9 +78,16 @@ class AmosFileWriter {
      */
     byte[] write(AmosVersion version, List<byte[]> encodedLines, List<AmosBank> banks,
                  boolean foldProcedures) {
-        postProcessProcedures(encodedLines, foldProcedures);
+        return write(version, encodedLines, banks, foldProcedures, null);
+    }
 
-        int codeLen = encodedLines.stream().mapToInt(l -> l.length).sum();
+    byte[] write(AmosVersion version, List<byte[]> encodedLines, List<AmosBank> banks,
+                 boolean foldProcedures, byte[] compiledBody) {
+        postProcessProcedures(encodedLines, foldProcedures,
+                compiledBody != null ? compiledBody.length : 0);
+
+        int codeLen = encodedLines.stream().mapToInt(l -> l.length).sum()
+                      + (compiledBody != null ? compiledBody.length : 0);
 
         var out = new ByteArrayOutputStream(22 + codeLen + 6);
 
@@ -87,6 +105,11 @@ class AmosFileWriter {
             // Code section: all encoded lines
             for (var line : encodedLines) {
                 out.write(line);
+            }
+
+            // Compiled body (sentinel + m68k machine code), if present
+            if (compiledBody != null) {
+                out.write(compiledBody);
             }
 
             // AmBs section: magic + uint16 bank count
@@ -129,18 +152,23 @@ class AmosFileWriter {
      * <p>When {@code foldByDefault} is {@code true}, bit 7 (folded) is set on every
      * procedure.
      */
-    private static void postProcessProcedures(List<byte[]> lines, boolean foldByDefault) {
+    private static void postProcessProcedures(List<byte[]> lines, boolean foldByDefault,
+                                              int compiledBodyLen) {
         for (int i = 0; i < lines.size(); i++) {
             var line = lines.get(i);
             if (!isProcLine(line)) continue;
 
-            line[PROC_OFF_FLAGS] = (byte)(foldByDefault ? PROC_FOLDED : 0);
+            var endIdx = findEndProc(lines, i);
+            boolean isCompiled = isCompiledBodyLine(lines.get(endIdx));
 
-            // Compute and store the size field for all procedures so AMOS can
-            // navigate the file correctly regardless of fold state.
-            var endIdx   = findEndProc(lines, i);
+            // Compiled procedures keep their special flags; regular ones get fold flag.
+            line[PROC_OFF_FLAGS] = (byte) (isCompiled ? PROC_COMPILED_FLAGS
+                    : (foldByDefault ? PROC_FOLDED : 0));
+
+            // Compute size: sum of inner line lengths, plus compiled body bytes if present.
             var innerLen = 0;
             for (int j = i + 1; j <= endIdx; j++) innerLen += lines.get(j).length;
+            if (isCompiled) innerLen += compiledBodyLen;
             var size = line.length + innerLen - PROC_SIZE_BIAS;
 
             line[PROC_OFF_SIZE    ] = (byte)((size >> 24) & 0xFF);
@@ -165,17 +193,33 @@ class AmosFileWriter {
     }
 
     /**
-     * Finds the index of the {@code End Proc} line that closes the {@code Procedure}
-     * at {@code procIdx}, tracking depth to handle nested procedures correctly.
+     * Returns {@code true} if {@code line} begins with the compiled-body marker token ($2BF4).
+     */
+    private static boolean isCompiledBodyLine(byte[] line) {
+        return line.length >= 6
+               && (line[2] & 0xFF) == (TOK_COMPILED_BODY >> 8)
+               && (line[3] & 0xFF) == (TOK_COMPILED_BODY & 0xFF);
+    }
+
+    /**
+     * Finds the index of the line that closes the {@code Procedure} at {@code procIdx}.
+     * Accepts both {@code End Proc} ($0390) and the compiled-body marker ($2BF4),
+     * tracking nesting depth for regular procedures.
      *
-     * @throws IllegalStateException if no matching End Proc is found before end of file
+     * @throws IllegalStateException if no closing line is found before end of file
      */
     private static int findEndProc(List<byte[]> lines, int procIdx) {
         var depth = 1;
         for (int i = procIdx + 1; i < lines.size(); i++) {
             var l = lines.get(i);
-            if (isProcLine(l))                              depth++;
-            else if (isEndProcLine(l) && --depth == 0)     return i;
+            if (isProcLine(l)) {
+                depth++;
+            } else if (isCompiledBodyLine(l)) {
+                // Compiled procedures are never nested; depth is always 1 here.
+                if (depth == 1) return i;
+            } else if (isEndProcLine(l) && --depth == 0) {
+                return i;
+            }
         }
         throw new IllegalStateException("No End Proc found for Procedure at line index " + procIdx);
     }

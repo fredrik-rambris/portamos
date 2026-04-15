@@ -20,7 +20,8 @@
       "Bash(echo \"Exit: $?\")",
       "Bash(java:*)",
       "Bash(grep -v \"^$\")",
-      "Bash(./gradlew cleanTest test)"
+      "Bash(./gradlew cleanTest test)",
+      "Bash(./gradlew compileJava --rerun-tasks)"
     ]
   }
 }

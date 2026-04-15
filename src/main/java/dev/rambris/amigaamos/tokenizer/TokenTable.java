@@ -56,6 +56,19 @@ class TokenTable {
     private final Map<Integer, Integer> keyToExtraBytes = new HashMap<>();
 
     /**
+     * Maps encoding key → display name for use by the detokenizer.
+     * Operators are stored as-is; keywords are converted to title case.
+     * Only the first registered name for a key is kept (earliest definition wins).
+     */
+    private final Map<Integer, String> keyToDisplayName = new HashMap<>();
+
+    /**
+     * Keys belonging to operator/punctuation tokens (from {@link #CORE_OPERATORS}).
+     * These are formatted differently by the printer — no leading space, no trailing space.
+     */
+    private final java.util.Set<Integer> operatorKeys = new java.util.HashSet<>();
+
+    /**
      * Core operator and punctuation tokens. These live at fixed offsets in the core
      * token table (slot 0) and are not present in the JSON definition files.
      * Keys are the raw uint16 offset values used directly for encoding (slot 0 → no prefix).
@@ -88,10 +101,12 @@ class TokenTable {
     );
 
     TokenTable() {
-        // Register operators as single-entry signature lists
+        // Register operators as single-entry signature lists and populate reverse map
         for (var entry : CORE_OPERATORS.entrySet()) {
             int key = entry.getValue();
             nameToSignatures.put(entry.getKey(), List.of(new SignatureEntry(key, 0)));
+            keyToDisplayName.put(key, entry.getKey()); // operators keep their name as-is
+            operatorKeys.add(key);
         }
         loadResource("/amos/definitions/core.json");
         loadResource("/amos/definitions/music.json");
@@ -142,6 +157,24 @@ class TokenTable {
     /** Returns the number of extra zero bytes to emit after the given token key, or 0. */
     int extraBytesFor(int key) {
         return keyToExtraBytes.getOrDefault(key, 0);
+    }
+
+    /**
+     * Returns the display name for a core keyword token key, or {@code null} if unknown.
+     * Operators are returned as-is (e.g. {@code "+"}); keywords are returned in title case
+     * (e.g. {@code "For"}, {@code "Screen Open"}).
+     */
+    String displayNameFor(int key) {
+        return keyToDisplayName.get(key);
+    }
+
+    /**
+     * Returns {@code true} if the given key is an operator or punctuation token
+     * (i.e. belongs to {@link #CORE_OPERATORS}).  The printer uses this to suppress
+     * the leading space that precedes normal keyword tokens.
+     */
+    boolean isOperator(int key) {
+        return operatorKeys.contains(key);
     }
 
     private void loadResource(String path) {
@@ -218,7 +251,30 @@ class TokenTable {
                 // Sort by commaGroups ascending so selectKey walks fewest→most
                 entries.sort((a, b) -> Integer.compare(a.commaGroups(), b.commaGroups()));
                 nameToSignatures.putIfAbsent(name, entries);
+
+                // Populate reverse map: each key → title-case display name.
+                // putIfAbsent so the first (core) definition wins over extension aliases.
+                var displayName = toDisplayName(name);
+                for (var e : entries) {
+                    keyToDisplayName.putIfAbsent(e.key(), displayName);
+                }
             }
         }
+    }
+
+    /**
+     * Converts an uppercase keyword name to a title-case display name.
+     * Examples: {@code "FOR"} → {@code "For"}, {@code "SCREEN OPEN"} → {@code "Screen Open"}.
+     */
+    private static String toDisplayName(String upperName) {
+        var words = upperName.split(" ");
+        var sb = new StringBuilder();
+        for (var word : words) {
+            if (!sb.isEmpty()) sb.append(' ');
+            if (word.isEmpty()) continue;
+            sb.append(Character.toUpperCase(word.charAt(0)));
+            if (word.length() > 1) sb.append(word.substring(1).toLowerCase());
+        }
+        return sb.toString();
     }
 }

@@ -43,6 +43,7 @@ import java.util.concurrent.Callable;
         },
         subcommands = {
                 Main.BuildCommand.class,
+                Main.ListCommand.class,
                 Main.DisasmCommand.class,
                 Main.AsmCommand.class,
                 Main.RawCommand.class,
@@ -137,6 +138,50 @@ public class Main implements Callable<Integer> {
             System.out.println("Writing " + output);
             Files.write(output, binary);
             System.out.printf("Done (%d bytes)%n", binary.length);
+            return 0;
+        }
+    }
+
+    // =========================================================================
+    // list
+    // =========================================================================
+
+    @Command(
+            name = "list",
+            mixinStandardHelpOptions = true,
+            description = {
+                    "Detokenize an AMOS binary file (.AMOS) to an ASCII source file (.Asc).",
+                    "The output can be re-tokenized with the 'build' command."
+            }
+    )
+    static class ListCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<input.AMOS>",
+                description = "Binary AMOS file to detokenize")
+        Path input;
+
+        @Parameters(index = "1", paramLabel = "<output.Asc>",
+                description = "Output ASCII source file")
+        Path output;
+
+        @Option(names = "--definition", paramLabel = "<path.json>",
+                description = "Load an additional extension definition JSON file (repeatable).")
+        List<Path> definitions = new ArrayList<>();
+
+        @Override
+        public Integer call() throws Exception {
+            System.out.println("Reading " + input);
+            var tokenizer = new Tokenizer();
+            for (var defPath : definitions) {
+                System.out.println("Loading definition " + defPath);
+                tokenizer.withDefinition(defPath);
+            }
+            var amosFile = tokenizer.decode(input);
+            System.out.printf("Detokenized %d lines (%s)%n",
+                    amosFile.lines().size(), amosFile.version());
+            System.out.println("Writing " + output);
+            tokenizer.print(amosFile, output);
+            System.out.printf("Done%n");
             return 0;
         }
     }
