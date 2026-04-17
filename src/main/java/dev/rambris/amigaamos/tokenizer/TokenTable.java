@@ -13,10 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Loads and indexes the AMOS token tables from the JSON definition files.
@@ -66,7 +63,13 @@ class TokenTable {
      * Keys belonging to operator/punctuation tokens (from {@link #CORE_OPERATORS}).
      * These are formatted differently by the printer — no leading space, no trailing space.
      */
-    private final java.util.Set<Integer> operatorKeys = new java.util.HashSet<>();
+    private final Set<Integer> operatorKeys = new java.util.HashSet<>();
+
+    /**
+     * Extension IDs (uppercased) that should not be loaded from the built-in resources.
+     * Checked against {@code extension.id} in each JSON file.
+     */
+    private final Set<String> skipIds;
 
     /**
      * Core operator and punctuation tokens. These live at fixed offsets in the core
@@ -101,6 +104,11 @@ class TokenTable {
     );
 
     TokenTable() {
+        this(Set.of());
+    }
+
+    TokenTable(Set<String> skipIds) {
+        this.skipIds = skipIds;
         // Register operators as single-entry signature lists and populate reverse map
         for (var entry : CORE_OPERATORS.entrySet()) {
             int key = entry.getValue();
@@ -181,6 +189,7 @@ class TokenTable {
         try (InputStream is = TokenTable.class.getResourceAsStream(path)) {
             if (is == null) throw new RuntimeException("Missing resource: " + path);
             var root = JSON.readTree(is);
+            if (shouldSkip(root)) return;
             parseDefinitions(root);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load token table from " + path, e);
@@ -189,14 +198,23 @@ class TokenTable {
 
     /**
      * Loads an additional token definition JSON file from the given path.
+     * Skipped if its {@code extension.id} matches an entry passed to
+     * {@link #TokenTable(Set)}.
      */
     void loadFile(Path path) {
         try (var is = Files.newInputStream(path)) {
             var root = JSON.readTree(is);
+            if (shouldSkip(root)) return;
             parseDefinitions(root);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load token table from " + path, e);
         }
+    }
+
+    private boolean shouldSkip(JsonNode root) {
+        if (skipIds.isEmpty()) return false;
+        var id = root.path("extension").path("id").asText("").toUpperCase();
+        return skipIds.contains(id);
     }
 
     private void parseDefinitions(JsonNode root) {

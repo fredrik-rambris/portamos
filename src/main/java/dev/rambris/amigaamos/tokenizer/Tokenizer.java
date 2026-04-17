@@ -40,11 +40,16 @@ public class Tokenizer {
     static final int AMOS_INDENT_SPACES = 1;
 
     private final AmosVersion version;
-    private final TokenTable tokenTable;
-    private final AsciiParser parser;
-    private final BinaryEncoder encoder;
-    private final AmosFileWriter writer;
-    private final AsciiPrinter printer;
+    private final Set<String> skipDefinitionIds = new LinkedHashSet<>();
+    private final List<Path> extraDefinitionPaths = new ArrayList<>();
+
+    // Lazily initialised on first use so withoutDefinition() can be called
+    // after construction but before any parse/encode/print operation.
+    private TokenTable tokenTable;
+    private AsciiParser parser;
+    private BinaryEncoder encoder;
+    private final AmosFileWriter writer = new AmosFileWriter();
+    private AsciiPrinter printer;
 
     /**
      * When {@code true}, all {@code Procedure} blocks are marked folded in the AMOS editor.
@@ -57,22 +62,53 @@ public class Tokenizer {
 
     public Tokenizer(AmosVersion version) {
         this.version = version;
-        this.tokenTable = new TokenTable();
-        this.parser = new AsciiParser(tokenTable);
-        this.encoder = new BinaryEncoder(tokenTable);
-        this.writer = new AmosFileWriter();
-        this.printer = new AsciiPrinter(tokenTable);
+    }
+
+    private TokenTable tokenTable() {
+        if (tokenTable == null) {
+            tokenTable = new TokenTable(skipDefinitionIds);
+            for (var p : extraDefinitionPaths) tokenTable.loadFile(p);
+            parser = new AsciiParser(tokenTable);
+            encoder = new BinaryEncoder(tokenTable);
+            printer = new AsciiPrinter(tokenTable);
+        }
+        return tokenTable;
     }
 
     /**
      * Loads an additional extension definition JSON file into the token table.
-     * Must be called before {@link #parse}.
+     * Must be called before any parse/encode/print operation.
      *
      * @param path path to a definition JSON file (same format as the built-in ones)
      * @return {@code this} for chaining
      */
     public Tokenizer withDefinition(Path path) {
-        tokenTable.loadFile(path);
+        if (tokenTable != null) throw new IllegalStateException(
+                "withDefinition() must be called before parse/encode/print");
+        extraDefinitionPaths.add(path);
+        return this;
+    }
+
+    /**
+     * Prevents a built-in extension definition from being loaded into the token table.
+     * Use this when the target program replaces a built-in extension with a different one
+     * (e.g. AMCAF replaces the Music extension at runtime).
+     *
+     * <p>The {@code id} is matched case-insensitively against the {@code extension.id}
+     * field in each built-in JSON file.  Known built-in IDs:
+     * {@code Core}, {@code Music}, {@code Compact}, {@code Request}, {@code IOPorts},
+     * {@code Compiler}.  The same check also applies to files added via
+     * {@link #withDefinition(Path)}.
+     *
+     * <p>Must be called before any parse/encode/print operation.
+     *
+     * @param id the extension ID to skip (case-insensitive)
+     * @return {@code this} for chaining
+     */
+    public Tokenizer withoutDefinition(String id) {
+        if (tokenTable != null) throw new IllegalStateException(
+                "withoutDefinition() must be called before parse/encode/print");
+        skipDefinitionIds.add(id.toUpperCase());
         return this;
     }
 
@@ -149,6 +185,7 @@ public class Tokenizer {
         int spaces = 0;
         while (spaces < line.length() && line.charAt(spaces) == ' ') spaces++;
         int indent = spaces + 1;
+        tokenTable(); // ensure init
         return new AmosLine(indent, parser.parseLine(line));
     }
 
@@ -163,6 +200,7 @@ public class Tokenizer {
                 .collect(Collectors.toCollection(ArrayList::new));
         while (!lines.isEmpty() && lines.getLast().isBlank()) lines.removeLast();
         var rawLines = lines.toArray(String[]::new);
+        tokenTable(); // ensure init
         parser.setProcedureNames(scanProcedureNames(rawLines));
         parser.setArrayVarNames(scanArrayVarNames(rawLines));
         var result = tokenizeLinesWithPem(rawLines);
@@ -186,6 +224,7 @@ public class Tokenizer {
         int lineCount = rawLines.length;
         while (lineCount > 0 && rawLines[lineCount - 1].isBlank()) lineCount--;
         rawLines = java.util.Arrays.copyOf(rawLines, lineCount);
+        tokenTable(); // ensure init
         parser.setProcedureNames(scanProcedureNames(rawLines));
         parser.setArrayVarNames(scanArrayVarNames(rawLines));
         var result = tokenizeLinesWithPem(rawLines);
@@ -206,7 +245,7 @@ public class Tokenizer {
      * @return the decoded program (banks are not decoded — use the {@code export} command)
      */
     public AmosFile decode(Path path) throws IOException {
-        return new AmosFileReader(tokenTable).read(path);
+        return new AmosFileReader(tokenTable()).read(path);
     }
 
     /**
@@ -216,7 +255,7 @@ public class Tokenizer {
      * @return the decoded program
      */
     public AmosFile decode(byte[] data) {
-        return new AmosFileReader(tokenTable).read(data);
+        return new AmosFileReader(tokenTable()).read(data);
     }
 
     // -------------------------------------------------------------------------
@@ -230,6 +269,7 @@ public class Tokenizer {
      * Feed the result back to {@link #parse(String)} to round-trip the program.
      */
     public List<String> print(AmosFile file) {
+        tokenTable(); // ensure init
         return printer.print(file);
     }
 
@@ -237,6 +277,7 @@ public class Tokenizer {
      * Converts an {@link AmosFile} to an ASCII source string (lines joined by {@code \n}).
      */
     public String printToString(AmosFile file) {
+        tokenTable(); // ensure init
         return String.join("\n", printer.print(file));
     }
 
@@ -248,6 +289,7 @@ public class Tokenizer {
      * @param charset charset to use (typically ISO-8859-1 for AMOS)
      */
     public void print(AmosFile file, Path path, Charset charset) throws IOException {
+        tokenTable(); // ensure init
         var lines = printer.print(file);
         Files.writeString(path,
                 String.join("\n", lines) + "\n",
@@ -269,6 +311,7 @@ public class Tokenizer {
      * Encodes an {@link AmosFile} into a complete AMOS binary file.
      */
     public byte[] encode(AmosFile file) {
+        tokenTable(); // ensure init
         var lines = file.lines();
         var encodedLines = new ArrayList<byte[]>(lines.size());
         for (int i = 0; i < lines.size(); i++) {

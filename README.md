@@ -61,6 +61,7 @@ Run `portamos help` or `portamos <subcommand> --help` for full option listings.
 ```bash
 portamos list input.AMOS output.Asc
 portamos list input.AMOS output.Asc --definition definitions/turboplus.json
+portamos list input.AMOS output.Asc --no-definition music --definition definitions/amcaf.json
 ```
 
 Reads a binary `.AMOS` file and writes the corresponding AMOS Professional ASCII source file.
@@ -71,6 +72,11 @@ body.
 **`--definition <path.json>`** — Load an additional extension definition file before detokenizing
 (repeatable).
 
+**`--no-definition <id>`** — Skip a built-in extension definition by its ID (repeatable). Use this
+when the program replaces a built-in extension with a third-party one — for example, AMCAF replaces
+the Music extension at runtime, so you would pass `--no-definition music --definition definitions/amcaf.json`.
+Known built-in IDs: `Core`, `Music`, `Compact`, `Request`, `IOPorts`, `Compiler`.
+
 ### `build` — tokenize an ASCII source file
 
 ```bash
@@ -78,6 +84,7 @@ portamos build source.Asc output.AMOS
 portamos build source.Asc output.AMOS --add-bank sprites.Abk --add-bank music.Abk
 portamos build source.Asc output.AMOS --import-bank sprites/bank.json
 portamos build source.Asc output.AMOS --definition definitions/turboplus.json
+portamos build source.Asc output.AMOS --no-definition music --definition definitions/amcaf.json
 portamos build source.Asc output.AMOS --fold
 ```
 
@@ -87,6 +94,11 @@ Optionally attaches bank files directly (`--add-bank`) or assembles them from JS
 **`--definition <path.json>`** — Load an additional extension definition file before tokenizing
 (repeatable). Use this for third-party extensions not included in the built-in set. The release
 archives include a `definitions/` directory with definitions for known third-party extensions.
+
+**`--no-definition <id>`** — Skip a built-in extension definition by its ID (repeatable). Use this
+when the program replaces a built-in extension with a third-party one — for example, AMCAF replaces
+the Music extension at runtime, so you would pass `--no-definition music --definition definitions/amcaf.json`.
+Known built-in IDs: `Core`, `Music`, `Compact`, `Request`, `IOPorts`, `Compiler`.
 
 **`--fold`** — Mark all `Procedure` blocks as folded in the AMOS editor by default (bit 7 of the
 procedure flags byte). Without this flag, procedures are saved in the unfolded state.

@@ -7,3 +7,4 @@ gradle.properties
 reference
 .sdkmanrc
 scripts/*.pyc
+.claude

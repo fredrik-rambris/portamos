@@ -101,6 +101,11 @@ public class Main implements Callable<Integer> {
                               + "Use this for third-party extensions not included in the built-in set.")
         List<Path> definitions = new ArrayList<>();
 
+        @Option(names = "--no-definition", paramLabel = "<id>",
+                description = "Skip a built-in extension definition by its ID (repeatable). "
+                              + "Known IDs: Core, Music, Compact, Request, IOPorts, Compiler.")
+        List<String> noDefinitions = new ArrayList<>();
+
         @Option(names = "--fold",
                 description = "Mark all Procedure blocks as folded in the AMOS editor by default.")
         boolean fold = false;
@@ -109,6 +114,7 @@ public class Main implements Callable<Integer> {
         public Integer call() throws Exception {
             System.out.println("Reading " + source);
             var tokenizer = new Tokenizer();
+            for (var id : noDefinitions) tokenizer.withoutDefinition(id);
             for (var defPath : definitions) {
                 System.out.println("Loading definition " + defPath);
                 tokenizer.withDefinition(defPath);
@@ -168,10 +174,16 @@ public class Main implements Callable<Integer> {
                 description = "Load an additional extension definition JSON file (repeatable).")
         List<Path> definitions = new ArrayList<>();
 
+        @Option(names = "--no-definition", paramLabel = "<id>",
+                description = "Skip a built-in extension definition by its ID (repeatable). "
+                              + "Known IDs: Core, Music, Compact, Request, IOPorts, Compiler.")
+        List<String> noDefinitions = new ArrayList<>();
+
         @Override
         public Integer call() throws Exception {
             System.out.println("Reading " + input);
             var tokenizer = new Tokenizer();
+            for (var id : noDefinitions) tokenizer.withoutDefinition(id);
             for (var defPath : definitions) {
                 System.out.println("Loading definition " + defPath);
                 tokenizer.withDefinition(defPath);
