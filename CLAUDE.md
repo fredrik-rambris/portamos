@@ -74,6 +74,7 @@ src/main/resources/amos/
     compact.json                     Compact extension (slot 2, start 6)
     request.json                     Request extension (slot 3, start 6)
     ioports.json                     IOPorts extension (slot 6, start 6)
+    compiler.json                    Compiler extension (slot 5, start 6)
 
 src/test/resources/
   Numbers.Asc / Numbers.AMOS           Integration test pair (BASIC_13)
@@ -184,37 +185,67 @@ Each line in the code section:
 {
   "extension": {
     "id": "Core",
-    // or "Music", "Compact", etc.
+    // matched by --no-definition CLI flag (case-insensitive)
     "slot": 0,
-    // extension slot number
+    // extension slot (0 = core, 1+ = extension)
     "start": -194,
     // byte offset from tkoff to first entry (-194 for core, 6 for extensions)
+    "name": "...",
+    // optional; human-readable name (absent from core.json)
     "filename": "...",
-    // original .Lib filename
+    // optional; original .Lib filename (absent from core.json)
     "vendor": "..."
+    // optional; extension author (absent from core.json)
   },
   "definitions": [
     {
       "name": "FOR",
-      // uppercase
+      // uppercase keyword name
       "kind": "structure",
       // instruction | function | structure | operator
-      "offset": 572,
-      // decimal byte offset in the token table (required for tokenization)
+      "returnType": "integer",
+      // optional; return type for function/operator
       "extraBytes": 2,
-      // optional; zero bytes after token value
+      // optional; zero bytes written after the token
       "documentation": "...",
+      "link": "...",
       "signatures": [
-        ...
-      ],
-      "link": "..."
+        {
+          "offset": 572,
+          // decimal byte offset in token table; required for tokenization
+          "presentation": "For index=first number To last number",
+          "commaGroups": 1,
+          // optional explicit override; normally computed from parameters
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "index=first number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "keyword",
+              "keyword": "To"
+            },
+            {
+              "kind": "value",
+              "name": "last number",
+              "valueType": "integer"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
 ```
 
-Definitions **without** an `"offset"` field are documentation-only and are skipped by the tokenizer. This applies to ~66
-entries in core.json (aliases, optional-suffix forms like "INVERSE ON/OFF", etc.).
+Parameter `"kind"` values: `"value"` (a runtime argument; `"valueType"` is `"integer"` or `"string"`) or `"keyword"`
+(a literal separator word like `To`; `"keyword"` holds the word). Keyword params reduce the computed `commaGroups`
+count: `commaGroups = max(valueParams − keywordParams, 0)`.
+
+Signatures **without** an `"offset"` field are skipped by the tokenizer. A definition where every signature lacks
+an offset produces no lookup entries (effectively documentation-only). This applies to ~22 entries in core.json
+(aliases, optional-suffix forms like "INVERSE ON/OFF", etc.).
 
 **Multiple signatures / multi-form keywords**: Many AMOS keywords have 2–4 binary table entries at different offsets,
 one per argument-count variant. Each signature in the JSON has its own `"offset"` field. `TokenTable` builds a list of
@@ -352,7 +383,7 @@ entries there when tests reveal incorrect form selection.
 
 ## Known gaps / future work
 
-- **JSON coverage gaps**: ~66 core definitions lack offsets (documented aliases, optional-suffix variants); 3 compact
+- **JSON coverage gaps**: ~22 core definitions lack offsets (documented aliases, optional-suffix variants); 3 compact
   entries (GET CBLOCK, PUT CBLOCK, DEL CBLOCK) have no binary counterpart; music "TRACK LOOP OFF" in JSON is spelled
   "TRACK LOOP OF" in the binary
 - **Third-party extensions**: `reference/amostools/extensions/` contains ~80 third-party `.Lib` files; use

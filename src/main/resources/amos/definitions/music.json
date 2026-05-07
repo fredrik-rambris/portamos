@@ -991,7 +991,7 @@
           "offset": 496
         }
       ],
-      "link": "https://amospromanual.dev/08-04-speech.html#i-say"
+      "link": "https://amospromanual.dev/11-02-speech.html#i-say"
     },
     {
       "name": "SET TALK",
@@ -1025,7 +1025,7 @@
           "offset": 506
         }
       ],
-      "link": "https://amospromanual.dev/08-04-speech.html#i-set-talk"
+      "link": "https://amospromanual.dev/11-02-speech.html#i-set-talk"
     },
     {
       "name": "MOUTH WIDTH",
@@ -1039,7 +1039,7 @@
           "offset": 718
         }
       ],
-      "link": "https://amospromanual.dev/08-04-speech.html#fn-mouth-width"
+      "link": "https://amospromanual.dev/11-02-speech.html#fn-mouth-width"
     },
     {
       "name": "MOUTH HEIGHT",
@@ -1053,7 +1053,7 @@
           "offset": 736
         }
       ],
-      "link": "https://amospromanual.dev/08-04-speech.html#fn-mouth-height"
+      "link": "https://amospromanual.dev/11-02-speech.html#fn-mouth-height"
     },
     {
       "name": "MOUTH READ",
@@ -1066,7 +1066,7 @@
           "offset": 754
         }
       ],
-      "link": "https://amospromanual.dev/08-04-speech.html#i-mouth-read"
+      "link": "https://amospromanual.dev/11-02-speech.html#i-mouth-read"
     },
     {
       "name": "TALK STOP",
@@ -1079,7 +1079,7 @@
           "offset": 770
         }
       ],
-      "link": "https://amospromanual.dev/08-04-speech.html#i-talk-stop"
+      "link": "https://amospromanual.dev/11-02-speech.html#i-talk-stop"
     },
     {
       "name": "TALK MISC",
@@ -1103,7 +1103,7 @@
           "offset": 786
         }
       ],
-      "link": "https://amospromanual.dev/08-04-speech.html#i-talk-misc"
+      "link": "https://amospromanual.dev/11-02-speech.html#i-talk-misc"
     }
   ]
 }
