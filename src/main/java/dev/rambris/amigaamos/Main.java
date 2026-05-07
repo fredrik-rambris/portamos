@@ -8,6 +8,10 @@ package dev.rambris.amigaamos;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.rambris.amigaamos.bank.*;
+import dev.rambris.amigaamos.interpreter.InterpreterConfigExporter;
+import dev.rambris.amigaamos.interpreter.InterpreterConfigImporter;
+import dev.rambris.amigaamos.interpreter.InterpreterConfigReader;
+import dev.rambris.amigaamos.interpreter.InterpreterConfigWriter;
 import dev.rambris.amigaamos.tokenizer.AmosDump;
 import dev.rambris.amigaamos.tokenizer.ExtJsonGenerator;
 import dev.rambris.amigaamos.tokenizer.Tokenizer;
@@ -47,6 +51,8 @@ import java.util.concurrent.Callable;
                 Main.DisasmCommand.class,
                 Main.AsmCommand.class,
                 Main.RawCommand.class,
+                Main.DisasmConfigCommand.class,
+                Main.AsmConfigCommand.class,
                 Main.DevHelpCommand.class,
                 Main.DumpCommand.class,
                 Main.DiffCommand.class,
@@ -338,6 +344,60 @@ public class Main implements Callable<Integer> {
             bank.writer().write(bank, output);
             System.out.printf("Written %s  (%s, %s RAM, bank %d, %d bytes)%n",
                     output, bankType, chip ? "chip" : "fast", bankNumber & 0xFFFF, data.length);
+            return 0;
+        }
+    }
+
+    // =========================================================================
+    // disasm-config
+    // =========================================================================
+
+    @Command(
+            name = "disasm-config",
+            description = "Export an AMOSPro Interpreter Config binary to JSON."
+    )
+    static class DisasmConfigCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<AMOSPro_Interpreter_Config>",
+                description = "Interpreter Config binary file to read")
+        Path input;
+
+        @Parameters(index = "1", paramLabel = "<output.json>",
+                description = "Output JSON file")
+        Path output;
+
+        @Override
+        public Integer call() throws Exception {
+            var config = InterpreterConfigReader.read(input);
+            new InterpreterConfigExporter().export(config, output);
+            System.out.printf("Exported interpreter config to %s%n", output);
+            return 0;
+        }
+    }
+
+    // =========================================================================
+    // asm-config
+    // =========================================================================
+
+    @Command(
+            name = "asm-config",
+            description = "Assemble an AMOSPro Interpreter Config binary from JSON."
+    )
+    static class AsmConfigCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<input.json>",
+                description = "JSON config file to read")
+        Path input;
+
+        @Parameters(index = "1", paramLabel = "<AMOSPro_Interpreter_Config>",
+                description = "Output Interpreter Config binary file")
+        Path output;
+
+        @Override
+        public Integer call() throws Exception {
+            var config = new InterpreterConfigImporter().importFrom(input);
+            new InterpreterConfigWriter().write(config, output);
+            System.out.printf("Wrote interpreter config to %s%n", output);
             return 0;
         }
     }
