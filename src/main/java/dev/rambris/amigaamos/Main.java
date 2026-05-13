@@ -21,6 +21,8 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -116,6 +118,10 @@ public class Main implements Callable<Integer> {
                 description = "Mark all Procedure blocks as folded in the AMOS editor by default.")
         boolean fold = false;
 
+        @Option(names = "--charset", paramLabel = "<charset>",
+                description = "Charset for reading the source file (default: UTF-8). Use ISO-8859-1 for legacy Latin-1 .Asc files.")
+        Charset charset = StandardCharsets.UTF_8;
+
         @Override
         public Integer call() throws Exception {
             System.out.println("Reading " + source);
@@ -126,7 +132,7 @@ public class Main implements Callable<Integer> {
                 tokenizer.withDefinition(defPath);
             }
             if (fold) tokenizer.withFoldedProcedures();
-            var amosFile = tokenizer.parse(source);
+            var amosFile = tokenizer.parse(source, charset);
 
             var banks = new ArrayList<AmosBank>();
 
@@ -185,6 +191,10 @@ public class Main implements Callable<Integer> {
                               + "Known IDs: Core, Music, Compact, Request, IOPorts, Compiler.")
         List<String> noDefinitions = new ArrayList<>();
 
+        @Option(names = "--charset", paramLabel = "<charset>",
+                description = "Charset for writing the output file (default: UTF-8). Use ISO-8859-1 for AMOS-compatible Latin-1 output.")
+        Charset charset = StandardCharsets.UTF_8;
+
         @Override
         public Integer call() throws Exception {
             System.out.println("Reading " + input);
@@ -198,7 +208,7 @@ public class Main implements Callable<Integer> {
             System.out.printf("Detokenized %d lines (%s)%n",
                     amosFile.lines().size(), amosFile.version());
             System.out.println("Writing " + output);
-            tokenizer.print(amosFile, output);
+            tokenizer.print(amosFile, output, charset);
             System.out.printf("Done%n");
             return 0;
         }

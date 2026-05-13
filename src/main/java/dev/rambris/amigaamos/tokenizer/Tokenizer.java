@@ -207,9 +207,9 @@ public class Tokenizer {
         return new AmosFile(version, result.lines(), List.of(), result.compiledBody());
     }
 
-    /** Convenience overload that uses ISO-8859-1 (typical AMOS charset). */
+    /** Convenience overload that uses UTF-8. */
     public AmosFile parse(Path path) throws IOException {
-        return parse(path, StandardCharsets.ISO_8859_1);
+        return parse(path, StandardCharsets.UTF_8);
     }
 
     /**
@@ -297,10 +297,10 @@ public class Tokenizer {
     }
 
     /**
-     * Convenience overload that uses ISO-8859-1.
+     * Convenience overload that uses UTF-8.
      */
     public void print(AmosFile file, Path path) throws IOException {
-        print(file, path, StandardCharsets.ISO_8859_1);
+        print(file, path, StandardCharsets.UTF_8);
     }
 
     // -------------------------------------------------------------------------
