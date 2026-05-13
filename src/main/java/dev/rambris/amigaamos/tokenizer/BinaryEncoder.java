@@ -102,7 +102,7 @@ class BinaryEncoder {
      * The EOL's first byte (0x00) acts as null terminator for the C-string.
      */
     private void encodeRem(int tokenValue, String text, ByteArrayOutputStream out) throws IOException {
-        var textBytes = text.getBytes(StandardCharsets.US_ASCII);
+        var textBytes = text.getBytes(StandardCharsets.ISO_8859_1);
         int n = textBytes.length;
         writeUint16(tokenValue, out);
         out.write(0x00); // unused byte
@@ -120,7 +120,7 @@ class BinaryEncoder {
      * Format: [token:2] [len_hi:1] [len_lo:1] [text:n] [pad if n odd:00]
      */
     private void encodeQuotedString(int tokenValue, String text, ByteArrayOutputStream out) throws IOException {
-        var textBytes = text.getBytes(StandardCharsets.US_ASCII);
+        var textBytes = text.getBytes(StandardCharsets.ISO_8859_1);
         int n = textBytes.length;
         writeUint16(tokenValue, out);
         writeUint16(n, out); // 2-byte big-endian length
@@ -182,7 +182,7 @@ class BinaryEncoder {
     private void encodeNamedToken(int tokenValue, String name, int flags, ByteArrayOutputStream out)
             throws IOException {
         var lowerName = name.toLowerCase();
-        var nameBytes = lowerName.getBytes(StandardCharsets.US_ASCII);
+        var nameBytes = lowerName.getBytes(StandardCharsets.ISO_8859_1);
         int nameLen = nameBytes.length;
         // n = nameLen rounded up to the next even number.
         // For odd-length names the rounding byte doubles as the null terminator.

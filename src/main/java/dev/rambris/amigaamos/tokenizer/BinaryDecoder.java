@@ -214,12 +214,12 @@ class BinaryDecoder {
     }
 
     /**
-     * Reads up to {@code maxLen} bytes as an ASCII string, stopping at the first NUL byte.
+     * Reads up to {@code maxLen} bytes as a Latin-1 string, stopping at the first NUL byte.
      */
     static String readStr(byte[] d, int o, int maxLen) {
         int end = Math.min(o + maxLen, d.length);
         int actual = o;
         while (actual < end && d[actual] != 0) actual++;
-        return new String(d, o, actual - o, StandardCharsets.US_ASCII);
+        return new String(d, o, actual - o, StandardCharsets.ISO_8859_1);
     }
 }
