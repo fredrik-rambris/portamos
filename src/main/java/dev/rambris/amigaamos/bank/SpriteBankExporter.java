@@ -164,11 +164,11 @@ public class SpriteBankExporter {
             } else {
                 sn.put("x", sheetX);
                 sn.put("widthPixels", sprite.widthPixels());
-                sn.put("widthWords", sprite.widthWords());
+                //sn.put("widthWords", sprite.widthWords());
                 sn.put("height", sprite.height());
                 sn.put("planes", sprite.planes());
-                sn.put("hotspotX", sprite.hotspotX());
-                sn.put("hotspotY", sprite.hotspotY());
+                if (sprite.hotspotX() != 0) sn.put("hotspotX", sprite.hotspotX());
+                if (sprite.hotspotY() != 0) sn.put("hotspotY", sprite.hotspotY());
                 sheetX += sprite.widthPixels();
             }
         }
