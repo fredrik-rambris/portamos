@@ -9,8 +9,6 @@ package dev.rambris.amigaamos.bank;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,7 +50,7 @@ public class ResourceBankExporter {
         var spritesheetFilename = normalizeFilename(bank.imagePath(), ext);
         if (spritesheetFilename == null) spritesheetFilename = "spritesheet." + ext;
         Files.createDirectories(outDir);
-        exportSpriteSheet(bank, outDir.resolve(spritesheetFilename), ilbm ? "IFF" : "PNG");
+        exportSpriteSheet(bank, outDir.resolve(spritesheetFilename), ilbm);
         exportPrograms(bank, outDir);
         exportMetadata(bank, outDir, spritesheetFilename);
     }
@@ -73,7 +71,7 @@ public class ResourceBankExporter {
     // Sprite sheet
     // -------------------------------------------------------------------------
 
-    private void exportSpriteSheet(ResourceBank bank, Path dest, String format) throws IOException {
+    private void exportSpriteSheet(ResourceBank bank, Path dest, boolean ilbm) throws IOException {
         // Compute bounding box of all images
         int sheetW = 0, sheetH = 0;
         int maxColour = 0;
@@ -90,13 +88,7 @@ public class ResourceBankExporter {
             return;
         }
 
-
-        var colorModel = AmigaPalette.buildIndexColorModel(bank.palette(), maxColour);
-
-        var sheet = new BufferedImage(sheetW, sheetH,
-                BufferedImage.TYPE_BYTE_INDEXED, colorModel);
-        var raster = sheet.getRaster();
-
+        var allPixels = new int[sheetH][sheetW];
         int decoded = 0, errors = 0;
         for (var el : bank.elements()) {
             for (var img : el.images()) {
@@ -109,7 +101,7 @@ public class ResourceBankExporter {
                             int px = img.x() + x;
                             int py = img.y() + y;
                             if (px < sheetW && py < sheetH) {
-                                raster.setSample(px, py, 0, pixels[y][x]);
+                                allPixels[py][px] = pixels[y][x];
                             }
                         }
                     }
@@ -122,7 +114,12 @@ public class ResourceBankExporter {
             }
         }
 
-        ImageIO.write(sheet, format, dest.toFile());
+        if (ilbm) {
+            int planes = Integer.numberOfTrailingZeros(maxColour);
+            IndexedPngWriter.writeIlbm(bank.palette(), planes, allPixels, sheetW, sheetH, dest);
+        } else {
+            IndexedPngWriter.writePng(bank.palette(), maxColour, allPixels, sheetW, sheetH, dest);
+        }
         System.out.printf("Sprite sheet: %dx%d px, %d images decoded%s → %s%n",
                 sheetW, sheetH, decoded,
                 errors > 0 ? " (" + errors + " errors)" : "",

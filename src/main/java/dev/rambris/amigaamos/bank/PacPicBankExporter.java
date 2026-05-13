@@ -9,8 +9,6 @@ package dev.rambris.amigaamos.bank;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -52,8 +50,11 @@ public class PacPicBankExporter {
                 ? bank.screenHeader().palette()
                 : new int[32];
 
-        var image = toIndexedImage(pixels, width, height, palette, maxColors);
-        ImageIO.write(image, ilbm ? "IFF" : "PNG", imagePath.toFile());
+        if (ilbm) {
+            IndexedPngWriter.writeIlbm(palette, planes, pixels, width, height, imagePath);
+        } else {
+            IndexedPngWriter.writePng(palette, maxColors, pixels, width, height, imagePath);
+        }
 
         var jsonPath = Path.of(imagePath.toString() + ".json");
         var root = JSON.createObjectNode();
@@ -87,19 +88,6 @@ public class PacPicBankExporter {
         }
 
         JSON.writeValue(jsonPath.toFile(), root);
-    }
-
-    private static BufferedImage toIndexedImage(
-            int[][] pixels, int width, int height, int[] amigaPalette, int maxColors) {
-        var cm = AmigaPalette.buildIndexColorModel(amigaPalette, maxColors);
-        var image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_INDEXED, cm);
-        var raster = image.getRaster();
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                raster.setSample(x, y, 0, pixels[y][x]);
-            }
-        }
-        return image;
     }
 
     private static int maxIndex(int[][] pixels) {

@@ -9,8 +9,6 @@ package dev.rambris.amigaamos.bank;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,7 +55,7 @@ public class SpriteBankExporter {
     public void export(SpriteBank bank, Path outDir, boolean ilbm) throws IOException {
         Files.createDirectories(outDir);
         var spritesheetName = ilbm ? "spritesheet.iff" : "spritesheet.png";
-        exportSpritesheet(bank, outDir.resolve(spritesheetName), ilbm ? "IFF" : "PNG");
+        exportSpritesheet(bank, outDir.resolve(spritesheetName), ilbm);
         exportMetadata(bank, outDir, spritesheetName);
     }
 
@@ -65,7 +63,7 @@ public class SpriteBankExporter {
     // Spritesheet
     // -------------------------------------------------------------------------
 
-    private void exportSpritesheet(SpriteBank bank, Path dest, String format) throws IOException {
+    private void exportSpritesheet(SpriteBank bank, Path dest, boolean ilbm) throws IOException {
         // Determine sheet dimensions and max colour depth
         int sheetW = 0, sheetH = 0, maxPlanes = 0;
         for (var s : bank.sprites()) {
@@ -81,23 +79,24 @@ public class SpriteBankExporter {
         }
 
         int maxColors = 1 << maxPlanes;
-        var colorModel = AmigaPalette.buildIndexColorModel(bank.palette(), maxColors);
-        var sheet = new BufferedImage(sheetW, sheetH, BufferedImage.TYPE_BYTE_INDEXED, colorModel);
-        var raster = sheet.getRaster();
-
+        var allPixels = new int[sheetH][sheetW];
         int x = 0;
         for (var sprite : bank.sprites()) {
             if (sprite.isEmpty()) continue;
             var pixels = toIndexedPixels(sprite);
             for (int py = 0; py < sprite.height(); py++) {
                 for (int px = 0; px < sprite.widthPixels(); px++) {
-                    raster.setSample(x + px, py, 0, pixels[py][px]);
+                    allPixels[py][x + px] = pixels[py][px];
                 }
             }
             x += sprite.widthPixels();
         }
 
-        ImageIO.write(sheet, format, dest.toFile());
+        if (ilbm) {
+            IndexedPngWriter.writeIlbm(bank.palette(), maxPlanes, allPixels, sheetW, sheetH, dest);
+        } else {
+            IndexedPngWriter.writePng(bank.palette(), maxColors, allPixels, sheetW, sheetH, dest);
+        }
         System.out.printf("Sprite sheet: %dx%d px, %d sprites → %s%n",
                 sheetW, sheetH, bank.sprites().size(), dest);
     }
