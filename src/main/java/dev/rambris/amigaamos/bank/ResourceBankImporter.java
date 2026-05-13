@@ -9,9 +9,6 @@ package dev.rambris.amigaamos.bank;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.imageio.ImageIO;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -61,18 +58,13 @@ public class ResourceBankImporter {
         var spritesheetFile = root.path("spritesheet").asText("spritesheet.png");
         var spritesheetPath = jsonPath.resolveSibling(spritesheetFile);
 
-        // Load spritesheet; derive bitplane count from numColours in JSON (preferred)
-        // because Java always writes 8-bit indexed PNGs regardless of the original depth.
-        var sheet = ImageIO.read(spritesheetPath.toFile());
-        if (sheet == null) throw new IOException("Cannot read spritesheet: " + spritesheetPath);
-        if (!(sheet.getColorModel() instanceof IndexColorModel cm)) {
-            throw new IllegalStateException("Spritesheet must be an indexed-colour image: " + spritesheetPath);
-        }
+        var sheet = IndexedPngWriter.readPixels(spritesheetPath);
         var numColours = root.path("numColours").asInt(0);
-        var planes = numColours > 0 ? colorModelToPlanes(numColours) : colorModelToPlanes(cm.getMapSize());
-        var raster = sheet.getRaster();
+        var planes = numColours > 0
+                ? colorModelToPlanes(numColours)
+                : colorModelToPlanes(sheet.numColors());
 
-        var elements = parseElements(root.path("elements"), raster, planes);
+        var elements = parseElements(root.path("elements"), sheet.pixels(), planes);
         var texts    = parseTexts(root.path("texts"));
         var programs = parsePrograms(root.path("programs"), jsonPath.getParent());
 
@@ -85,27 +77,27 @@ public class ResourceBankImporter {
     // -------------------------------------------------------------------------
 
     private List<ResourceBank.Element> parseElements(JsonNode elementsNode,
-                                                      WritableRaster raster, int planes) {
+                                                      int[][] sheetPixels, int planes) {
         var elements = new ArrayList<ResourceBank.Element>();
         if (elementsNode.isMissingNode()) return elements;
         for (var elNode : elementsNode) {
             var name   = elNode.has("name") ? elNode.get("name").asText() : null;
             var type   = elNode.has("type") ? elNode.get("type").asText() : null;
-            var images = parseImages(elNode.path("images"), raster, planes);
+            var images = parseImages(elNode.path("images"), sheetPixels, planes);
             elements.add(new ResourceBank.Element(name, type, images));
         }
         return elements;
     }
 
     private List<ResourceBank.Image> parseImages(JsonNode imagesNode,
-                                                   WritableRaster raster, int planes) {
+                                                   int[][] sheetPixels, int planes) {
         var images = new ArrayList<ResourceBank.Image>();
         for (var imgNode : imagesNode) {
             var x      = imgNode.get("x").asInt();
             var y      = imgNode.get("y").asInt();
             var w      = imgNode.get("width").asInt();
             var h      = imgNode.get("height").asInt();
-            var pixels = extractRegion(raster, x, y, w, h);
+            var pixels = extractRegion(sheetPixels, x, y, w, h);
             var data   = PacPicEncoder.compress(pixels, x, y, planes);
             images.add(new ResourceBank.Image(x, y, w, h, planes, data));
         }
@@ -166,12 +158,12 @@ public class ResourceBankImporter {
         return Math.max(planes, 1);
     }
 
-    /** Extracts a rectangular region of palette-index pixels from a raster. */
-    private static int[][] extractRegion(WritableRaster raster, int x, int y, int w, int h) {
+    /** Extracts a rectangular region of palette-index pixels from a sheet. */
+    private static int[][] extractRegion(int[][] sheet, int x, int y, int w, int h) {
         var pixels = new int[h][w];
         for (int row = 0; row < h; row++) {
             for (int col = 0; col < w; col++) {
-                pixels[row][col] = raster.getSample(x + col, y + row, 0);
+                pixels[row][col] = sheet[y + row][x + col];
             }
         }
         return pixels;

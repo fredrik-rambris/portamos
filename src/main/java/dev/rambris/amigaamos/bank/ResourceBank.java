@@ -6,10 +6,6 @@
 
 package dev.rambris.amigaamos.bank;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -165,24 +161,21 @@ public record ResourceBank(
          * @throws IllegalStateException    if the PNG is not indexed-colour
          */
         public Builder image(Path spritesheet, Consumer<ElementConfig> cfg) throws IOException {
-            BufferedImage img = ImageIO.read(spritesheet.toFile());
-            if (img == null) throw new IOException("Cannot read image: " + spritesheet);
-            if (!(img.getColorModel() instanceof IndexColorModel cm)) {
-                throw new IllegalStateException("Sprite sheet must be an indexed-colour PNG: " + spritesheet);
-            }
+            var img = IndexedPngWriter.readPixels(spritesheet);
 
-            // Derive bitplanes from the colour model map size
-            int nColors = cm.getMapSize();
+            int nColors = img.numColors();
             int planes = 0;
             while ((1 << planes) < nColors) planes++;
             if (planes == 0) planes = 1;
 
             // Populate palette and imagePath on first call (if not set explicitly)
             if (Arrays.equals(palette, new int[32])) {
+                var pal24 = img.palette24();
                 for (int i = 0; i < Math.min(nColors, 32); i++) {
-                    int r = Math.round(cm.getRed(i) / 17.0f) & 0xF;
-                    int g = Math.round(cm.getGreen(i) / 17.0f) & 0xF;
-                    int b = Math.round(cm.getBlue(i) / 17.0f) & 0xF;
+                    int rgb = i < pal24.length ? pal24[i] : 0;
+                    int r = Math.round(((rgb >> 16) & 0xFF) / 17.0f) & 0xF;
+                    int g = Math.round(((rgb >>  8) & 0xFF) / 17.0f) & 0xF;
+                    int b = Math.round(( rgb        & 0xFF) / 17.0f) & 0xF;
                     palette[i] = (r << 8) | (g << 4) | b;
                 }
             }
@@ -190,7 +183,7 @@ public record ResourceBank(
                 imagePath = spritesheet.getFileName().toString();
             }
 
-            WritableRaster raster = img.getRaster();
+            var sheetPixels = img.pixels();
 
             ElementConfig ec = new ElementConfig();
             cfg.accept(ec);
@@ -198,7 +191,7 @@ public record ResourceBank(
             for (ElementConfig.Spec spec : ec.specs()) {
                 switch (spec.kind()) {
                     case IMAGE -> {
-                        int[][] px = extractRegion(raster, spec.x(), spec.y(), spec.w(), spec.h());
+                        int[][] px = extractRegion(sheetPixels, spec.x(), spec.y(), spec.w(), spec.h());
                         byte[] data = PacPicEncoder.compress(px, spec.x(), spec.y(), planes);
                         elements.add(new Element(null, null,
                                 List.of(new Image(spec.x(), spec.y(), spec.w(), spec.h(), planes, data))));
@@ -209,7 +202,7 @@ public record ResourceBank(
                             for (int col = 0; col < 3; col++) {
                                 int ix = spec.x() + col * spec.w();
                                 int iy = spec.y() + row * spec.h();
-                                int[][] px = extractRegion(raster, ix, iy, spec.w(), spec.h());
+                                int[][] px = extractRegion(sheetPixels, ix, iy, spec.w(), spec.h());
                                 byte[] data = PacPicEncoder.compress(px, ix, iy, planes);
                                 imgs.add(new Image(ix, iy, spec.w(), spec.h(), planes, data));
                             }
@@ -220,7 +213,7 @@ public record ResourceBank(
                         List<Image> imgs = new ArrayList<>(3);
                         for (int col = 0; col < 3; col++) {
                             int ix = spec.x() + col * spec.w();
-                            int[][] px = extractRegion(raster, ix, spec.y(), spec.w(), spec.h());
+                            int[][] px = extractRegion(sheetPixels, ix, spec.y(), spec.w(), spec.h());
                             byte[] data = PacPicEncoder.compress(px, ix, spec.y(), planes);
                             imgs.add(new Image(ix, spec.y(), spec.w(), spec.h(), planes, data));
                         }
@@ -230,7 +223,7 @@ public record ResourceBank(
                         List<Image> imgs = new ArrayList<>(3);
                         for (int row = 0; row < 3; row++) {
                             int iy = spec.y() + row * spec.h();
-                            int[][] px = extractRegion(raster, spec.x(), iy, spec.w(), spec.h());
+                            int[][] px = extractRegion(sheetPixels, spec.x(), iy, spec.w(), spec.h());
                             byte[] data = PacPicEncoder.compress(px, spec.x(), iy, planes);
                             imgs.add(new Image(spec.x(), iy, spec.w(), spec.h(), planes, data));
                         }
@@ -247,11 +240,11 @@ public record ResourceBank(
                     List.copyOf(elements), List.copyOf(texts), List.copyOf(programs));
         }
 
-        private static int[][] extractRegion(WritableRaster raster, int x, int y, int w, int h) {
+        private static int[][] extractRegion(int[][] sheet, int x, int y, int w, int h) {
             int[][] pixels = new int[h][w];
             for (int row = 0; row < h; row++) {
                 for (int col = 0; col < w; col++) {
-                    pixels[row][col] = raster.getSample(x + col, y + row, 0);
+                    pixels[row][col] = sheet[y + row][x + col];
                 }
             }
             return pixels;

@@ -9,9 +9,6 @@ package dev.rambris.amigaamos.bank;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.imageio.ImageIO;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -44,18 +41,15 @@ public class SpriteBankImporter {
         var spritesheetFile = root.path("spritesheet").asText("spritesheet.png");
         var spritesheetPath = jsonPath.resolveSibling(spritesheetFile);
 
-        var sheet = ImageIO.read(spritesheetPath.toFile());
-        if (sheet == null) throw new IOException("Cannot read spritesheet: " + spritesheetPath);
-        if (!(sheet.getColorModel() instanceof IndexColorModel cm)) {
-            throw new IllegalStateException("Spritesheet must be an indexed-colour image: " + spritesheetPath);
-        }
-        var raster = sheet.getRaster();
+        var sheet = IndexedPngWriter.readPixels(spritesheetPath);
 
         var numColours = root.path("numColours").asInt(0);
-        var defaultPlanes = numColours > 0 ? colorModelToPlanes(numColours) : colorModelToPlanes(cm.getMapSize());
+        var defaultPlanes = numColours > 0
+                ? colorModelToPlanes(numColours)
+                : colorModelToPlanes(sheet.numColors());
 
         var palette = parsePalette(root.path("palette"));
-        var sprites = parseSprites(root.path("sprites"), raster, defaultPlanes);
+        var sprites = parseSprites(root.path("sprites"), sheet.pixels(), defaultPlanes);
 
         return new SpriteBank(bankType, List.copyOf(sprites), palette);
     }
@@ -64,7 +58,7 @@ public class SpriteBankImporter {
     // Sprites
     // -------------------------------------------------------------------------
 
-    private List<SpriteBank.Sprite> parseSprites(JsonNode spritesNode, WritableRaster raster, int defaultPlanes) {
+    private List<SpriteBank.Sprite> parseSprites(JsonNode spritesNode, int[][] sheetPixels, int defaultPlanes) {
         var sprites = new ArrayList<SpriteBank.Sprite>();
         if (spritesNode.isMissingNode()) return sprites;
 
@@ -87,7 +81,7 @@ public class SpriteBankImporter {
             var x = sn.path("x").asInt(0);
             var y = sn.path("y").asInt(0);
 
-            var data = extractPlanar(raster, x, y, widthWords, height, planes);
+            var data = extractPlanar(sheetPixels, x, y, widthWords, height, planes);
             sprites.add(new SpriteBank.Sprite(widthWords, height, planes, hotspotX, hotspotY, data));
         }
 
@@ -101,7 +95,7 @@ public class SpriteBankImporter {
      * all rows for plane 0, then plane 1, ...; each row is widthWords big-endian words.
      */
     private static byte[] extractPlanar(
-            WritableRaster raster, int x0, int y0, int widthWords, int height, int planes) {
+            int[][] sheetPixels, int x0, int y0, int widthWords, int height, int planes) {
 
         if (widthWords == 0 || height == 0 || planes == 0) {
             return new byte[0];
@@ -117,7 +111,7 @@ public class SpriteBankImporter {
                     for (int bit = 0; bit < 16; bit++) {
                         var px = x0 + w * 16 + bit;
                         var py = y0 + row;
-                        var idx = raster.getSample(px, py, 0);
+                        var idx = sheetPixels[py][px];
                         var b = (idx >> p) & 1;
                         word |= b << (15 - bit);
                     }

@@ -9,9 +9,6 @@ package dev.rambris.amigaamos.bank;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.imageio.ImageIO;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -39,31 +36,25 @@ public class PacPicBankImporter {
                 : root.path("pngFile").asText(defaultImageFilename(jsonPath));
         var imagePath = jsonPath.resolveSibling(imageFile);
 
-        var image = ImageIO.read(imagePath.toFile());
-        if (image == null) throw new IOException("Cannot read image: " + imagePath);
-        if (!(image.getColorModel() instanceof IndexColorModel cm)) {
-            throw new IllegalStateException("Image must be indexed-colour: " + imagePath);
-        }
+        var image = IndexedPngWriter.readPixels(imagePath);
 
         if (planes <= 0) {
-            planes = colorModelToPlanes(cm.getMapSize());
+            planes = colorModelToPlanes(image.numColors());
         }
 
-        var raster = image.getRaster();
-        var pixels = extractPixels(raster, image.getWidth(), image.getHeight());
-        var picData = PacPicEncoder.compress(pixels, srcX, srcY, planes);
+        var picData = PacPicEncoder.compress(image.pixels(), srcX, srcY, planes);
 
         PacPicBank.ScreenHeader screenHeader = null;
         if (spack) {
             var s = root.path("screen");
             var palette = parsePalette(s.path("palette"));
             screenHeader = new PacPicBank.ScreenHeader(
-                    s.path("width").asInt(image.getWidth()),
-                    s.path("height").asInt(image.getHeight()),
+                    s.path("width").asInt(image.width()),
+                    s.path("height").asInt(image.height()),
                     s.path("hardX").asInt(0),
                     s.path("hardY").asInt(0),
-                    s.path("displayWidth").asInt(image.getWidth()),
-                    s.path("displayHeight").asInt(image.getHeight()),
+                    s.path("displayWidth").asInt(image.width()),
+                    s.path("displayHeight").asInt(image.height()),
                     s.path("offsetX").asInt(0),
                     s.path("offsetY").asInt(0),
                     s.path("bplCon0").asInt(0),
@@ -82,16 +73,6 @@ public class PacPicBankImporter {
             return s.substring(0, s.length() - 5);
         }
         return "image.png";
-    }
-
-    private static int[][] extractPixels(WritableRaster raster, int w, int h) {
-        var pixels = new int[h][w];
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                pixels[y][x] = raster.getSample(x, y, 0);
-            }
-        }
-        return pixels;
     }
 
     private static int[] parsePalette(JsonNode paletteNode) {
