@@ -102,7 +102,7 @@ class IndexedPngWriter {
 
         if (colorType != 3) throw new IOException(
                 "Not an indexed-colour PNG (color type " + colorType + "): " + path);
-        if (bitDepth != 8) throw new IOException(
+        if (bitDepth != 1 && bitDepth != 2 && bitDepth != 4 && bitDepth != 8) throw new IOException(
                 "Unsupported PNG bit depth " + bitDepth + ": " + path);
 
         byte[] raw;
@@ -110,16 +110,26 @@ class IndexedPngWriter {
             raw = iis.readAllBytes();
         }
 
+        int rowBytes = (width * bitDepth + 7) / 8;
         var pixels = new int[height][width];
-        var prior  = new byte[width];
+        var prior  = new byte[rowBytes];
         int rawPos = 0;
         for (int y = 0; y < height; y++) {
             int filter = raw[rawPos++] & 0xFF;
-            var row = new byte[width];
-            System.arraycopy(raw, rawPos, row, 0, width);
-            rawPos += width;
-            applyFilter(filter, row, prior, width);
-            for (int x = 0; x < width; x++) pixels[y][x] = row[x] & 0xFF;
+            var row = new byte[rowBytes];
+            System.arraycopy(raw, rawPos, row, 0, rowBytes);
+            rawPos += rowBytes;
+            applyFilter(filter, row, prior, rowBytes);
+            if (bitDepth == 8) {
+                for (int x = 0; x < width; x++) pixels[y][x] = row[x] & 0xFF;
+            } else {
+                int pxPerByte = 8 / bitDepth;
+                int mask = (1 << bitDepth) - 1;
+                for (int x = 0; x < width; x++) {
+                    int shift = (pxPerByte - 1 - x % pxPerByte) * bitDepth;
+                    pixels[y][x] = (row[x / pxPerByte] >> shift) & mask;
+                }
+            }
             prior = row.clone();
         }
 
