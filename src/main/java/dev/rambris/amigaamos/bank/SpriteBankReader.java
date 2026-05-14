@@ -44,10 +44,11 @@ public class SpriteBankReader {
         var magicBytes = new byte[4];
         buf.get(magicBytes);
         var magic = new String(magicBytes, StandardCharsets.US_ASCII);
-        if (!MAGIC_SP.equals(magic) && !MAGIC_IC.equals(magic)) {
-            throw new IOException("Not an AmSp/AmIc file: magic=\"" + magic + "\"");
-        }
-        var bankType = MAGIC_IC.equals(magic) ? AmosBank.Type.ICONS : AmosBank.Type.SPRITES;
+        var bankType = switch (magic) {
+            case MAGIC_SP -> AmosBank.Type.SPRITES;
+            case MAGIC_IC -> AmosBank.Type.ICONS;
+            default -> throw new IOException("Not an AmSp/AmIc file: magic=\"" + magic + "\"");
+        };
 
         var count = buf.getShort() & 0xFFFF;
         var sprites = new ArrayList<SpriteBank.Sprite>(count);
@@ -74,7 +75,7 @@ public class SpriteBankReader {
         // 32-entry colour palette
         var palette = new int[32];
         for (int i = 0; i < 32; i++) {
-            palette[i] = buf.getShort() & 0xFFFF;
+            palette[i] = buf.getShort() & 0x0FFF;
         }
 
         return new SpriteBank(bankType, List.copyOf(sprites), palette);

@@ -69,11 +69,15 @@ public class SpriteBankImporter {
                 continue;
             }
 
-            var widthWords = sn.path("widthWords").asInt(0);
-            if (widthWords == 0) {
-                var widthPixels = sn.path("widthPixels").asInt(0);
-                widthWords = widthPixels / 16;
+            var width = sn.path("width").asInt(0);
+            if (width % 16 != 0) {
+                System.err.println("Warning: sprite width " + width + " is not divisible by 16 — truncating to nearest word");
             }
+            var widthWords = width / 16;
+            if (widthWords < 1) {
+                System.err.println("Invalid width on node: " + sn);
+            }
+
             var height = sn.path("height").asInt(0);
             var planes = sn.path("planes").asInt(defaultPlanes);
             var hotspotX = sn.path("hotspotX").asInt(0);

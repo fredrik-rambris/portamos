@@ -163,8 +163,7 @@ public class SpriteBankExporter {
                 sn.put("empty", true);
             } else {
                 sn.put("x", sheetX);
-                sn.put("widthPixels", sprite.widthPixels());
-                //sn.put("widthWords", sprite.widthWords());
+                sn.put("width", sprite.widthPixels());
                 sn.put("height", sprite.height());
                 sn.put("planes", sprite.planes());
                 if (sprite.hotspotX() != 0) sn.put("hotspotX", sprite.hotspotX());
