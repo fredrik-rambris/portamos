@@ -6,11 +6,10 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import java.io.IOException;
 import java.nio.file.Path;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Exports a {@link PacPicBank} to a PNG and sidecar JSON metadata.
@@ -24,8 +23,6 @@ import java.nio.file.Path;
  */
 public class PacPicBankExporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
 
     public void export(PacPicBank bank, Path imagePath) throws IOException {
         export(bank, imagePath, false);

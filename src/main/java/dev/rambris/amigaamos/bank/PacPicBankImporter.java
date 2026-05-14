@@ -7,10 +7,11 @@
 package dev.rambris.amigaamos.bank;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.file.Path;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Imports a {@link PacPicBank} from sidecar JSON metadata written by {@link PacPicBankExporter}.
@@ -19,7 +20,6 @@ import java.nio.file.Path;
  */
 public class PacPicBankImporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     public PacPicBank importFrom(Path jsonPath) throws IOException {
         var root = JSON.readTree(jsonPath.toFile());

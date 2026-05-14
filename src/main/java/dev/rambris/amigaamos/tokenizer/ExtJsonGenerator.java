@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import static dev.rambris.amigaamos.JsonConfig.JSON;
+
 /**
  * Generates a JSON definition skeleton from an AMOS Professional extension binary (.Lib file).
  *
@@ -51,8 +53,6 @@ import java.util.List;
  */
 public class ExtJsonGenerator {
 
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
 
     // -------------------------------------------------------------------------
     // Public API

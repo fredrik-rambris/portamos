@@ -13,6 +13,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dev.rambris.amigaamos.JsonConfig.JSON;
+
 /**
  * Imports an {@link InterpreterConfig} from a JSON file produced by {@link InterpreterConfigExporter}.
  *
@@ -21,7 +23,6 @@ import java.util.List;
  */
 public class InterpreterConfigImporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     public InterpreterConfig importFrom(Path jsonPath) throws IOException {
         var root = JSON.readTree(jsonPath.toFile());

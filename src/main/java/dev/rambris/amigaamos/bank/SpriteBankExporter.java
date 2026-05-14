@@ -6,12 +6,11 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Exports a parsed {@link SpriteBank} to an output directory.
@@ -29,9 +28,6 @@ import java.nio.file.Path;
  * deepest sprite in the bank.
  */
 public class SpriteBankExporter {
-
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
 
     /**
      * Exports the sprite bank to {@code outDir} as a PNG spritesheet (default).

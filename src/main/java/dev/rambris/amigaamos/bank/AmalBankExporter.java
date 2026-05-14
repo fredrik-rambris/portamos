@@ -15,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static dev.rambris.amigaamos.JsonConfig.JSON;
+
 /**
  * Exports a parsed {@link AmalBank} to an output directory.
  *
@@ -28,8 +30,6 @@ import java.nio.file.Path;
  */
 public class AmalBankExporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
 
     public void export(AmalBank bank, Path outDir) throws IOException {
         Files.createDirectories(outDir);

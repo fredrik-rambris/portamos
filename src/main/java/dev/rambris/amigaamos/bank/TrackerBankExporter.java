@@ -6,12 +6,11 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Exports a {@link TrackerBank} to an output directory.
@@ -26,8 +25,6 @@ public class TrackerBankExporter {
 
     private static final String MOD_FILE = "track.mod";
 
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
 
     public void export(TrackerBank bank, Path outDir) throws IOException {
         Files.createDirectories(outDir);

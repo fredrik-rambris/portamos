@@ -6,11 +6,11 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Exports a {@link RawBank} to a data file and a sidecar
@@ -41,8 +41,6 @@ import java.nio.file.Path;
  */
 public class RawBankExporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
 
     /**
      * Exports {@code bank} to {@code dataPath} (raw payload) and {@code dataPath + ".json"} (metadata).

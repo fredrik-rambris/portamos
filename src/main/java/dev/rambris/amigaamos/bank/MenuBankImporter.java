@@ -7,13 +7,14 @@
 package dev.rambris.amigaamos.bank;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Imports a {@link MenuBank} from a JSON metadata file previously produced by
@@ -41,7 +42,6 @@ import java.util.List;
  */
 public class MenuBankImporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     // Flag-bit masks (high byte of the MnFlag word)
     private static final int FL_FLAT     = 1 << 8;

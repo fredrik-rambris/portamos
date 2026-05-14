@@ -7,7 +7,6 @@
 package dev.rambris.amigaamos.bank;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.rambris.iff.codec.Svx8Codec;
 
 import javax.sound.sampled.AudioFormat;
@@ -19,6 +18,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dev.rambris.amigaamos.JsonConfig.JSON;
+
 /**
  * Imports a {@link MusicBank} from a JSON file previously produced by {@link MusicBankExporter}.
  *
@@ -28,7 +29,6 @@ import java.util.List;
  */
 public class MusicBankImporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     public MusicBank importFrom(Path jsonPath) throws IOException {
         var root = JSON.readTree(jsonPath.toFile());

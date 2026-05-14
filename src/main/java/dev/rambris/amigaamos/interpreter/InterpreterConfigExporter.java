@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 
+import static dev.rambris.amigaamos.JsonConfig.JSON;
+
 /**
  * Exports an {@link InterpreterConfig} to a human-readable JSON file.
  *
@@ -48,8 +50,6 @@ import java.util.Map;
  */
 public class InterpreterConfigExporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
 
     /**
      * Slot names keyed by 0-based string index.

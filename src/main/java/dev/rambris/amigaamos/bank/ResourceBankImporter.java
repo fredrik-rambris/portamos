@@ -7,13 +7,15 @@
 package dev.rambris.amigaamos.bank;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Imports a {@link ResourceBank} from a JSON metadata file previously produced by
@@ -35,7 +37,6 @@ import java.util.List;
  */
 public class ResourceBankImporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     /**
      * Imports a {@link ResourceBank} from the given JSON metadata file.

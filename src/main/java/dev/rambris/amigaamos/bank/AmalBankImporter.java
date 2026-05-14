@@ -16,6 +16,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dev.rambris.amigaamos.JsonConfig.JSON;
+
 /**
  * Imports an {@link AmalBank} from a JSON metadata file previously produced by
  * {@link AmalBankExporter}.
@@ -56,8 +58,6 @@ import java.util.List;
  * are converted back to {@code ~} for storage.
  */
 public class AmalBankImporter {
-
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     /**
      * Imports an {@link AmalBank} from the given {@code bank.json} metadata file.

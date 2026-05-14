@@ -6,8 +6,6 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -15,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Exports a {@link MenuBank} to an output directory.
@@ -59,8 +59,6 @@ import java.util.List;
  */
 public class MenuBankExporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
 
     // Flag-bit constants (operate on the HIGH byte of the MnFlag word)
     private static final int FL_FLAT     = 1 << 8;  // bit 0 of high byte → word bit 8

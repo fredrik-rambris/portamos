@@ -6,13 +6,12 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Exports a parsed {@link ResourceBank} to an output directory.
@@ -30,8 +29,7 @@ import java.util.regex.Pattern;
 public class ResourceBankExporter {
 
     private static final Pattern FILNAME_PATTERN = Pattern.compile(".*[/\\\\:](?<base>[^/\\\\:].+?)(\\.(?<ext>[^.]+))?$");
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
+
 
     public void export(ResourceBank bank, Path outDir) throws IOException {
         export(bank, outDir, false);

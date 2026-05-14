@@ -7,13 +7,14 @@
 package dev.rambris.amigaamos.tokenizer;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Loads and indexes the AMOS token tables from the JSON definition files.
@@ -32,7 +33,6 @@ import java.util.*;
  */
 class TokenTable {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     /**
      * One binary form of a keyword.

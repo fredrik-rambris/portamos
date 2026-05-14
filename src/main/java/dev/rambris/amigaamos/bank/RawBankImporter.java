@@ -6,11 +6,11 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Imports a {@link RawBank} from a JSON metadata file
@@ -28,7 +28,6 @@ import java.nio.file.Path;
  */
 public class RawBankImporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     /**
      * Imports a Work or Data bank from the given JSON metadata file.

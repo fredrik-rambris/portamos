@@ -6,8 +6,6 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.rambris.iff.codec.Svx8Codec;
 import dev.rambris.iff.codec.Svx8Sound;
 import dev.rambris.iff.codec.VhdrChunk;
@@ -20,6 +18,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
  * Exports a {@link SampleBank} to an output directory.
@@ -37,8 +37,6 @@ import java.nio.file.Path;
  */
 public class SampleBankExporter {
 
-    private static final ObjectMapper JSON = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
 
     /** Exports to WAV (default). */
     public void export(SampleBank bank, Path outDir) throws IOException {
