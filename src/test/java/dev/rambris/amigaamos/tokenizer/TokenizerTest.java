@@ -152,11 +152,13 @@ class TokenizerTest {
      *   - Float tokens (0x0046): values compared within ±2 ULP
      */
     private void assertAmosFilesStructurallyEqual(byte[] expected, byte[] actual) {
-        // Version string (bytes 0–11); bytes 12–15 are file-specific metadata not
-        // derivable from the ASCII source, so we skip them.
+        // Version format family: bytes 0–10 ("AMOS Basic " / "AMOS Pro101").
+        // Byte 11 is the tested/untested marker (uppercase V = tested by AMOS, lowercase v = untested);
+        // portamos always writes lowercase v, so we skip byte 11.
+        // Bytes 12–15 are file-specific metadata not derivable from ASCII source.
         assertArrayEquals(
-                Arrays.copyOfRange(expected, 0, 12),
-                Arrays.copyOfRange(actual, 0, 12),
+                Arrays.copyOfRange(expected, 0, 11),
+                Arrays.copyOfRange(actual, 0, 11),
                 "Version headers differ");
 
         List<byte[]> expLines = extractLines(expected);

@@ -8,7 +8,6 @@ package dev.rambris.amigaamos.bank;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.awt.image.IndexColorModel;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,7 +30,7 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  *   spritesheet resolved to: /path/to/exported/dark-boxes.png
  * </pre>
  *
- * <p>The number of bitplanes is derived from the PNG's {@link IndexColorModel} map size,
+ * <p>The number of bitplanes is derived from the PNG's {IndexColorModel} map size,
  * matching what {@link ResourceBankExporter} wrote.  The palette is read from {@code bank.json};
  * values are stored as {@code "#RGB"} (3 hex nibbles, Amiga 12-bit encoding).
  */

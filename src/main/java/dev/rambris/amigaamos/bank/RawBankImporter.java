@@ -40,7 +40,7 @@ public class RawBankImporter {
     public RawBank importFrom(Path jsonPath) throws IOException {
         var root = JSON.readTree(jsonPath.toFile());
 
-        var typeName     = root.path("type").asText();
+        var typeName     = root.path("type").asText("").toUpperCase();
         short bankNumber = (short) root.path("bankNumber").asInt(1);
         boolean chipRam  = root.path("chipRam").asBoolean(false);
         var dataFile     = root.path("dataFile").asText();

@@ -123,10 +123,10 @@ class AmosFileReader {
 
         // AMOS Pro — both portamos output ("v") and original AMOS files ("V")
         if (header.startsWith("AMOS Pro101")) return AmosVersion.PRO_101;
-        // AMOS Basic 1.34 uses uppercase "V"
-        if (header.startsWith("AMOS Basic V1")) return AmosVersion.BASIC_134;
-        // AMOS Basic 1.3 uses lowercase "v"
-        if (header.startsWith("AMOS Basic v1")) return AmosVersion.BASIC_13;
+        // AMOS Basic 1.34: AMOS writes uppercase "V" (tested), portamos writes lowercase "v"
+        if (header.startsWith("AMOS Basic V134") || header.startsWith("AMOS Basic v134")) return AmosVersion.BASIC_134;
+        // AMOS Basic 1.3 uses lowercase "v" followed by "1.3"
+        if (header.startsWith("AMOS Basic v1.3") || header.startsWith("AMOS Basic V1.3")) return AmosVersion.BASIC_13;
 
         return AmosVersion.PRO_101;
     }

@@ -6,7 +6,6 @@
 
 package dev.rambris.amigaamos;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.rambris.amigaamos.bank.*;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigExporter;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigImporter;
@@ -15,6 +14,7 @@ import dev.rambris.amigaamos.interpreter.InterpreterConfigWriter;
 import dev.rambris.amigaamos.tokenizer.AmosDump;
 import dev.rambris.amigaamos.tokenizer.ExtJsonGenerator;
 import dev.rambris.amigaamos.tokenizer.Tokenizer;
+import dev.rambris.amigaamos.tokenizer.model.AmosVersion;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -28,6 +28,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 @Command(
         name = "portamos",
@@ -122,10 +124,19 @@ public class Main implements Callable<Integer> {
                 description = "Charset for reading the source file (default: UTF-8). Use ISO-8859-1 for legacy Latin-1 .Asc files.")
         Charset charset = StandardCharsets.UTF_8;
 
+        @Option(names = "--amos-version", paramLabel = "<version>",
+                description = "AMOS version for the output file header: pro101 (default), basic13, basic134.")
+        String amosVersion = "pro101";
+
         @Override
         public Integer call() throws Exception {
             System.out.println("Reading " + source);
-            var tokenizer = new Tokenizer();
+            var version = switch (amosVersion.toLowerCase()) {
+                case "basic13" -> AmosVersion.BASIC_13;
+                case "basic134" -> AmosVersion.BASIC_134;
+                default -> AmosVersion.PRO_101;
+            };
+            var tokenizer = new Tokenizer(version);
             for (var id : noDefinitions) tokenizer.withoutDefinition(id);
             for (var defPath : definitions) {
                 System.out.println("Loading definition " + defPath);
@@ -528,8 +539,7 @@ public class Main implements Callable<Integer> {
 
     /** Auto-detects bank type from the {@code "type"} field in the JSON and imports the bank. */
     static AmosBank importBankFromJson(Path jsonPath) throws IOException {
-        var mapper = new ObjectMapper();
-        var root = mapper.readTree(jsonPath.toFile());
+        var root = JSON.readTree(jsonPath.toFile());
         var type = root.path("type").asText("");
         return switch (type.toLowerCase()) {
             case "resource" -> new ResourceBankImporter().importFrom(jsonPath);

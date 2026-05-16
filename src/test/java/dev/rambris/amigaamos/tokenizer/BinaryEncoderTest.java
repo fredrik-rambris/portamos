@@ -28,9 +28,9 @@ class BinaryEncoderTest {
 
     @Test
     void emptyLine() {
-        // Just EOL, indent=1: 2 bytes header + 2 bytes EOL = 4 bytes = 2 words
+        // Blank lines always use indent=0 regardless of context (matches AMOS behaviour)
         assertArrayEquals(
-                hex("02 01 00 00"),
+                hex("02 00 00 00"),
                 encoder.encodeLine(1, List.of())
         );
     }
@@ -47,10 +47,10 @@ class BinaryEncoderTest {
 
     @Test
     void singleQuoteRem_oddLength() {
-        // " xy" = 3 chars → needs 1 pad byte
+        // " xy" = 3 chars, padded len stored as 4 so AMOS VerRem skips correctly
         // Header(2) + token(2) + unused(1) + len(1) + text(3) + pad(1) + EOL(2) = 12 = 6 words
         assertArrayEquals(
-                hex("06 00 06 52 00 03 20 78 79 00 00 00"),
+                hex("06 00 06 52 00 04 20 78 79 00 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.SingleQuoteRem(" xy")))
         );
     }
@@ -231,10 +231,10 @@ class BinaryEncoderTest {
 
     @Test
     void extKeyword() {
-        // $004E [slot:1 byte] [unused:00] [offset:2 bytes big-endian]
-        // Header(2) + token(2) + slot(1) + unused(1) + offset(2) + EOL(2) = 10 = 5 words
+        // $004E [slot:1 byte] [0xFF unresolved marker] [offset:2 bytes big-endian]
+        // Header(2) + token(2) + slot(1) + 0xFF(1) + offset(2) + EOL(2) = 10 = 5 words
         assertArrayEquals(
-                hex("05 00 00 4E 03 00 00 0A 00 00"),
+                hex("05 00 00 4E 03 FF 00 0A 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.ExtKeyword(3, 10)))
         );
     }
@@ -251,10 +251,10 @@ class BinaryEncoderTest {
 
     @Test
     void procRef() {
-        // ProcRef "hi": nameLen=2 (even) → n=2, unk2=n+2=4, flags=0x80, no null
-        // Header(2) + token(2) + 00(1) + 04(1) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
+        // ProcRef "hi": unk1=0xFF (AMOS "unresolved" marker, patched at load time), flags=0x80
+        // Header(2) + token(2) + FF(1) + 00(1) + n(1) + flags(1) + name(2) + EOL(2) = 12 = 6 words
         assertArrayEquals(
-                hex("06 00 00 12 00 00 02 80 68 69 00 00"),
+                hex("06 00 00 12 FF 00 02 80 68 69 00 00"),
                 encoder.encodeLine(0, List.of(new AmosToken.ProcRef("hi")))
         );
     }

@@ -10,7 +10,9 @@ import dev.rambris.amigaamos.bank.AmosBank;
 import dev.rambris.amigaamos.tokenizer.model.AmosVersion;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Writes the complete AMOS binary file format.
@@ -52,16 +54,20 @@ class AmosFileWriter {
      * <p>Line layout: [wordCount:1][indent:1][0x03:1][0x76:1][size:4][key3:2][flags:1][seedLo:1][...variable token...][EOL:2]
      */
     private static final int PROC_OFF_SIZE  = 4;
+    /** Byte offset for key3 (symbol-table size = varCount * 6) in a Procedure line. */
+    private static final int PROC_OFF_KEY3  = 8;
     private static final int PROC_OFF_FLAGS = 10;
 
     /**
      * Constant used in the size-field formula.
-     * {@code size = procLineLen + innerLinesLen - PROC_SIZE_BIAS}
+     * {@code size = procLineLen + bodyLinesLen - PROC_SIZE_BIAS}
      *
-     * <p>From the wiki: {@code start_of_end_proc = start_of_proc_line + 8 + size},
-     * which means {@code size + 14 = procLineLen + innerLinesLen}.
+     * <p>From the wiki: {@code start_of_end_proc = start_of_proc_line + 8 + size}.
+     * Body excludes End Proc so the formula works regardless of how many tokens
+     * follow End Proc (e.g. {@code End Proc[returnValue]} is longer than a bare End Proc).
+     * For compiled procedures {@code compiledBodyLen} is added to bodyLinesLen before applying the bias.
      */
-    private static final int PROC_SIZE_BIAS = 14;
+    private static final int PROC_SIZE_BIAS = 8;
 
     // -------------------------------------------------------------------------
     // Write
@@ -78,13 +84,18 @@ class AmosFileWriter {
      */
     byte[] write(AmosVersion version, List<byte[]> encodedLines, List<AmosBank> banks,
                  boolean foldProcedures) {
-        return write(version, encodedLines, banks, foldProcedures, null);
+        return write(version, encodedLines, banks, foldProcedures, null, Collections.emptyMap());
     }
 
     byte[] write(AmosVersion version, List<byte[]> encodedLines, List<AmosBank> banks,
                  boolean foldProcedures, byte[] compiledBody) {
+        return write(version, encodedLines, banks, foldProcedures, compiledBody, Collections.emptyMap());
+    }
+
+    byte[] write(AmosVersion version, List<byte[]> encodedLines, List<AmosBank> banks,
+                 boolean foldProcedures, byte[] compiledBody, Map<Integer, Integer> procKey3) {
         postProcessProcedures(encodedLines, foldProcedures,
-                compiledBody != null ? compiledBody.length : 0);
+                compiledBody != null ? compiledBody.length : 0, procKey3);
 
         int codeLen = encodedLines.stream().mapToInt(l -> l.length).sum()
                       + (compiledBody != null ? compiledBody.length : 0);
@@ -153,7 +164,7 @@ class AmosFileWriter {
      * procedure.
      */
     private static void postProcessProcedures(List<byte[]> lines, boolean foldByDefault,
-                                              int compiledBodyLen) {
+                                              int compiledBodyLen, Map<Integer, Integer> procKey3) {
         for (int i = 0; i < lines.size(); i++) {
             var line = lines.get(i);
             if (!isProcLine(line)) continue;
@@ -165,9 +176,17 @@ class AmosFileWriter {
             line[PROC_OFF_FLAGS] = (byte) (isCompiled ? PROC_COMPILED_FLAGS
                     : (foldByDefault ? PROC_FOLDED : 0));
 
-            // Compute size: sum of inner line lengths, plus compiled body bytes if present.
+            // key3: symbol-table byte size (varCount * 6) for this procedure.
+            int key3 = procKey3.getOrDefault(i, 0);
+            line[PROC_OFF_KEY3    ] = (byte)((key3 >>  8) & 0xFF);
+            line[PROC_OFF_KEY3 + 1] = (byte)( key3        & 0xFF);
+
+            // Compute size: sum of body line lengths (excluding the End Proc / compiled-body
+            // marker line itself), plus compiled body bytes if present.
+            // End Proc is excluded so the formula is correct even when End Proc carries
+            // extra tokens (e.g. "End Proc[returnValue]").
             var innerLen = 0;
-            for (int j = i + 1; j <= endIdx; j++) innerLen += lines.get(j).length;
+            for (int j = i + 1; j < endIdx; j++) innerLen += lines.get(j).length;
             if (isCompiled) innerLen += compiledBodyLen;
             var size = line.length + innerLen - PROC_SIZE_BIAS;
 

@@ -6,8 +6,6 @@
 
 package dev.rambris.amigaamos.interpreter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;

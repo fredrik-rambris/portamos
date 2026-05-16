@@ -7686,22 +7686,6 @@
       "documentation": "Assign an AMAL program to an animation channel.",
       "signatures": [
         {
-          "presentation": "Amal channel number, \"instruction string\"",
-          "parameters": [
-            {
-              "kind": "value",
-              "name": "channel number",
-              "valueType": "integer"
-            },
-            {
-              "kind": "value",
-              "name": "instruction string",
-              "valueType": "string"
-            }
-          ],
-          "offset": 8210
-        },
-        {
           "presentation": "Amal channel number, program number",
           "parameters": [
             {
@@ -7716,6 +7700,22 @@
             }
           ],
           "offset": 8224
+        },
+        {
+          "presentation": "Amal channel number, \"instruction string\"",
+          "parameters": [
+            {
+              "kind": "value",
+              "name": "channel number",
+              "valueType": "integer"
+            },
+            {
+              "kind": "value",
+              "name": "instruction string",
+              "valueType": "string"
+            }
+          ],
+          "offset": 8210
         },
         {
           "presentation": "Amal channel number, memory bank address",
@@ -8050,7 +8050,7 @@
               "valueType": "integer"
             }
           ],
-          "offset": 8112
+          "offset": 8098
         },
         {
           "presentation": "Amreg(channel, number)",
@@ -8066,7 +8066,7 @@
               "valueType": "integer"
             }
           ],
-          "offset": 8098
+          "offset": 8112
         }
       ],
       "link": "https://amospromanual.dev/07-06-amal.html#resv-am-reg",

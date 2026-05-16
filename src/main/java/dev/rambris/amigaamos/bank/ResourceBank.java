@@ -152,7 +152,7 @@ public record ResourceBank(
          *
          * <p>The palette and {@code imagePath} are derived from the sprite sheet on the
          * first call (if not already set explicitly via {@link #palette} / {@link #imagePath}).
-         * The number of bitplanes is computed from the PNG's {@link IndexColorModel} map size.
+         * The number of bitplanes is computed from the PNG's {IndexColorModel} map size.
          *
          * @param spritesheet path to an indexed-colour PNG
          * @param cfg         element configuration callback

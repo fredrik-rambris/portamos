@@ -6,12 +6,12 @@
 
 package dev.rambris.amigaamos.interpreter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 
+import static dev.rambris.amigaamos.JsonConfig.JSON;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InterpreterConfigTest {
@@ -173,7 +173,7 @@ class InterpreterConfigTest {
         Path jsonPath = tmp.resolve("config.json");
         new InterpreterConfigExporter().export(config, jsonPath);
 
-        var json = new ObjectMapper().readTree(jsonPath.toFile());
+        var json = JSON.readTree(jsonPath.toFile());
         assertTrue(json.has("bobs"), "JSON must have bobs");
         assertTrue(json.has("defPalette"), "JSON must have defPalette");
         assertTrue(json.get("defPalette").isArray(), "defPalette must be array");
