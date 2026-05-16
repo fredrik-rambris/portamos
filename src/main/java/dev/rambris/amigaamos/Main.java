@@ -11,9 +11,7 @@ import dev.rambris.amigaamos.interpreter.InterpreterConfigExporter;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigImporter;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigReader;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigWriter;
-import dev.rambris.amigaamos.tokenizer.AmosDump;
-import dev.rambris.amigaamos.tokenizer.ExtJsonGenerator;
-import dev.rambris.amigaamos.tokenizer.Tokenizer;
+import dev.rambris.amigaamos.tokenizer.*;
 import dev.rambris.amigaamos.tokenizer.model.AmosVersion;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -36,6 +34,7 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
         mixinStandardHelpOptions = true,
         version = {
                 "portamos " + Version.VALUE,
+                "Built: " + Version.BUILDTIME_STR,
                 "Copyright 2026 Fredrik Rambris",
                 "License: Apache 2.0 <https://www.apache.org/licenses/LICENSE-2.0>"
         },
@@ -52,6 +51,7 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
         subcommands = {
                 Main.BuildCommand.class,
                 Main.ListCommand.class,
+                Main.ValidateCommand.class,
                 Main.DisasmCommand.class,
                 Main.AsmCommand.class,
                 Main.RawCommand.class,
@@ -116,6 +116,10 @@ public class Main implements Callable<Integer> {
                               + "Known IDs: Core, Music, Compact, Request, IOPorts, Compiler.")
         List<String> noDefinitions = new ArrayList<>();
 
+        @Option(names = "--validate",
+                description = "Validate the source for structural errors before building. Aborts if any errors are found.")
+        boolean validate = false;
+
         @Option(names = "--fold",
                 description = "Mark all Procedure blocks as folded in the AMOS editor by default.")
         boolean fold = false;
@@ -130,6 +134,22 @@ public class Main implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            if (validate) {
+                var validator = new Validator();
+                for (var id : noDefinitions) validator.withoutDefinition(id);
+                for (var defPath : definitions) validator.withDefinition(defPath);
+                System.out.println("Validating " + source);
+                var diagnostics = validator.validate(source, charset);
+                var filename = source.getFileName().toString();
+                for (var d : diagnostics) System.out.println(d.format(filename));
+                if (!diagnostics.isEmpty()) {
+                    long errors = diagnostics.stream()
+                            .filter(d -> d.severity() == Diagnostic.Severity.ERROR)
+                            .count();
+                    System.out.printf("%d error(s). Build aborted.%n", errors);
+                    return 1;
+                }
+            }
             System.out.println("Reading " + source);
             var version = switch (amosVersion.toLowerCase()) {
                 case "basic13" -> AmosVersion.BASIC_13;
@@ -162,7 +182,7 @@ public class Main implements Callable<Integer> {
                 System.out.printf("Attached %d bank(s)%n", banks.size());
             }
 
-            System.out.println("Encoding...");
+            System.out.println("Encoding");
             var binary = tokenizer.encode(amosFile);
             System.out.println("Writing " + output);
             Files.write(output, binary);
@@ -226,6 +246,65 @@ public class Main implements Callable<Integer> {
     }
 
     // =========================================================================
+    // validate
+    // =========================================================================
+
+    @Command(
+            name = "validate",
+            mixinStandardHelpOptions = true,
+            description = {
+                    "Validate an ASCII AMOS source file for structural errors.",
+                    "Checks for unmatched block keywords (For/Next, While/Wend, etc.)",
+                    "and reports errors with file name and line number.",
+                    "Exits with code 0 if no errors are found, 1 otherwise."
+            }
+    )
+    static class ValidateCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<source.Asc>",
+                description = "ASCII AMOS source file to validate")
+        Path source;
+
+        @Option(names = "--definition", paramLabel = "<path.json>",
+                description = "Load an additional extension definition JSON file (repeatable). "
+                              + "Use this for third-party extensions not included in the built-in set.")
+        List<Path> definitions = new ArrayList<>();
+
+        @Option(names = "--no-definition", paramLabel = "<id>",
+                description = "Skip a built-in extension definition by its ID (repeatable). "
+                              + "Known IDs: Core, Music, Compact, Request, IOPorts, Compiler.")
+        List<String> noDefinitions = new ArrayList<>();
+
+        @Option(names = "--charset", paramLabel = "<charset>",
+                description = "Charset for reading the source file (default: UTF-8). Use ISO-8859-1 for legacy Latin-1 .Asc files.")
+        Charset charset = StandardCharsets.UTF_8;
+
+        @Override
+        public Integer call() throws Exception {
+            var validator = new Validator();
+            for (var id : noDefinitions) validator.withoutDefinition(id);
+            for (var defPath : definitions) validator.withDefinition(defPath);
+            System.out.println("Validating " + source);
+
+            var diagnostics = validator.validate(source, charset);
+            var filename = source.getFileName().toString();
+            for (var d : diagnostics) {
+                System.out.println(d.format(filename));
+            }
+
+            if (diagnostics.isEmpty()) {
+                System.out.println(filename + ": OK");
+                return 0;
+            }
+            long errors = diagnostics.stream()
+                    .filter(d -> d.severity() == Diagnostic.Severity.ERROR)
+                    .count();
+            System.out.printf("%d error(s).%n", errors);
+            return 1;
+        }
+    }
+
+    // =========================================================================
     // disasm
     // =========================================================================
 
@@ -254,7 +333,7 @@ public class Main implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            System.out.printf("Reading %s ...%n", input.getFileName());
+            System.out.printf("Reading %s%n", input.getFileName());
             var bank = AmosBank.read(input);
             Files.createDirectories(outDir);
             var stem = stem(input);
@@ -307,9 +386,9 @@ public class Main implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            System.out.printf("Importing bank from %s ...%n", json.getFileName());
+            System.out.printf("Importing bank from %s%n", json.getFileName());
             var bank = importBankFromJson(json);
-            System.out.printf("Bank type: %s, writing %s ...%n", bank.type(), output.getFileName());
+            System.out.printf("Bank type: %s, writing %s%n", bank.type(), output.getFileName());
             bank.writer().write(bank, output);
             System.out.printf("Written %s%n", output);
             return 0;
@@ -349,7 +428,7 @@ public class Main implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            System.out.printf("Reading %s ...%n", input.getFileName());
+            System.out.printf("Reading %s%n", input.getFileName());
             var data = Files.readAllBytes(input);
 
             AmosBank.Type bankType;

@@ -122,25 +122,19 @@ public class AmalBankExporter {
         var movementsNode = root.putArray("movements");
         for (int i = 0; i < bank.movements().size(); i++) {
             var mov = bank.movements().get(i);
+            if (mov.isEmpty()) continue;
             var mn = movementsNode.addObject();
             mn.put("index", i);
-            mn.put("name", mov.name());
-            mn.put("empty", mov.isEmpty());
-            if (!mov.isEmpty()) {
-                mn.put("file", "movement_%03d.json".formatted(i));
-            }
+            mn.put("file", "movement_%03d.json".formatted(i));
         }
 
         var programsNode = root.putArray("programs");
         for (int i = 0; i < bank.programs().size(); i++) {
             var prog = bank.programs().get(i);
+            if (prog == null || prog.isEmpty()) continue;
             var pn = programsNode.addObject();
             pn.put("index", i);
-            boolean hasContent = prog != null && !prog.isEmpty();
-            pn.put("empty", !hasContent);
-            if (hasContent) {
-                pn.put("file", "program_%03d.amal".formatted(i));
-            }
+            pn.put("file", "program_%03d.amal".formatted(i));
         }
 
         var dest = outDir.resolve("bank.json");

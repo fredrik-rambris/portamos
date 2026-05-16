@@ -36,12 +36,14 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  *     ...
  *   ],
  *   "programs": [
- *     { "index": 0, "empty": false, "file": "program_000.amal" },
- *     { "index": 1, "empty": true  },
+ *     { "index": 3, "file": "program_003.amal" },
  *     ...
  *   ]
  * }
  * </pre>
+ *
+ * <p>Only non-empty programs appear in the {@code programs} array. The total slot count is
+ * derived from {@code max(index) + 1}. Empty trailing slots are dropped.
  *
  * <p>Each referenced {@code movement_NNN.json} has the structure produced by
  * {@link AmalBankExporter}:
@@ -83,24 +85,19 @@ public class AmalBankImporter {
     // -------------------------------------------------------------------------
 
     private List<AmalBank.Movement> parseMovements(JsonNode movementsNode, Path dir) throws IOException {
+        if (movementsNode.isMissingNode()) return List.of();
         var result = new ArrayList<AmalBank.Movement>();
-        if (movementsNode.isMissingNode()) return result;
-
+        int counter = 0;
         for (var mn : movementsNode) {
-            var name = mn.path("name").asText("Empty");
-            boolean empty = mn.path("empty").asBoolean(true);
-            if (empty || !mn.has("file")) {
-                result.add(new AmalBank.Movement(name, null, null));
-                continue;
-            }
-
-            var movFile = dir.resolve(mn.get("file").asText());
-            var movRoot = JSON.readTree(movFile.toFile());
-
-            var xMove = parseMovementData(movRoot.path("x"));
-            var yMove = parseMovementData(movRoot.path("y"));
-
-            result.add(new AmalBank.Movement(name, xMove, yMove));
+            int index = mn.has("index") ? mn.path("index").asInt() : counter;
+            counter = index + 1;
+            while (result.size() <= index) result.add(new AmalBank.Movement("", null, null));
+            if (!mn.has("file")) continue;
+            var movRoot = JSON.readTree(dir.resolve(mn.get("file").asText()).toFile());
+            result.set(index, new AmalBank.Movement(
+                    movRoot.path("name").asText(""),
+                    parseMovementData(movRoot.path("x")),
+                    parseMovementData(movRoot.path("y"))));
         }
         return result;
     }
@@ -125,22 +122,23 @@ public class AmalBankImporter {
     // -------------------------------------------------------------------------
 
     private List<String> parsePrograms(JsonNode programsNode, Path dir) throws IOException {
+        if (programsNode.isMissingNode()) return List.of();
         var result = new ArrayList<String>();
-        if (programsNode.isMissingNode()) return result;
-
+        int counter = 0;
         for (var pn : programsNode) {
-            boolean empty = pn.path("empty").asBoolean(true);
-            if (empty || !pn.has("file")) {
-                result.add("");
-                continue;
+            int index = pn.has("index") ? pn.path("index").asInt() : counter;
+            counter = index + 1;
+            while (result.size() <= index) result.add("");
+            if (pn.has("file")) {
+                result.set(index, readProgramFile(dir.resolve(pn.get("file").asText())));
             }
-            var progFile = dir.resolve(pn.get("file").asText());
-            // Convert newlines back to AMAL's ~ line separator
-            var text = Files.readString(progFile, StandardCharsets.UTF_8)
-                               .replace("\r\n", "~")
-                               .replace("\n", "~");
-            result.add(text);
         }
         return result;
+    }
+
+    private String readProgramFile(Path file) throws IOException {
+        return Files.readString(file, StandardCharsets.UTF_8)
+                .replace("\r\n", "~")
+                .replace("\n", "~");
     }
 }

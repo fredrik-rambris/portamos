@@ -48,6 +48,10 @@ public interface AmosBank {
             return identifier;
         }
 
+        public String toString() {
+            return identifier().strip();
+        }
+
         public AmosBank readAmBk(byte[] data) throws IOException {
             return amBkReader.read(data);
         }
