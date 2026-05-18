@@ -31,9 +31,16 @@ public class AmalBankExporter {
 
     public void export(AmalBank bank, Path outDir) throws IOException {
         Files.createDirectories(outDir);
+        exportEnvironment(bank, outDir);
         exportPrograms(bank, outDir);
         exportMovements(bank, outDir);
         exportMetadata(bank, outDir);
+    }
+
+    private void exportEnvironment(AmalBank bank, Path outDir) throws IOException {
+        if (bank.environment() == null || bank.environment().isEmpty()) return;
+        var dest = outDir.resolve("environment.amal");
+        Files.writeString(dest, bank.environment().replace("~", "\n"), StandardCharsets.UTF_8);
     }
 
     // -------------------------------------------------------------------------
@@ -71,6 +78,18 @@ public class AmalBankExporter {
         }
         System.out.printf("Exported %d movement(s) (of %d slots)%n",
                 exported, bank.movements().size());
+    }
+
+    private void exportMovementsToMetadata(AmalBank bank, com.fasterxml.jackson.databind.node.ArrayNode node) {
+        for (int i = 0; i < bank.movements().size(); i++) {
+            var mov = bank.movements().get(i);
+            var mn = node.addObject();
+            mn.put("index", i);
+            mn.put("name", mov.name());
+            if (!mov.isEmpty()) {
+                mn.put("file", "movement_%03d.json".formatted(i));
+            }
+        }
     }
 
     private ObjectNode buildMovementJson(AmalBank.Movement mov) {
@@ -118,16 +137,14 @@ public class AmalBankExporter {
         root.put("type", "Amal");
         root.put("bankNumber", bank.bankNumber() & 0xFFFF);
         root.put("chipRam", bank.chipRam());
-
-        var movementsNode = root.putArray("movements");
-        for (int i = 0; i < bank.movements().size(); i++) {
-            var mov = bank.movements().get(i);
-            if (mov.isEmpty()) continue;
-            var mn = movementsNode.addObject();
-            mn.put("index", i);
-            mn.put("file", "movement_%03d.json".formatted(i));
+        if (bank.environment() != null && !bank.environment().isEmpty()) {
+            root.put("environment", "environment.amal");
         }
 
+        exportMovementsToMetadata(bank, root.putArray("movements"));
+
+        // programCount preserves the total slot count so reassembly matches the original.
+        root.put("programCount", bank.programs().size());
         var programsNode = root.putArray("programs");
         for (int i = 0; i < bank.programs().size(); i++) {
             var prog = bank.programs().get(i);

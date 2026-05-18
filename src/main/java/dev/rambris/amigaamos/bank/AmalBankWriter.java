@@ -30,17 +30,21 @@ import java.util.List;
  *   [4]   Strings-Start  byte offset within payload to the Programs section
  *   --- Moves section (at payload[4]) ---
  *   [2]   Number_Of_Movements
- *   [2×n] X-offsets (word offsets from payload[4]; 0 = no X movement)
- *   [2×n] Y-offsets (word offsets from payload[4]; 0 = no Y movement)
+ *   [2×n] Word offsets from movesBase to each movement data block (0 = empty slot)
+ *   [2×n] Byte lengths of each movement data block (0 = empty slot)
  *   [8×n] 8-byte ASCII names, space-padded
  *   --- Movement data blocks ---
- *   XMove_NN: [2] speed + [2] length + [length] data (0x00 sentinel · encoded · 0x00)
- *   YMove_NN: [0x00 sentinel] + [encoded] + [0x00]
+ *   [2]   speed
+ *   [2]   n_x (number of X step bytes)
+ *   [n_x] X step bytes (0x00 sentinel · encoded · 0x00)
+ *   [?]   Y step bytes (encoded · 0x00 [· 0x00 alignment pad])
  *   --- Programs section ---
  *   [2]   Number_Of_Programs
  *   [2×n] Word offsets from the byte after the count word; 0 = empty slot
- *   Prog_NN: [2] length (bytes following) + [n] ASCII text (~ line separator)
  *   [2]   0x0000 null placeholder (target for empty-slot offset 0)
+ *   [?]   Environment program: [2] length + [n] ASCII text
+ *   Prog_NN: [2] length (bytes following) + [n] ASCII text (~ line separator)
+ *   [?]   Zero region for empty-slot targets
  * </pre>
  */
 public class AmalBankWriter implements BankWriter {
@@ -64,7 +68,7 @@ public class AmalBankWriter implements BankWriter {
 
     private byte[] serialize(AmalBank bank) {
         var movesSection = buildMovesSection(bank.movements());
-        var progsSection = buildProgsSection(bank.programs());
+        var progsSection = buildProgsSection(bank.programs(), bank.environment());
 
         // Strings-Start = 4 (size of the Strings-Start field itself) + moves section size
         int stringsStart = 4 + movesSection.length;
@@ -89,33 +93,24 @@ public class AmalBankWriter implements BankWriter {
     private byte[] buildMovesSection(List<AmalBank.Movement> movements) {
         int n = movements.size();
 
-        // Encode movement data blocks; track their positions within the moves section.
-        // movesBase = 0 within the moves section (corresponds to payload[4]).
-        // Table header: 2(count) + 2n(x offsets) + 2n(y offsets) + 8n(names)
-        int tableHeaderSize = 2 + 4 * n + 8 * n;
-
-        var xBlocks = new ArrayList<byte[]>(n);
-        var yBlocks = new ArrayList<byte[]>(n);
+        // Build raw data blocks for each non-empty movement.
+        var blocks = new ArrayList<byte[]>(n);
         for (var mov : movements) {
-            xBlocks.add(mov.xMove() != null ? encodeXMove(mov.xMove()) : null);
-            yBlocks.add(mov.yMove() != null ? encodeYMove(mov.yMove()) : null);
+            blocks.add(mov.isEmpty() ? null : buildMovementBlock(mov));
         }
 
-        // Compute word offsets from movesBase (= payload[4]) for each block.
-        // movesBase corresponds to offset 0 within the moves section, which starts 0 bytes
-        // into the moves section — but the moves section itself is placed at payload[4],
-        // so all offsets are (absolute_position_in_moves_section) / 2.
-        var xWordOffsets = new int[n];
-        var yWordOffsets = new int[n];
-        int pos = tableHeaderSize; // current write position within moves section
+        // Table header: 2(count) + 2n(word offsets) + 2n(lengths) + 8n(names)
+        int tableHeaderSize = 2 + 4 * n + 8 * n;
+
+        // Compute word offsets and byte lengths for each block.
+        var wordOffsets = new int[n];
+        var blockLengths = new int[n];
+        int pos = tableHeaderSize;
         for (int i = 0; i < n; i++) {
-            if (xBlocks.get(i) != null) {
-                xWordOffsets[i] = pos / 2;
-                pos += xBlocks.get(i).length;
-            }
-            if (yBlocks.get(i) != null) {
-                yWordOffsets[i] = pos / 2;
-                pos += yBlocks.get(i).length;
+            if (blocks.get(i) != null) {
+                wordOffsets[i] = pos / 2;
+                blockLengths[i] = blocks.get(i).length;
+                pos += blocks.get(i).length;
             }
         }
         int totalSize = pos;
@@ -124,118 +119,115 @@ public class AmalBankWriter implements BankWriter {
 
         // Count
         buf.putShort((short) n);
-        // X offsets
-        for (var o : xWordOffsets) buf.putShort((short) o);
-        // Y offsets
-        for (var o : yWordOffsets) buf.putShort((short) o);
+        // Word offsets
+        for (var o : wordOffsets) buf.putShort((short) o);
+        // Byte lengths
+        for (var l : blockLengths) buf.putShort((short) l);
         // Names (8 bytes each, space-padded)
         for (var mov : movements) {
             buf.put(paddedName(mov.name()));
         }
         // Movement data blocks
-        for (int i = 0; i < n; i++) {
-            if (xBlocks.get(i) != null) buf.put(xBlocks.get(i));
-            if (yBlocks.get(i) != null) buf.put(yBlocks.get(i));
+        for (var block : blocks) {
+            if (block != null) buf.put(block);
         }
 
         return buf.array();
     }
 
     /**
-     * Encodes an X-axis movement: [2] speed + [2] length + [0x00] + [encoded] + [0x00].
+     * Builds a complete movement data block: [speed:2][n_x:2][x_raw][y_raw][?pad].
+     *
+     * <p>The block is padded to an even number of bytes so that the word-offset table remains
+     * consistent; the padding byte is zero and falls after the Y step terminator.
      */
-    private byte[] encodeXMove(AmalBank.MovementData data) {
-        var encoded = encodeInstructions(data.instructions());
-        // data block: leading 0x00 sentinel + encoded bytes + trailing 0x00
-        int dataLen = 1 + encoded.length + 1;
-        var buf = ByteBuffer.allocate(4 + dataLen).order(ByteOrder.BIG_ENDIAN);
-        buf.putShort((short) data.speed());
-        buf.putShort((short) dataLen);
-        buf.put((byte) 0x00);   // leading sentinel (for backwards playback)
-        buf.put(encoded);
-        buf.put((byte) 0x00);   // trailing sentinel
-        return buf.array();
-    }
+    private byte[] buildMovementBlock(AmalBank.Movement mov) {
+        byte[] xRaw = mov.xMove() != null ? mov.xMove().raw() : new byte[]{0x00, 0x00};
+        byte[] yRaw = mov.yMove() != null ? mov.yMove().raw() : new byte[0];
 
-    /**
-     * Encodes a Y-axis movement: [0x00] + [encoded] + [0x00] (no speed/length header).
-     */
-    private byte[] encodeYMove(AmalBank.MovementData data) {
-        var encoded = encodeInstructions(data.instructions());
-        var buf = ByteBuffer.allocate(1 + encoded.length + 1).order(ByteOrder.BIG_ENDIAN);
-        buf.put((byte) 0x00);
-        buf.put(encoded);
-        buf.put((byte) 0x00);
+        int rawTotal = 4 + xRaw.length + yRaw.length;
+        int total = (rawTotal + 1) & ~1; // round up to even for word-aligned offset table
+        var buf = ByteBuffer.allocate(total).order(ByteOrder.BIG_ENDIAN);
+        int speed = mov.xMove() != null ? mov.xMove().speed()
+                : mov.yMove() != null ? mov.yMove().speed() : 1;
+        buf.putShort((short) speed);
+        buf.putShort((short) xRaw.length);
+        buf.put(xRaw);
+        buf.put(yRaw);
+        // Remaining byte(s) in buf are zero-initialized (alignment padding).
         return buf.array();
-    }
-
-    private byte[] encodeInstructions(List<AmalBank.Instruction> instructions) {
-        var out = new byte[instructions.size()];
-        for (int i = 0; i < instructions.size(); i++) {
-            out[i] = switch (instructions.get(i)) {
-                case AmalBank.Instruction.Wait w  -> (byte) (0x80 | (w.ticks() & 0x7F));
-                case AmalBank.Instruction.Delta d -> (byte) (d.pixels() & 0x7F);
-            };
-        }
-        return out;
     }
 
     // -------------------------------------------------------------------------
     // Programs section
     // -------------------------------------------------------------------------
 
-    private byte[] buildProgsSection(List<String> programs) {
+    private byte[] buildProgsSection(List<String> programs, String environment) {
         int n = programs.size();
 
-        // Serialize non-empty programs; pad each to a word boundary.
+        // Encode environment; always emit at least a 2-byte zero block.
+        byte[] envBlock = buildProgramBlock(environment);
+
+        // Encode non-empty channel programs.
         var progBlocks = new ArrayList<byte[]>(n);
         for (var prog : programs) {
-            if (prog == null || prog.isEmpty()) {
-                progBlocks.add(null);
-            } else {
-                var textBytes = prog.getBytes(StandardCharsets.ISO_8859_1);
-                // Pad to word boundary
-                int padded = textBytes.length % 2 != 0 ? textBytes.length + 1 : textBytes.length;
-                var pb = ByteBuffer.allocate(2 + padded).order(ByteOrder.BIG_ENDIAN);
-                pb.putShort((short) padded);   // length = bytes following the length word
-                pb.put(textBytes);
-                // trailing padding byte already zero
-                progBlocks.add(pb.array());
-            }
+            progBlocks.add((prog == null || prog.isEmpty()) ? null : buildProgramBlock(prog));
         }
 
-        // Compute word offsets. Offsets are measured from the byte AFTER the count word.
-        // A null slot gets offset 0 (the null sentinel).
-        // progsBase+2 in absolute terms is where offset 0 would land — pointing into the
-        // offset table, which is never a valid program location, so 0 = "empty".
+        // Pass 1: assign word offsets to real programs; track first word of zero region.
+        // pos = byte offset from (progsBase+2). Starts after: n offsets + null guard + env.
+        int pos = 2 * n + 2 + envBlock.length;
         var wordOffsets = new int[n];
-        // Table: 2(count) + 2n(offsets) = 2+2n bytes; offset 0 cannot be used for real data.
-        // We place real program data starting after the table (at byte 2+2n from progsBase).
-        // The first real program's word offset from (progsBase+2) = (2n) / 2 = n.
-        // Actually: first block sits at byte offset (2 + 2n) from progsBase, so
-        //           word offset from (progsBase+2) = 2n / 2 = n.
-        int pos = 2 * n; // position relative to (progsBase+2), in bytes
         for (int i = 0; i < n; i++) {
-            if (progBlocks.get(i) != null) {
+            if (i == n - 1) {
+                wordOffsets[i] = 0;    // last slot: null sentinel (offset=0)
+            } else if (progBlocks.get(i) != null) {
                 wordOffsets[i] = pos / 2;
                 pos += progBlocks.get(i).length;
             }
-            // else wordOffsets[i] stays 0 = null sentinel
+            // empty non-last slots: filled in pass 2
         }
 
-        // Total: 2(count) + 2n(offsets) + program data
-        // Offset=0 is the null sentinel — it points back into the offset table itself,
-        // which is never a valid program location. No explicit placeholder needed.
-        int totalSize = 2 + 2 * n + pos;
-        var buf = ByteBuffer.allocate(totalSize).order(ByteOrder.BIG_ENDIAN);
+        // pos is now the word offset of the start of the zero region.
+        int zeroRegionWordStart = pos / 2;
 
+        // Pass 2: assign sequential non-zero word offsets to empty non-last slots.
+        int emptyCounter = 0;
+        for (int i = 0; i < n - 1; i++) {
+            if (progBlocks.get(i) == null) {
+                wordOffsets[i] = zeroRegionWordStart + emptyCounter;
+                emptyCounter++;
+            }
+        }
+
+        // Zero region: emptyCounter slots (2 bytes each) + n/9 extra words of padding,
+        // matching the layout produced by the AMOS editor.
+        int zeroRegionBytes = emptyCounter > 0 ? emptyCounter * 2 + (n / 9) * 2 : 0;
+        int totalSize = 2 + pos + zeroRegionBytes;
+
+        var buf = ByteBuffer.allocate(totalSize).order(ByteOrder.BIG_ENDIAN);
         buf.putShort((short) n);
-        for (var o : wordOffsets) buf.putShort((short) o);
+        for (int o : wordOffsets) buf.putShort((short) o);
+        buf.putShort((short) 0);    // null guard
+        buf.put(envBlock);
         for (var block : progBlocks) {
             if (block != null) buf.put(block);
         }
+        // Zero region is zero-initialized by Java; nothing to write.
 
         return buf.array();
+    }
+
+    private byte[] buildProgramBlock(String text) {
+        if (text == null || text.isEmpty()) {
+            return new byte[]{0, 0};
+        }
+        var textBytes = text.getBytes(StandardCharsets.ISO_8859_1);
+        int padded = textBytes.length % 2 != 0 ? textBytes.length + 1 : textBytes.length;
+        var pb = ByteBuffer.allocate(2 + padded).order(ByteOrder.BIG_ENDIAN);
+        pb.putShort((short) padded);
+        pb.put(textBytes);
+        return pb.array();
     }
 
     // -------------------------------------------------------------------------

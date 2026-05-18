@@ -22,29 +22,29 @@ import java.util.List;
  * <pre>
  *   --- Payload ---
  *   [4]   Strings-Start   byte offset from payload[0] to the Programs section
- *   --- Moves section (at payload[4] = "Moves") ---
- *   [2]   Number_Of_Movements
- *   [2×n] X-offsets: (XMove_NN − Moves) / 2   (word offset; 0 = undefined)
- *   [2×n] Y-offsets: (YMove_NN − Moves) / 2   (word offset; 0 = undefined)
- *   [8×n] 8-byte ASCII name per movement
- *   --- Movement data ---
- *   XMove_NN:
- *     [2]   Speed  (1/50 sec intervals between steps)
- *     [2]   Length (bytes of encoded movement data following)
- *     [n]   Encoded data (see below)
- *   YMove_NN:
- *     [n]   Encoded data only (no Speed/Length header); terminated by 0x00
- *   --- Programs section (at payload[Strings-Start] = "Progs") ---
+ *   --- Moves section (at payload[4]) ---
+ *   [2]   Number_Of_Movements  (n)
+ *   [2×n] Word offsets from movesBase to each movement data block (0 = empty slot)
+ *   [2×n] Length in bytes of each movement data block (0 = empty slot)
+ *   [8×n] 8-byte ASCII name per movement (space-padded)
+ *   --- Movement data blocks ---
+ *   [2]   Speed  (1/50 sec intervals per step)
+ *   [2]   n_x    (number of X-axis step bytes, including sentinels)
+ *   [n_x] X step bytes (starts with 0x00 sentinel; 0x00 marks end of forward playback)
+ *   [?]   Y step bytes (follows X; terminated by 0x00; length = block_length − 4 − n_x)
+ *   --- Programs section (at payload[Strings-Start]) ---
  *   [2]   Number_Of_Programs
- *   [2×n] Word offsets: (Prog_NN − Progs) / 2
+ *   [2×n] Word offsets from progsBase+2: (Prog_NN − progsBase − 2) / 2; 0 = empty slot
+ *   [2]   0x0000 null guard
+ *   [?]   Environment program: [2] length + [n] ASCII text (~ line separator)
  *   Prog_NN:
- *     [2]   Length of program in bytes (including this length word)
+ *     [2]   Length of program in bytes (padded to even)
  *     [n]   ASCII text; '~' is the line separator
  * </pre>
  *
  * <p>Movement byte encoding:
  * <ul>
- *   <li>{@code 0x00} — end-of-move sentinel</li>
+ *   <li>{@code 0x00} — end-of-sequence sentinel</li>
  *   <li>{@code 0x01..0x7F} — delta: 7-bit signed pixels (0x40..0x7F = negative: value − 128)</li>
  *   <li>{@code 0x80..0xFF} — wait: {@code byte & 0x7F} intervals</li>
  * </ul>
@@ -69,17 +69,20 @@ public class AmalBankReader {
         int stringsStart = buf.getInt();   // byte offset from payload[0] to Progs section
 
         // ---- Moves section starts at payload[4] ----
-        // movesBase is the byte offset within payload where "Moves" label sits.
-        // All XMove/YMove word-offsets are relative to this position.
+        // All word-offsets in the movement table are relative to movesBase.
         final int movesBase = 4;
         buf.position(movesBase);
         int numMovements = buf.getShort() & 0xFFFF;
 
-        var xOffsets = new int[numMovements];
-        var yOffsets = new int[numMovements];
-        for (int i = 0; i < numMovements; i++) xOffsets[i] = buf.getShort() & 0xFFFF;
-        for (int i = 0; i < numMovements; i++) yOffsets[i] = buf.getShort() & 0xFFFF;
+        // First array: word offsets to each movement data block (from movesBase).
+        var offsets = new int[numMovements];
+        for (int i = 0; i < numMovements; i++) offsets[i] = buf.getShort() & 0xFFFF;
 
+        // Second array: byte lengths of each movement data block.
+        var lengths = new int[numMovements];
+        for (int i = 0; i < numMovements; i++) lengths[i] = buf.getShort() & 0xFFFF;
+
+        // Names: 8 bytes each, space-padded ASCII.
         var names = new String[numMovements];
         for (int i = 0; i < numMovements; i++) {
             var nameBuf = new byte[8];
@@ -87,31 +90,33 @@ public class AmalBankReader {
             names[i] = new String(nameBuf, StandardCharsets.ISO_8859_1).stripTrailing();
         }
 
-        // ---- Decode movement data ----
+        // ---- Decode movement data blocks ----
         var movements = new ArrayList<AmalBank.Movement>(numMovements);
         for (int i = 0; i < numMovements; i++) {
             AmalBank.MovementData xMove = null;
             AmalBank.MovementData yMove = null;
 
-            if (xOffsets[i] != 0) {
-                int xBytePos = movesBase + xOffsets[i] * 2;
-                if (xBytePos + 4 <= stringsStart) {
-                    buf.position(xBytePos);
+            if (offsets[i] != 0 && lengths[i] >= 4) {
+                int blockPos = movesBase + offsets[i] * 2;
+                if (blockPos + 4 <= stringsStart) {
+                    buf.position(blockPos);
                     int speed = buf.getShort() & 0xFFFF;
-                    int length = buf.getShort() & 0xFFFF;
-                    var data = new byte[Math.min(length, payload.length - buf.position())];
-                    buf.get(data);
-                    xMove = new AmalBank.MovementData(speed, decodeMovement(data));
-                }
-            }
+                    int nx = buf.getShort() & 0xFFFF;
 
-            if (yOffsets[i] != 0) {
-                int yBytePos = movesBase + yOffsets[i] * 2;
-                // Y movement has no Speed/Length header; validate it falls within movement area
-                if (yBytePos < stringsStart) {
-                    xMove = xMove != null ? xMove : new AmalBank.MovementData(1, List.of());
-                    buf.position(yBytePos);
-                    yMove = new AmalBank.MovementData(xMove.speed(), decodeMovementUntilEnd(buf, stringsStart));
+                    // X step bytes: exactly nx bytes (includes leading sentinel and any trailing bytes)
+                    int xLen = Math.min(nx, payload.length - buf.position());
+                    var xRaw = new byte[xLen];
+                    buf.get(xRaw);
+                    xMove = new AmalBank.MovementData(speed, xRaw);
+
+                    // Y step bytes: remainder of the block
+                    int ny = lengths[i] - 4 - nx;
+                    if (ny > 0) {
+                        int yLen = Math.min(ny, payload.length - buf.position());
+                        var yRaw = new byte[yLen];
+                        buf.get(yRaw);
+                        yMove = new AmalBank.MovementData(speed, yRaw);
+                    }
                 }
             }
 
@@ -120,60 +125,45 @@ public class AmalBankReader {
 
         // ---- Parse programs section ----
         List<String> programs = List.of();
+        String environment = "";
         if (stringsStart > 0 && stringsStart < payload.length) {
             buf.position(stringsStart);
-            programs = parsePrograms(buf, stringsStart);
+            var progResult = parsePrograms(buf, stringsStart);
+            programs = progResult.programs();
+            environment = progResult.environment();
         }
 
-        return new AmalBank(hdr.bankNumber(), hdr.chipRam(), List.copyOf(movements), programs);
-    }
-
-    // -------------------------------------------------------------------------
-    // Movement decoding
-    // -------------------------------------------------------------------------
-
-    private static List<AmalBank.Instruction> decodeMovement(byte[] data) {
-        var instructions = new ArrayList<AmalBank.Instruction>();
-        int start = 0;
-        // The movement table begins with a 0x00 sentinel (for backwards playback); skip it.
-        if (data.length > 0 && (data[0] & 0xFF) == 0x00) start = 1;
-        for (int i = start; i < data.length; i++) {
-            int v = data[i] & 0xFF;
-            if (v == 0x00) break;                          // end sentinel
-            if ((v & 0x80) != 0) {                         // WAIT
-                instructions.add(new AmalBank.Instruction.Wait(v & 0x7F));
-            } else {                                        // DELTA (7-bit signed)
-                int delta = (v & 0x40) != 0 ? v - 128 : v;
-                instructions.add(new AmalBank.Instruction.Delta(delta));
-            }
-        }
-        return instructions;
-    }
-
-    private static List<AmalBank.Instruction> decodeMovementUntilEnd(ByteBuffer buf, int limit) {
-        var instructions = new ArrayList<AmalBank.Instruction>();
-        while (buf.position() < limit && buf.hasRemaining()) {
-            int v = buf.get() & 0xFF;
-            if (v == 0x00) break;
-            if ((v & 0x80) != 0) {
-                instructions.add(new AmalBank.Instruction.Wait(v & 0x7F));
-            } else {
-                int delta = (v & 0x40) != 0 ? v - 128 : v;
-                instructions.add(new AmalBank.Instruction.Delta(delta));
-            }
-        }
-        return instructions;
+        return new AmalBank(hdr.bankNumber(), hdr.chipRam(), List.copyOf(movements), programs, environment);
     }
 
     // -------------------------------------------------------------------------
     // Programs section
     // -------------------------------------------------------------------------
 
-    private static List<String> parsePrograms(ByteBuffer buf, int progsBase) {
+    private record ProgramsResult(String environment, List<String> programs) {
+    }
+
+    private static ProgramsResult parsePrograms(ByteBuffer buf, int progsBase) {
         int numPrograms = buf.getShort() & 0xFFFF;
         var wordOffsets = new int[numPrograms];
         for (int i = 0; i < numPrograms; i++) {
             wordOffsets[i] = buf.getShort() & 0xFFFF;
+        }
+
+        // After the offset table: null guard (2 bytes, should be 0x0000) then environment program.
+        String environment = "";
+        if (buf.remaining() >= 2) {
+            buf.getShort(); // skip null guard
+            if (buf.remaining() >= 2) {
+                int envLen = buf.getShort() & 0xFFFF;
+                if (envLen > 0 && buf.remaining() >= envLen) {
+                    var envBytes = new byte[envLen];
+                    buf.get(envBytes);
+                    int strLen = envLen;
+                    while (strLen > 0 && envBytes[strLen - 1] == 0) strLen--;
+                    environment = new String(envBytes, 0, strLen, StandardCharsets.ISO_8859_1);
+                }
+            }
         }
 
         var programs = new ArrayList<String>(numPrograms);
@@ -204,6 +194,6 @@ public class AmalBankReader {
             while (strLen > 0 && textBytes[strLen - 1] == 0) strLen--;
             programs.add(new String(textBytes, 0, strLen, StandardCharsets.ISO_8859_1));
         }
-        return programs;
+        return new ProgramsResult(environment, List.copyOf(programs));
     }
 }

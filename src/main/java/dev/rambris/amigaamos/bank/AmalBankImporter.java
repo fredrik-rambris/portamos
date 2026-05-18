@@ -75,9 +75,10 @@ public class AmalBankImporter {
         var chipRam  = root.path("chipRam").asBoolean(false);
 
         var movements = parseMovements(root.path("movements"), dir);
-        var programs = parsePrograms(root.path("programs"), dir);
+        var programs = parsePrograms(root.path("programs"), root.path("programCount"), dir);
+        var environment = parseEnvironment(root.path("environment"), dir);
 
-        return new AmalBank(bankNumber, chipRam, List.copyOf(movements), List.copyOf(programs));
+        return new AmalBank(bankNumber, chipRam, List.copyOf(movements), List.copyOf(programs), environment);
     }
 
     // -------------------------------------------------------------------------
@@ -92,17 +93,22 @@ public class AmalBankImporter {
             int index = mn.has("index") ? mn.path("index").asInt() : counter;
             counter = index + 1;
             while (result.size() <= index) result.add(new AmalBank.Movement("", null, null));
-            if (!mn.has("file")) continue;
-            var movRoot = JSON.readTree(dir.resolve(mn.get("file").asText()).toFile());
-            result.set(index, new AmalBank.Movement(
-                    movRoot.path("name").asText(""),
-                    parseMovementData(movRoot.path("x")),
-                    parseMovementData(movRoot.path("y"))));
+            String name = mn.path("name").asText("");
+            if (mn.has("file")) {
+                var movRoot = JSON.readTree(dir.resolve(mn.get("file").asText()).toFile());
+                result.set(index, new AmalBank.Movement(
+                        movRoot.path("name").asText(name),
+                        parseMovementData(movRoot.path("x"), true),
+                        parseMovementData(movRoot.path("y"), false)));
+            } else {
+                // Named-only entry: empty movement with preserved name
+                result.set(index, new AmalBank.Movement(name, null, null));
+            }
         }
         return result;
     }
 
-    private AmalBank.MovementData parseMovementData(JsonNode node) {
+    private AmalBank.MovementData parseMovementData(JsonNode node, boolean isX) {
         if (node.isNull() || node.isMissingNode()) return null;
         int speed = node.path("speed").asInt(1);
         var instructions = new ArrayList<AmalBank.Instruction>();
@@ -114,24 +120,32 @@ public class AmalBankImporter {
                 default -> throw new IllegalArgumentException("Unknown instruction type: " + type);
             });
         }
-        return new AmalBank.MovementData(speed, List.copyOf(instructions));
+        return isX
+                ? AmalBank.MovementData.fromXInstructions(speed, List.copyOf(instructions))
+                : AmalBank.MovementData.fromYInstructions(speed, List.copyOf(instructions));
     }
 
     // -------------------------------------------------------------------------
     // Programs
     // -------------------------------------------------------------------------
 
-    private List<String> parsePrograms(JsonNode programsNode, Path dir) throws IOException {
-        if (programsNode.isMissingNode()) return List.of();
+    private List<String> parsePrograms(JsonNode programsNode, JsonNode programCountNode, Path dir) throws IOException {
         var result = new ArrayList<String>();
-        int counter = 0;
-        for (var pn : programsNode) {
-            int index = pn.has("index") ? pn.path("index").asInt() : counter;
-            counter = index + 1;
-            while (result.size() <= index) result.add("");
-            if (pn.has("file")) {
-                result.set(index, readProgramFile(dir.resolve(pn.get("file").asText())));
+        if (!programsNode.isMissingNode()) {
+            int counter = 0;
+            for (var pn : programsNode) {
+                int index = pn.has("index") ? pn.path("index").asInt() : counter;
+                counter = index + 1;
+                while (result.size() <= index) result.add("");
+                if (pn.has("file")) {
+                    result.set(index, readProgramFile(dir.resolve(pn.get("file").asText())));
+                }
             }
+        }
+        // Pad to programCount if specified, to preserve total slot count.
+        if (!programCountNode.isMissingNode()) {
+            int count = programCountNode.asInt();
+            while (result.size() < count) result.add("");
         }
         return result;
     }
@@ -140,5 +154,18 @@ public class AmalBankImporter {
         return Files.readString(file, StandardCharsets.UTF_8)
                 .replace("\r\n", "~")
                 .replace("\n", "~");
+    }
+
+    // -------------------------------------------------------------------------
+    // Environment
+    // -------------------------------------------------------------------------
+
+    private String parseEnvironment(JsonNode envNode, Path dir) throws IOException {
+        if (envNode.isMissingNode() || envNode.isNull()) return "";
+        String filename = envNode.asText();
+        if (filename.isBlank()) return "";
+        var file = dir.resolve(filename);
+        if (!Files.exists(file)) return "";
+        return readProgramFile(file);
     }
 }

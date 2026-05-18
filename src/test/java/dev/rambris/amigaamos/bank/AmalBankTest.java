@@ -62,6 +62,12 @@ class AmalBankTest {
     }
 
     @Test
+    void read_movement0_xMove_rawByteCount() throws Exception {
+        var bank = AmalBankReader.read(AMAL_ABK);
+        assertEquals(351, bank.movements().get(0).xMove().raw().length);
+    }
+
+    @Test
     void read_movement0_xMove_instructionCount() throws Exception {
         var bank = AmalBankReader.read(AMAL_ABK);
         var instructions = bank.movements().get(0).xMove().instructions();
@@ -79,9 +85,10 @@ class AmalBankTest {
     }
 
     @Test
-    void read_movement0_yMove_isNull() throws Exception {
+    void read_movement0_yMove_isNotNull() throws Exception {
         var bank = AmalBankReader.read(AMAL_ABK);
-        assertNull(bank.movements().get(0).yMove(), "movement 0 Y offset points outside moves area");
+        assertNotNull(bank.movements().get(0).yMove(), "movement 0 should have Y step data");
+        assertEquals(329, bank.movements().get(0).yMove().raw().length);
     }
 
     @Test
@@ -117,9 +124,25 @@ class AmalBankTest {
         }
     }
 
+    @Test
+    void read_environment_hasContent() throws Exception {
+        var bank = AmalBankReader.read(AMAL_ABK);
+        assertFalse(bank.environment().isEmpty(), "environment should have content");
+        assertTrue(bank.environment().contains("Screen 0"), "environment should contain 'Screen 0'");
+        assertTrue(bank.environment().contains("~"), "environment should use ~ as line separator");
+    }
+
     // -------------------------------------------------------------------------
     // Writer round-trip
     // -------------------------------------------------------------------------
+
+    @Test
+    void writer_roundTrip_binaryIdentical() throws Exception {
+        byte[] original = java.nio.file.Files.readAllBytes(AMAL_ABK);
+        var bank = AmalBankReader.read(original);
+        byte[] rebuilt = bank.writer().toBytes(bank);
+        assertArrayEquals(original, rebuilt, "binary round-trip should be byte-identical");
+    }
 
     @Test
     void writer_roundTrip_preservesMovements(@TempDir Path tmp) throws Exception {
@@ -146,6 +169,15 @@ class AmalBankTest {
         assertEquals(original.programs().get(0), reread.programs().get(0));
     }
 
+    @Test
+    void writer_roundTrip_preservesEnvironment(@TempDir Path tmp) throws Exception {
+        var original = AmalBankReader.read(AMAL_ABK);
+        byte[] bytes = original.writer().toBytes(original);
+        var reread = AmalBankReader.read(bytes);
+
+        assertEquals(original.environment(), reread.environment());
+    }
+
     // -------------------------------------------------------------------------
     // Importer round-trip
     // -------------------------------------------------------------------------
@@ -156,6 +188,14 @@ class AmalBankTest {
         new AmalBankExporter().export(original, outDir);
         var imported = new AmalBankImporter().importFrom(outDir.resolve("bank.json"));
         assertEquals(original.programs().get(0), imported.programs().get(0));
+    }
+
+    @Test
+    void importer_roundTrip_preservesEnvironment(@TempDir Path outDir) throws Exception {
+        var original = AmalBankReader.read(AMAL_ABK);
+        new AmalBankExporter().export(original, outDir);
+        var imported = new AmalBankImporter().importFrom(outDir.resolve("bank.json"));
+        assertEquals(original.environment(), imported.environment());
     }
 
     @Test
@@ -194,6 +234,18 @@ class AmalBankTest {
         assertTrue(Files.exists(outDir.resolve("bank.json")));
         assertTrue(Files.exists(outDir.resolve("movement_000.json")));
         assertTrue(Files.exists(outDir.resolve("program_000.amal")));
+        assertTrue(Files.exists(outDir.resolve("environment.amal")));
+    }
+
+    @Test
+    void export_environment_tildeSeparatorReplacedWithNewline(@TempDir Path outDir) throws Exception {
+        var bank = AmalBankReader.read(AMAL_ABK);
+        new AmalBankExporter().export(bank, outDir);
+
+        String text = Files.readString(outDir.resolve("environment.amal"));
+        assertFalse(text.contains("~"), "exported environment should not contain ~");
+        assertTrue(text.contains("\n"), "exported environment should use newlines");
+        assertTrue(text.contains("Screen 0"), "environment content should be preserved");
     }
 
     @Test
