@@ -4,12 +4,13 @@ import java.time.temporal.ChronoUnit
 plugins {
     java
     application
+    `maven-publish`
     id("com.gradleup.shadow") version "8.3.6"
     id("org.graalvm.buildtools.native") version "0.10.4"
 }
 
 group = "dev.rambris"
-version = "0.0.1-beta.11"
+version = "0.0.1-beta.12"
 
 java {
     toolchain {
@@ -104,4 +105,36 @@ graalvmNative {
         }
     }
     toolchainDetection = false
+}
+
+// ---------------------------------------------------------------------------
+// Publishing
+// ---------------------------------------------------------------------------
+
+tasks.jar {
+    manifest {
+        attributes["Automatic-Module-Name"] = "dev.rambris.portamos"
+    }
+}
+
+java {
+    withSourcesJar()
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/fredrik-rambris/portamos")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("gpr") {
+            from(components["java"])
+        }
+    }
 }
