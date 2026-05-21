@@ -6,6 +6,7 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.amigaamos.dto.SampleBankDto;
 import dev.rambris.iff.codec.Svx8Codec;
 
 import javax.sound.sampled.AudioFormat;
@@ -31,24 +32,24 @@ public class SampleBankImporter {
 
 
     public SampleBank importFrom(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
+        var dto = JSON.readValue(jsonPath.toFile(), SampleBankDto.class);
 
-        var bankNumber = (short) root.path("bankNumber").asInt(0);
+        var bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 0);
 
         var samples = new ArrayList<SampleBank.Sample>();
-        for (var sn : root.path("samples")) {
-            var name = sn.path("name").asText("");
-            var freq = sn.path("frequencyHz").asInt(8363);
+        if (dto.samples() != null) {
+            for (var s : dto.samples()) {
+                var name = s.name() != null ? s.name() : "";
+                var freq = s.frequencyHz() != 0 ? s.frequencyHz() : 8363;
 
-            if (sn.path("empty").asBoolean(false) || !sn.has("file")) {
-                samples.add(new SampleBank.Sample(name, freq, new byte[0]));
-                continue;
+                if (Boolean.TRUE.equals(s.empty()) || s.file() == null) {
+                    samples.add(new SampleBank.Sample(name, freq, new byte[0]));
+                    continue;
+                }
+
+                var pcm = readAudio(jsonPath.resolveSibling(s.file()), freq);
+                samples.add(new SampleBank.Sample(name, freq, pcm));
             }
-
-            var file = sn.path("file").asText();
-            var audioPath = jsonPath.resolveSibling(file);
-            var pcm = readAudio(audioPath, freq);
-            samples.add(new SampleBank.Sample(name, freq, pcm));
         }
 
         return new SampleBank(bankNumber, List.copyOf(samples));
@@ -58,13 +59,6 @@ public class SampleBankImporter {
     // Audio reading
     // -------------------------------------------------------------------------
 
-    /**
-     * Reads signed 8-bit PCM from a WAV or 8SVX file.
-     *
-     * @param path audio file path
-     * @param hintFreq frequency hint (used only when the file format omits it — not needed for WAV/8SVX)
-     * @return signed 8-bit PCM samples
-     */
     private static byte[] readAudio(Path path, int hintFreq) throws IOException {
         var name = path.getFileName().toString().toLowerCase();
         if (name.endsWith(".8svx") || name.endsWith(".svx")) {

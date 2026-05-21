@@ -6,6 +6,7 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.amigaamos.dto.SampleBankDto;
 import dev.rambris.iff.codec.Svx8Codec;
 import dev.rambris.iff.codec.Svx8Sound;
 import dev.rambris.iff.codec.VhdrChunk;
@@ -18,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 
 import static dev.rambris.amigaamos.JsonConfig.JSON;
 
@@ -54,27 +56,17 @@ public class SampleBankExporter {
     public void export(SampleBank bank, Path outDir, boolean svx8) throws IOException {
         Files.createDirectories(outDir);
 
-        var root = JSON.createObjectNode();
-        root.put("type", "Samples");
-        root.put("bankNumber", bank.bankNumber() & 0xFFFF);
-        root.put("chipRam", bank.chipRam());
-
-        var samplesNode = root.putArray("samples");
+        var sampleDtos = new ArrayList<SampleBankDto.SampleDto>();
 
         for (int i = 0; i < bank.samples().size(); i++) {
             var sample = bank.samples().get(i);
-            var sn = samplesNode.addObject();
-            sn.put("index", i);
-            sn.put("name", sample.name());
-            sn.put("frequencyHz", sample.frequencyHz());
 
             if (sample.isEmpty()) {
-                sn.put("empty", true);
+                sampleDtos.add(new SampleBankDto.SampleDto(i, sample.name(), sample.frequencyHz(), true, null));
             } else {
                 var filename = svx8
                         ? "sample_%03d.8svx".formatted(i)
                         : "sample_%03d.wav".formatted(i);
-                sn.put("file", filename);
 
                 if (svx8) {
                     writeSvx8(sample, outDir.resolve(filename));
@@ -83,11 +75,15 @@ public class SampleBankExporter {
                 }
                 System.out.printf("  sample_%03d: %s, %dHz, %d bytes%n",
                         i, sample.name(), sample.frequencyHz(), sample.pcmData().length);
+
+                sampleDtos.add(new SampleBankDto.SampleDto(i, sample.name(), sample.frequencyHz(), null, filename));
             }
         }
 
+        var dto = new SampleBankDto(SampleBankDto.TYPE, bank.bankNumber() & 0xFFFF, bank.chipRam(), sampleDtos);
+
         var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), root);
+        JSON.writeValue(dest.toFile(), dto);
         System.out.printf("Written %s (%d samples)%n", dest, bank.samples().size());
     }
 

@@ -6,8 +6,12 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.amigaamos.dto.PacPicBankDto;
+
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 import static dev.rambris.amigaamos.JsonConfig.JSON;
 
@@ -16,8 +20,8 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  *
  * <p>API contract:
  * <ul>
- *   <li>Writes image to {@code pngPath}</li>
- *   <li>Writes metadata to {@code pngPath + ".json"}</li>
+ *   <li>Writes image to {@code imagePath}</li>
+ *   <li>Writes metadata to {@code imagePath + ".json"}</li>
  *   <li>Does not create directories</li>
  * </ul>
  */
@@ -53,38 +57,32 @@ public class PacPicBankExporter {
             IndexedPngWriter.writePng(palette, maxColors, pixels, width, height, imagePath);
         }
 
-        var jsonPath = Path.of(imagePath.toString() + ".json");
-        var root = JSON.createObjectNode();
-        root.put("type", "PacPic");
-        root.put("bankNumber", bank.bankNumber());
-        root.put("chipRam", bank.chipRam());
-        root.put("imageFile", imagePath.getFileName().toString());
-        root.put("srcX", readSrcX(bank.picData()));
-        root.put("srcY", readSrcY(bank.picData()));
-        root.put("planes", planes);
-        root.put("spack", bank.isSpack());
-
+        PacPicBankDto.ScreenHeaderDto screenDto = null;
         if (bank.isSpack()) {
             var sh = bank.screenHeader();
-            var s = root.putObject("screen");
-            s.put("width", sh.width());
-            s.put("height", sh.height());
-            s.put("hardX", sh.hardX());
-            s.put("hardY", sh.hardY());
-            s.put("displayWidth", sh.displayWidth());
-            s.put("displayHeight", sh.displayHeight());
-            s.put("offsetX", sh.offsetX());
-            s.put("offsetY", sh.offsetY());
-            s.put("bplCon0", sh.bplCon0());
-            s.put("numColors", sh.numColors());
-            s.put("numPlanes", sh.numPlanes());
-            var p = s.putArray("palette");
-            for (var c : sh.palette()) {
-                p.add(AmigaPalette.toHexRgb(c));
-            }
+            List<String> paletteList = Arrays.stream(sh.palette())
+                    .mapToObj(AmigaPalette::toHexRgb)
+                    .toList();
+            screenDto = new PacPicBankDto.ScreenHeaderDto(
+                    sh.width(), sh.height(), sh.hardX(), sh.hardY(),
+                    sh.displayWidth(), sh.displayHeight(),
+                    sh.offsetX(), sh.offsetY(),
+                    sh.bplCon0(), sh.numColors(), sh.numPlanes(),
+                    paletteList);
         }
 
-        JSON.writeValue(jsonPath.toFile(), root);
+        var dto = new PacPicBankDto(
+                PacPicBankDto.TYPE,
+                bank.bankNumber() & 0xFFFF,
+                bank.chipRam(),
+                imagePath.getFileName().toString(),
+                readSrcX(bank.picData()),
+                readSrcY(bank.picData()),
+                planes,
+                bank.isSpack(),
+                screenDto);
+
+        JSON.writeValue(Path.of(imagePath + ".json").toFile(), dto);
     }
 
     private static int maxIndex(int[][] pixels) {
@@ -111,4 +109,3 @@ public class PacPicBankExporter {
         return ((picData[PacPicFormat.OFF_PKPLAN] & 0xFF) << 8) | (picData[PacPicFormat.OFF_PKPLAN + 1] & 0xFF);
     }
 }
-

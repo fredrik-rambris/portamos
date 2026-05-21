@@ -6,9 +6,14 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.amigaamos.dto.SpriteBankDto;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static dev.rambris.amigaamos.JsonConfig.JSON;
 
@@ -133,45 +138,44 @@ public class SpriteBankExporter {
 
     private void exportMetadata(SpriteBank bank, Path outDir, String spritesheetName)
             throws IOException {
-        var root = JSON.createObjectNode();
-        root.put("type", bank.type() == AmosBank.Type.ICONS ? "Icon" : "Sprite");
-        root.put("spritesheet", spritesheetName);
-
-        // Determine max colour count for numColours field
         var maxPlanes = bank.sprites().stream()
                 .filter(s -> !s.isEmpty())
                 .mapToInt(SpriteBank.Sprite::planes)
                 .max().orElse(0);
-        root.put("numColours", maxPlanes > 0 ? 1 << maxPlanes : 0);
 
-        var paletteNode = root.putArray("palette");
-        for (var color : bank.palette()) {
-            paletteNode.add(AmigaPalette.toHexRgb(color));
-        }
+        var paletteList = Arrays.stream(bank.palette())
+                .mapToObj(AmigaPalette::toHexRgb)
+                .toList();
 
-        var spritesNode = root.putArray("sprites");
+        var spriteDtos = new ArrayList<SpriteBankDto.SpriteDto>();
         int sheetX = 0;
         for (int i = 0; i < bank.sprites().size(); i++) {
             var sprite = bank.sprites().get(i);
-            var sn = spritesNode.addObject();
-            sn.put("index", i);
             if (sprite.isEmpty()) {
-                sn.put("empty", true);
+                spriteDtos.add(new SpriteBankDto.SpriteDto(i, true, null, null, null, null, null, null));
             } else {
-                sn.put("x", sheetX);
-                sn.put("width", sprite.widthPixels());
-                sn.put("height", sprite.height());
-                sn.put("planes", sprite.planes());
-                if (sprite.hotspotX() != 0) sn.put("hotspotX", sprite.hotspotX());
-                if (sprite.hotspotY() != 0) sn.put("hotspotY", sprite.hotspotY());
+                spriteDtos.add(new SpriteBankDto.SpriteDto(
+                        i, null,
+                        sheetX,
+                        sprite.widthPixels(),
+                        sprite.height(),
+                        sprite.planes(),
+                        sprite.hotspotX() != 0 ? sprite.hotspotX() : null,
+                        sprite.hotspotY() != 0 ? sprite.hotspotY() : null));
                 sheetX += sprite.widthPixels();
             }
         }
 
+        var dto = new SpriteBankDto(
+                bank.type() == AmosBank.Type.ICONS ? SpriteBankDto.TYPE_ICON : SpriteBankDto.TYPE_SPRITE,
+                null, null,   // bankNumber / chipRam: not stored in AmSp/AmIc format
+                spritesheetName,
+                maxPlanes > 0 ? 1 << maxPlanes : 0,
+                paletteList,
+                List.copyOf(spriteDtos));
+
         var dest = outDir.resolve("sprites.json");
-        JSON.writeValue(dest.toFile(), root);
+        JSON.writeValue(dest.toFile(), dto);
         System.out.printf("Written %s%n", dest);
     }
 }
-
-

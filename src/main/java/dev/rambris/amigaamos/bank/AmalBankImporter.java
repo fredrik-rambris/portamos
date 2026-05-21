@@ -6,7 +6,8 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import dev.rambris.amigaamos.dto.AmalBankDto;
+import dev.rambris.amigaamos.dto.AmalMovementDto;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,8 +32,8 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  *   "bankNumber": 4,
  *   "chipRam":    false,
  *   "movements": [
- *     { "index": 0, "name": "Move 1", "empty": false, "file": "movement_000.json" },
- *     { "index": 1, "name": "Empty",  "empty": true  },
+ *     { "index": 0, "name": "Move 1", "file": "movement_000.json" },
+ *     { "index": 1, "name": "Empty"  },
  *     ...
  *   ],
  *   "programs": [
@@ -43,7 +44,7 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  * </pre>
  *
  * <p>Only non-empty programs appear in the {@code programs} array. The total slot count is
- * derived from {@code max(index) + 1}. Empty trailing slots are dropped.
+ * taken from {@code programCount}. Empty trailing slots are dropped.
  *
  * <p>Each referenced {@code movement_NNN.json} has the structure produced by
  * {@link AmalBankExporter}:
@@ -68,15 +69,15 @@ public class AmalBankImporter {
      * @throws IOException if any referenced file cannot be read or the JSON is malformed
      */
     public AmalBank importFrom(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
+        var dto = JSON.readValue(jsonPath.toFile(), AmalBankDto.class);
         var dir = jsonPath.toAbsolutePath().getParent();
 
-        var bankNumber = (short) root.path("bankNumber").asInt(1);
-        var chipRam  = root.path("chipRam").asBoolean(false);
+        var bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 1);
+        var chipRam = dto.chipRam() != null && dto.chipRam();
 
-        var movements = parseMovements(root.path("movements"), dir);
-        var programs = parsePrograms(root.path("programs"), root.path("programCount"), dir);
-        var environment = parseEnvironment(root.path("environment"), dir);
+        var movements = parseMovements(dto.movements(), dir);
+        var programs = parsePrograms(dto.programs(), dto.programCount(), dir);
+        var environment = parseEnvironment(dto.environment(), dir);
 
         return new AmalBank(bankNumber, chipRam, List.copyOf(movements), List.copyOf(programs), environment);
     }
@@ -85,68 +86,68 @@ public class AmalBankImporter {
     // Movements
     // -------------------------------------------------------------------------
 
-    private List<AmalBank.Movement> parseMovements(JsonNode movementsNode, Path dir) throws IOException {
-        if (movementsNode.isMissingNode()) return List.of();
+    private List<AmalBank.Movement> parseMovements(
+            List<AmalBankDto.MovementRefDto> refs, Path dir) throws IOException {
+        if (refs == null) return List.of();
         var result = new ArrayList<AmalBank.Movement>();
         int counter = 0;
-        for (var mn : movementsNode) {
-            int index = mn.has("index") ? mn.path("index").asInt() : counter;
+        for (var ref : refs) {
+            int index = ref.index();
             counter = index + 1;
             while (result.size() <= index) result.add(new AmalBank.Movement("", null, null));
-            String name = mn.path("name").asText("");
-            if (mn.has("file")) {
-                var movRoot = JSON.readTree(dir.resolve(mn.get("file").asText()).toFile());
+            String name = ref.name() != null ? ref.name() : "";
+            if (ref.file() != null) {
+                var movDto = JSON.readValue(dir.resolve(ref.file()).toFile(), AmalMovementDto.class);
                 result.set(index, new AmalBank.Movement(
-                        movRoot.path("name").asText(name),
-                        parseMovementData(movRoot.path("x"), true),
-                        parseMovementData(movRoot.path("y"), false)));
+                        movDto.name() != null ? movDto.name() : name,
+                        toMovementData(movDto.x(), true),
+                        toMovementData(movDto.y(), false)));
             } else {
-                // Named-only entry: empty movement with preserved name
                 result.set(index, new AmalBank.Movement(name, null, null));
             }
         }
         return result;
     }
 
-    private AmalBank.MovementData parseMovementData(JsonNode node, boolean isX) {
-        if (node.isNull() || node.isMissingNode()) return null;
-        int speed = node.path("speed").asInt(1);
+    private AmalBank.MovementData toMovementData(AmalMovementDto.MovementDataDto dto, boolean isX) {
+        if (dto == null) return null;
         var instructions = new ArrayList<AmalBank.Instruction>();
-        for (var inst : node.path("instructions")) {
-            var type = inst.path("type").asText();
-            instructions.add(switch (type) {
-                case "wait"  -> new AmalBank.Instruction.Wait(inst.path("ticks").asInt());
-                case "delta" -> new AmalBank.Instruction.Delta(inst.path("pixels").asInt());
-                default -> throw new IllegalArgumentException("Unknown instruction type: " + type);
-            });
+        if (dto.instructions() != null) {
+            for (var inst : dto.instructions()) {
+                instructions.add(switch (inst.type()) {
+                    case "wait" -> new AmalBank.Instruction.Wait(
+                            inst.ticks() != null ? inst.ticks() : 0);
+                    case "delta" -> new AmalBank.Instruction.Delta(
+                            inst.pixels() != null ? inst.pixels() : 0);
+                    default -> throw new IllegalArgumentException("Unknown instruction type: " + inst.type());
+                });
+            }
         }
         return isX
-                ? AmalBank.MovementData.fromXInstructions(speed, List.copyOf(instructions))
-                : AmalBank.MovementData.fromYInstructions(speed, List.copyOf(instructions));
+                ? AmalBank.MovementData.fromXInstructions(dto.speed(), List.copyOf(instructions))
+                : AmalBank.MovementData.fromYInstructions(dto.speed(), List.copyOf(instructions));
     }
 
     // -------------------------------------------------------------------------
     // Programs
     // -------------------------------------------------------------------------
 
-    private List<String> parsePrograms(JsonNode programsNode, JsonNode programCountNode, Path dir) throws IOException {
+    private List<String> parsePrograms(
+            List<AmalBankDto.ProgramRefDto> refs, int programCount, Path dir) throws IOException {
         var result = new ArrayList<String>();
-        if (!programsNode.isMissingNode()) {
+        if (refs != null) {
             int counter = 0;
-            for (var pn : programsNode) {
-                int index = pn.has("index") ? pn.path("index").asInt() : counter;
+            for (var ref : refs) {
+                int index = ref.index();
                 counter = index + 1;
                 while (result.size() <= index) result.add("");
-                if (pn.has("file")) {
-                    result.set(index, readProgramFile(dir.resolve(pn.get("file").asText())));
+                if (ref.file() != null) {
+                    result.set(index, readProgramFile(dir.resolve(ref.file())));
                 }
             }
         }
-        // Pad to programCount if specified, to preserve total slot count.
-        if (!programCountNode.isMissingNode()) {
-            int count = programCountNode.asInt();
-            while (result.size() < count) result.add("");
-        }
+        // Pad to programCount to preserve total slot count.
+        while (result.size() < programCount) result.add("");
         return result;
     }
 
@@ -160,11 +161,9 @@ public class AmalBankImporter {
     // Environment
     // -------------------------------------------------------------------------
 
-    private String parseEnvironment(JsonNode envNode, Path dir) throws IOException {
-        if (envNode.isMissingNode() || envNode.isNull()) return "";
-        String filename = envNode.asText();
-        if (filename.isBlank()) return "";
-        var file = dir.resolve(filename);
+    private String parseEnvironment(String envFilename, Path dir) throws IOException {
+        if (envFilename == null || envFilename.isBlank()) return "";
+        var file = dir.resolve(envFilename);
         if (!Files.exists(file)) return "";
         return readProgramFile(file);
     }

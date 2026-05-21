@@ -6,6 +6,8 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.amigaamos.dto.TrackerBankDto;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,14 +34,10 @@ public class TrackerBankExporter {
         Files.write(outDir.resolve(MOD_FILE), bank.modData());
         System.out.printf("Written %s (%d bytes)%n", outDir.resolve(MOD_FILE), bank.modData().length);
 
-        var root = JSON.createObjectNode();
-        root.put("type", "Tracker");
-        root.put("bankNumber", bank.bankNumber() & 0xFFFF);
-        root.put("chipRam", bank.chipRam());
-        root.put("modFile", MOD_FILE);
+        var dto = new TrackerBankDto(TrackerBankDto.TYPE, bank.bankNumber() & 0xFFFF, bank.chipRam(), MOD_FILE);
 
         var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), root);
+        JSON.writeValue(dest.toFile(), dto);
         System.out.printf("Written %s%n", dest);
     }
 }

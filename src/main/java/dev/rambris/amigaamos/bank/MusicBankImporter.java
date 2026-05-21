@@ -6,7 +6,7 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import dev.rambris.amigaamos.dto.MusicBankDto;
 import dev.rambris.iff.codec.Svx8Codec;
 
 import javax.sound.sampled.AudioFormat;
@@ -31,15 +31,15 @@ public class MusicBankImporter {
 
 
     public MusicBank importFrom(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
-        var dir  = jsonPath.getParent();
+        var dto = JSON.readValue(jsonPath.toFile(), MusicBankDto.class);
+        var dir = jsonPath.getParent();
 
-        short bankNumber = (short) root.path("bankNumber").asInt(1);
-        boolean chipRam  = root.path("chipRam").asBoolean(true);
+        short bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 1);
+        boolean chipRam = dto.chipRam() == null || dto.chipRam();
 
-        var instruments = readInstruments(root.path("instruments"), dir);
-        var songs       = readSongs(root.path("songs"));
-        var patterns    = readPatterns(root.path("patterns"));
+        var instruments = readInstruments(dto.instruments(), dir);
+        var songs = readSongs(dto.songs());
+        var patterns = readPatterns(dto.patterns());
 
         return new MusicBank(bankNumber, chipRam,
                 List.copyOf(instruments),
@@ -51,17 +51,17 @@ public class MusicBankImporter {
     // Instruments
     // ─────────────────────────────────────────────────────────────────────────
 
-    private static List<MusicBank.Instrument> readInstruments(JsonNode arr, Path dir)
-            throws IOException {
+    private static List<MusicBank.Instrument> readInstruments(
+            List<MusicBankDto.InstrumentDto> dtos, Path dir) throws IOException {
         var result = new ArrayList<MusicBank.Instrument>();
-        if (arr == null || arr.isMissingNode()) return result;
-        for (var n : arr) {
-            var name        = n.path("name").asText("");
-            var volume      = n.path("volume").asInt(64);
-            var totalLength = n.path("totalLength").asInt(0);
-            var loopStart   = n.path("loopStart").asInt(0);
-            var loopLength  = n.path("loopLength").asInt(2);
-            var sampleFile  = n.path("sample").asText(null);
+        if (dtos == null) return result;
+        for (var d : dtos) {
+            var name = d.name() != null ? d.name() : "";
+            var volume = d.volume();
+            var totalLength = d.totalLength() != null ? d.totalLength() : 0;
+            var loopStart = d.loopStart() != null ? d.loopStart() : 0;
+            var loopLength = d.loopLength() != null ? d.loopLength() : 2;
+            var sampleFile = d.sample();
 
             byte[] sampleData;
             if (sampleFile != null && !sampleFile.isEmpty()) {
@@ -84,20 +84,17 @@ public class MusicBankImporter {
     // Songs
     // ─────────────────────────────────────────────────────────────────────────
 
-    private static List<MusicBank.Song> readSongs(JsonNode arr) {
+    private static List<MusicBank.Song> readSongs(List<MusicBankDto.SongDto> dtos) {
         var result = new ArrayList<MusicBank.Song>();
-        if (arr == null || arr.isMissingNode()) return result;
-        for (var n : arr) {
-            var name     = n.path("name").asText("");
-            var tempo    = n.path("tempo").asInt(0);
+        if (dtos == null) return result;
+        for (var d : dtos) {
+            var name = d.name() != null ? d.name() : "";
+            var tempo = d.tempo() != null ? d.tempo() : 0;
             var sequence = new ArrayList<List<Integer>>(4);
-            var seqNode  = n.path("sequence");
             for (int v = 0; v < 4; v++) {
                 var list = new ArrayList<Integer>();
-                if (!seqNode.isMissingNode() && v < seqNode.size()) {
-                    for (var entry : seqNode.get(v)) {
-                        list.add(entry.asInt());
-                    }
+                if (d.sequence() != null && v < d.sequence().size()) {
+                    list.addAll(d.sequence().get(v));
                 }
                 sequence.add(List.copyOf(list));
             }
@@ -110,17 +107,16 @@ public class MusicBankImporter {
     // Patterns
     // ─────────────────────────────────────────────────────────────────────────
 
-    private static List<MusicBank.Pattern> readPatterns(JsonNode arr) {
+    private static List<MusicBank.Pattern> readPatterns(List<MusicBankDto.PatternDto> dtos) {
         var result = new ArrayList<MusicBank.Pattern>();
-        if (arr == null || arr.isMissingNode()) return result;
-        for (var n : arr) {
-            var voices     = new ArrayList<List<MusicBank.VoiceItem>>(4);
-            var voicesNode = n.path("voices");
+        if (dtos == null) return result;
+        for (var d : dtos) {
+            var voices = new ArrayList<List<MusicBank.VoiceItem>>(4);
             for (int v = 0; v < 4; v++) {
                 var list = new ArrayList<MusicBank.VoiceItem>();
-                if (!voicesNode.isMissingNode() && v < voicesNode.size()) {
-                    for (var w : voicesNode.get(v)) {
-                        list.add(readVoiceItem(w));
+                if (d.voices() != null && v < d.voices().size()) {
+                    for (var item : d.voices().get(v)) {
+                        list.add(readVoiceItem(item));
                     }
                 }
                 voices.add(List.copyOf(list));
@@ -168,15 +164,14 @@ public class MusicBankImporter {
         return Files.readAllBytes(path);
     }
 
-    private static MusicBank.VoiceItem readVoiceItem(JsonNode n) {
-        var cmdNode = n.path("command");
-        if (!cmdNode.isMissingNode()) {
-            var command   = MusicBank.Command.valueOf(cmdNode.asText());
-            var parameter = n.path("parameter").asInt(0);
+    private static MusicBank.VoiceItem readVoiceItem(MusicBankDto.VoiceItemDto d) {
+        if (d.command() != null) {
+            var command = MusicBank.Command.valueOf(d.command());
+            var parameter = d.parameter() != null ? d.parameter() : 0;
             return new MusicBank.VoiceItem(0, 0, command, parameter);
         } else {
-            var period   = n.path("period").asInt(0);
-            var duration = n.path("duration").asInt(0);
+            var period = d.period() != null ? d.period() : 0;
+            var duration = d.duration() != null ? d.duration() : 0;
             return new MusicBank.VoiceItem(period, duration, null, 0);
         }
     }

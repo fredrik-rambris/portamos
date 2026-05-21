@@ -6,6 +6,8 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.amigaamos.dto.TrackerBankDto;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,14 +22,13 @@ public class TrackerBankImporter {
 
 
     public TrackerBank importFrom(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
+        var dto = JSON.readValue(jsonPath.toFile(), TrackerBankDto.class);
 
-        var bankNumber = (short) root.path("bankNumber").asInt(3);
-        var chipRam    = root.path("chipRam").asBoolean(false);
-        var modFile    = root.path("modFile").asText("track.mod");
+        var bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 3);
+        var chipRam = dto.chipRam() != null && dto.chipRam();
+        var modFile = dto.modFile() != null ? dto.modFile() : "track.mod";
 
-        var modPath = jsonPath.resolveSibling(modFile);
-        var modData = Files.readAllBytes(modPath);
+        var modData = Files.readAllBytes(jsonPath.resolveSibling(modFile));
 
         return new TrackerBank(bankNumber, chipRam, modData);
     }

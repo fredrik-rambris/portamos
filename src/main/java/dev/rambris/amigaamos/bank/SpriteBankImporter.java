@@ -6,7 +6,7 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import dev.rambris.amigaamos.dto.SpriteBankDto;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,22 +34,20 @@ public class SpriteBankImporter {
      * @throws IOException if metadata or spritesheet cannot be read
      */
     public SpriteBank importFrom(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
+        var dto = JSON.readValue(jsonPath.toFile(), SpriteBankDto.class);
 
-        var bankType = parseBankType(root.path("type").asText("Sprite"));
+        var bankType = parseBankType(dto.type());
 
-        var spritesheetFile = root.path("spritesheet").asText("spritesheet.png");
-        var spritesheetPath = jsonPath.resolveSibling(spritesheetFile);
+        var spritesheetFile = dto.spritesheet() != null ? dto.spritesheet() : "spritesheet.png";
+        var sheet = IndexedPngWriter.readPixels(jsonPath.resolveSibling(spritesheetFile));
 
-        var sheet = IndexedPngWriter.readPixels(spritesheetPath);
-
-        var numColours = root.path("numColours").asInt(0);
+        var numColours = dto.numColours();
         var defaultPlanes = numColours > 0
                 ? colorModelToPlanes(numColours)
                 : colorModelToPlanes(sheet.numColors());
 
-        var palette = parsePalette(root.path("palette"));
-        var sprites = parseSprites(root.path("sprites"), sheet.pixels(), defaultPlanes);
+        var palette = parsePalette(dto.palette());
+        var sprites = parseSprites(dto.sprites(), sheet.pixels(), defaultPlanes);
 
         return new SpriteBank(bankType, List.copyOf(sprites), palette);
     }
@@ -58,34 +56,33 @@ public class SpriteBankImporter {
     // Sprites
     // -------------------------------------------------------------------------
 
-    private List<SpriteBank.Sprite> parseSprites(JsonNode spritesNode, int[][] sheetPixels, int defaultPlanes) {
+    private List<SpriteBank.Sprite> parseSprites(
+            List<SpriteBankDto.SpriteDto> spriteDtos, int[][] sheetPixels, int defaultPlanes) {
         var sprites = new ArrayList<SpriteBank.Sprite>();
-        if (spritesNode.isMissingNode()) return sprites;
+        if (spriteDtos == null) return sprites;
 
-        for (var sn : spritesNode) {
-            var empty = sn.path("empty").asBoolean(false);
-            if (empty) {
+        for (var s : spriteDtos) {
+            if (Boolean.TRUE.equals(s.empty())) {
                 sprites.add(new SpriteBank.Sprite(0, 0, 0, 0, 0, new byte[0]));
                 continue;
             }
 
-            var width = sn.path("width").asInt(0);
+            var width = s.width() != null ? s.width() : 0;
             if (width % 16 != 0) {
                 System.err.println("Warning: sprite width " + width + " is not divisible by 16 — truncating to nearest word");
             }
             var widthWords = width / 16;
             if (widthWords < 1) {
-                System.err.println("Invalid width on node: " + sn);
+                System.err.println("Invalid width on sprite: " + s);
             }
 
-            var height = sn.path("height").asInt(0);
-            var planes = sn.path("planes").asInt(defaultPlanes);
-            var hotspotX = sn.path("hotspotX").asInt(0);
-            var hotspotY = sn.path("hotspotY").asInt(0);
-            var x = sn.path("x").asInt(0);
-            var y = sn.path("y").asInt(0);
+            var height = s.height() != null ? s.height() : 0;
+            var planes = s.planes() != null ? s.planes() : defaultPlanes;
+            var hotspotX = s.hotspotX() != null ? s.hotspotX() : 0;
+            var hotspotY = s.hotspotY() != null ? s.hotspotY() : 0;
+            var x = s.x() != null ? s.x() : 0;
 
-            var data = extractPlanar(sheetPixels, x, y, widthWords, height, planes);
+            var data = extractPlanar(sheetPixels, x, 0, widthWords, height, planes);
             sprites.add(new SpriteBank.Sprite(widthWords, height, planes, hotspotX, hotspotY, data));
         }
 
@@ -141,16 +138,14 @@ public class SpriteBankImporter {
         };
     }
 
-    private static int[] parsePalette(JsonNode paletteNode) {
+    private static int[] parsePalette(List<String> paletteList) {
         var palette = new int[32];
-        if (paletteNode.isMissingNode()) return palette;
-
-        for (int i = 0; i < Math.min(paletteNode.size(), 32); i++) {
-            palette[i] = AmigaPalette.parseHexRgb(paletteNode.get(i).asText("#000"));
+        if (paletteList == null) return palette;
+        for (int i = 0; i < Math.min(paletteList.size(), 32); i++) {
+            palette[i] = AmigaPalette.parseHexRgb(paletteList.get(i));
         }
         return palette;
     }
-
 
     private static int colorModelToPlanes(int nColors) {
         var planes = 0;

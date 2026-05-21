@@ -6,8 +6,7 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.rambris.amigaamos.dto.MusicBankDto;
 import dev.rambris.iff.codec.Svx8Codec;
 import dev.rambris.iff.codec.Svx8Sound;
 import dev.rambris.iff.codec.VhdrChunk;
@@ -20,6 +19,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static dev.rambris.amigaamos.JsonConfig.JSON;
 
@@ -31,44 +32,6 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  *   <li>{@code bank.json} — full bank metadata (instruments, songs, patterns).</li>
  *   <li>{@code instrument_NNN.wav} — instrument sample data (or {@code .8svx} when requested).</li>
  * </ul>
- *
- * <h3>JSON schema</h3>
- * <pre>
- * {
- *   "type": "Music",
- *   "bankNumber": 3,
- *   "chipRam": true,
- *   "instruments": [
- *     {
- *       "name": "Not named",
- *       "volume": 45,
- *       "loopStart": 112,     // byte offset from sample start (0 = no loop)
- *       "loopLength": 3247,   // loop length in words (2 = no loop / null sample)
- *       "totalLength": 0,     // reserved word (normally 0)
- *       "sample": "instrument_000.wav"
- *     }
- *   ],
- *   "songs": [
- *     {
- *       "name": "GMC music!",
- *       "tempo": 15,
- *       "sequence": [
- *         [0, 1, 2, 65534],   // 65534 = 0xFFFE = loop; 65535 = 0xFFFF = stop
- *         ...
- *       ]
- *     }
- *   ],
- *   "patterns": [
- *     {
- *       "voices": [
- *         {"period": 254, "duration": 16134},
- *         {"command": "SET_INSTR", "parameter": 0},
- *         ...
- *       ]
- *     }
- *   ]
- * }
- * </pre>
  *
  * @see MusicBankImporter
  */
@@ -95,17 +58,16 @@ public class MusicBankExporter {
     public void export(MusicBank bank, Path outDir, boolean svx8) throws IOException {
         Files.createDirectories(outDir);
 
-        var root = JSON.createObjectNode();
-        root.put("type", "Music");
-        root.put("bankNumber", bank.bankNumber() & 0xFFFF);
-        root.put("chipRam", bank.chipRam());
-
-        root.set("instruments", exportInstruments(bank, outDir, svx8));
-        root.set("songs", exportSongs(bank));
-        root.set("patterns", exportPatterns(bank));
+        var dto = new MusicBankDto(
+                MusicBankDto.TYPE,
+                bank.bankNumber() & 0xFFFF,
+                bank.chipRam(),
+                buildInstrumentDtos(bank, outDir, svx8),
+                buildSongDtos(bank),
+                buildPatternDtos(bank));
 
         var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), root);
+        JSON.writeValue(dest.toFile(), dto);
         System.out.printf("Written %s (%d instruments, %d songs, %d patterns)%n",
                 dest, bank.instruments().size(), bank.songs().size(), bank.patterns().size());
     }
@@ -114,9 +76,9 @@ public class MusicBankExporter {
     // Instruments
     // ─────────────────────────────────────────────────────────────────────────
 
-    private ArrayNode exportInstruments(MusicBank bank, Path outDir, boolean svx8)
-            throws IOException {
-        var arr = JSON.createArrayNode();
+    private List<MusicBankDto.InstrumentDto> buildInstrumentDtos(
+            MusicBank bank, Path outDir, boolean svx8) throws IOException {
+        var result = new ArrayList<MusicBankDto.InstrumentDto>();
         for (int i = 0; i < bank.instruments().size(); i++) {
             var inst = bank.instruments().get(i);
             var ext      = svx8 ? ".8svx" : ".wav";
@@ -128,19 +90,16 @@ public class MusicBankExporter {
                 writeWav(inst, outDir.resolve(filename));
             }
 
-            var obj = JSON.createObjectNode();
-            obj.put("name", inst.name());
-            obj.put("volume", inst.volume());
-            if (inst.totalLength() != 0) obj.put("totalLength", inst.totalLength());
-            if (inst.hasLoop()) {
-                obj.put("loopStart", inst.loopOffsetRelative());
-                obj.put("loopLength", inst.loopLength());
-            }
-            obj.put("sample", filename);
-            arr.add(obj);
+            result.add(new MusicBankDto.InstrumentDto(
+                    inst.name(),
+                    inst.volume(),
+                    inst.totalLength() != 0 ? inst.totalLength() : null,
+                    inst.hasLoop() ? inst.loopOffsetRelative() : null,
+                    inst.hasLoop() ? inst.loopLength() : null,
+                    filename));
         }
         System.out.printf("Exported %d instrument sample(s)%n", bank.instruments().size());
-        return arr;
+        return result;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -180,53 +139,45 @@ public class MusicBankExporter {
     // Songs
     // ─────────────────────────────────────────────────────────────────────────
 
-    private ArrayNode exportSongs(MusicBank bank) {
-        var arr = JSON.createArrayNode();
+    private List<MusicBankDto.SongDto> buildSongDtos(MusicBank bank) {
+        var result = new ArrayList<MusicBankDto.SongDto>();
         for (var song : bank.songs()) {
-            var obj = JSON.createObjectNode();
-            if (!song.name().isEmpty()) obj.put("name", song.name());
-            if (song.tempo() != 0) obj.put("tempo", song.tempo());
-            var sequence = JSON.createArrayNode();
-            for (var seqList : song.sequence()) {
-                var vArr = JSON.createArrayNode();
-                for (int entry : seqList) vArr.add(entry);
-                sequence.add(vArr);
-            }
-            obj.set("sequence", sequence);
-            arr.add(obj);
+            var sequence = song.sequence().stream()
+                    .map(List::copyOf)
+                    .toList();
+            result.add(new MusicBankDto.SongDto(
+                    song.name().isEmpty() ? null : song.name(),
+                    song.tempo() != 0 ? song.tempo() : null,
+                    sequence));
         }
-        return arr;
+        return result;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Patterns
     // ─────────────────────────────────────────────────────────────────────────
 
-    private ArrayNode exportPatterns(MusicBank bank) {
-        var arr = JSON.createArrayNode();
+    private List<MusicBankDto.PatternDto> buildPatternDtos(MusicBank bank) {
+        var result = new ArrayList<MusicBankDto.PatternDto>();
         for (var pattern : bank.patterns()) {
-            var obj = JSON.createObjectNode();
-            var voices = JSON.createArrayNode();
-            for (var noteList : pattern.voices()) {
-                var vArr = JSON.createArrayNode();
-                for (var item : noteList) vArr.add(exportVoiceItem(item));
-                voices.add(vArr);
-            }
-            obj.set("voices", voices);
-            arr.add(obj);
+            var voices = pattern.voices().stream()
+                    .map(noteList -> noteList.stream()
+                            .map(this::buildVoiceItemDto)
+                            .toList())
+                    .toList();
+            result.add(new MusicBankDto.PatternDto(voices));
         }
-        return arr;
+        return result;
     }
 
-    private ObjectNode exportVoiceItem(MusicBank.VoiceItem item) {
-        var obj = JSON.createObjectNode();
+    private MusicBankDto.VoiceItemDto buildVoiceItemDto(MusicBank.VoiceItem item) {
         if (item.isCommand()) {
-            obj.put("command", item.command().name());
-            if (item.parameter() != 0) obj.put("parameter", item.parameter());
+            return new MusicBankDto.VoiceItemDto(
+                    item.command().name(),
+                    item.parameter() != 0 ? item.parameter() : null,
+                    null, null);
         } else {
-            obj.put("period", item.period());
-            obj.put("duration", item.duration());
+            return new MusicBankDto.VoiceItemDto(null, null, item.period(), item.duration());
         }
-        return obj;
     }
 }

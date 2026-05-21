@@ -6,7 +6,7 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import dev.rambris.amigaamos.dto.ResourceBankDto;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,27 +46,26 @@ public class ResourceBankImporter {
      * @throws IllegalStateException    if the spritesheet is not an indexed-colour PNG
      */
     public ResourceBank importFrom(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
+        var dto = JSON.readValue(jsonPath.toFile(), ResourceBankDto.class);
 
-        short bankNumber = (short) root.path("bankNumber").asInt(1);
-        boolean chipRam  = root.path("chipRam").asBoolean(true);
-        var screenMode   = parseHex(root.path("screenMode").asText("0x0000"));
-        var imagePath    = root.path("imagePath").asText("");
+        short bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 1);
+        boolean chipRam = dto.chipRam() == null || dto.chipRam();
+        var screenMode = parseHex(dto.screenMode() != null ? dto.screenMode() : "0x0000");
+        var imagePath = dto.imagePath() != null ? dto.imagePath() : "";
 
-        var palette = parsePalette(root.path("palette"));
+        var palette = parsePalette(dto.palette());
 
-        var spritesheetFile = root.path("spritesheet").asText("spritesheet.png");
-        var spritesheetPath = jsonPath.resolveSibling(spritesheetFile);
+        var spritesheetFile = dto.spritesheet() != null ? dto.spritesheet() : "spritesheet.png";
+        var sheet = IndexedPngWriter.readPixels(jsonPath.resolveSibling(spritesheetFile));
 
-        var sheet = IndexedPngWriter.readPixels(spritesheetPath);
-        var numColours = root.path("numColours").asInt(0);
+        var numColours = dto.numColours();
         var planes = numColours > 0
                 ? colorModelToPlanes(numColours)
                 : colorModelToPlanes(sheet.numColors());
 
-        var elements = parseElements(root.path("elements"), sheet.pixels(), planes);
-        var texts    = parseTexts(root.path("texts"));
-        var programs = parsePrograms(root.path("programs"), jsonPath.getParent());
+        var elements = parseElements(dto.elements(), sheet.pixels(), planes);
+        var texts = parseTexts(dto.texts());
+        var programs = parsePrograms(dto.programs(), jsonPath.getParent());
 
         return new ResourceBank(bankNumber, chipRam, screenMode, palette, imagePath,
                 List.copyOf(elements), List.copyOf(texts), List.copyOf(programs));
@@ -76,30 +75,25 @@ public class ResourceBankImporter {
     // Elements
     // -------------------------------------------------------------------------
 
-    private List<ResourceBank.Element> parseElements(JsonNode elementsNode,
-                                                      int[][] sheetPixels, int planes) {
+    private List<ResourceBank.Element> parseElements(
+            List<ResourceBankDto.ElementDto> elementDtos, int[][] sheetPixels, int planes) {
         var elements = new ArrayList<ResourceBank.Element>();
-        if (elementsNode.isMissingNode()) return elements;
-        for (var elNode : elementsNode) {
-            var name   = elNode.has("name") ? elNode.get("name").asText() : null;
-            var type   = elNode.has("type") ? elNode.get("type").asText() : null;
-            var images = parseImages(elNode.path("images"), sheetPixels, planes);
-            elements.add(new ResourceBank.Element(name, type, images));
+        if (elementDtos == null) return elements;
+        for (var el : elementDtos) {
+            var images = parseImages(el.images(), sheetPixels, planes);
+            elements.add(new ResourceBank.Element(el.name(), el.type(), images));
         }
         return elements;
     }
 
-    private List<ResourceBank.Image> parseImages(JsonNode imagesNode,
-                                                   int[][] sheetPixels, int planes) {
+    private List<ResourceBank.Image> parseImages(
+            List<ResourceBankDto.ImageDto> imageDtos, int[][] sheetPixels, int planes) {
         var images = new ArrayList<ResourceBank.Image>();
-        for (var imgNode : imagesNode) {
-            var x      = imgNode.get("x").asInt();
-            var y      = imgNode.get("y").asInt();
-            var w      = imgNode.get("width").asInt();
-            var h      = imgNode.get("height").asInt();
-            var pixels = extractRegion(sheetPixels, x, y, w, h);
-            var data   = PacPicEncoder.compress(pixels, x, y, planes);
-            images.add(new ResourceBank.Image(x, y, w, h, planes, data));
+        if (imageDtos == null) return images;
+        for (var img : imageDtos) {
+            var pixels = extractRegion(sheetPixels, img.x(), img.y(), img.width(), img.height());
+            var data = PacPicEncoder.compress(pixels, img.x(), img.y(), planes);
+            images.add(new ResourceBank.Image(img.x(), img.y(), img.width(), img.height(), planes, data));
         }
         return images;
     }
@@ -108,11 +102,11 @@ public class ResourceBankImporter {
     // Texts
     // -------------------------------------------------------------------------
 
-    private List<String> parseTexts(JsonNode textsNode) {
+    private List<String> parseTexts(List<ResourceBankDto.TextDto> textDtos) {
         var texts = new ArrayList<String>();
-        if (textsNode.isMissingNode()) return texts;
-        for (var tn : textsNode) {
-            texts.add(tn.path("text").asText());
+        if (textDtos == null) return texts;
+        for (var t : textDtos) {
+            texts.add(t.text() != null ? t.text() : "");
         }
         return texts;
     }
@@ -121,12 +115,12 @@ public class ResourceBankImporter {
     // Programs
     // -------------------------------------------------------------------------
 
-    private List<String> parsePrograms(JsonNode programsNode, Path dir) throws IOException {
+    private List<String> parsePrograms(List<ResourceBankDto.ProgramDto> programDtos, Path dir)
+            throws IOException {
         var programs = new ArrayList<String>();
-        if (programsNode.isMissingNode()) return programs;
-        for (var pn : programsNode) {
-            var file = pn.path("file").asText();
-            programs.add(Files.readString(dir.resolve(file), java.nio.charset.StandardCharsets.UTF_8));
+        if (programDtos == null) return programs;
+        for (var p : programDtos) {
+            programs.add(Files.readString(dir.resolve(p.file()), java.nio.charset.StandardCharsets.UTF_8));
         }
         return programs;
     }
@@ -135,15 +129,14 @@ public class ResourceBankImporter {
     // Helpers
     // -------------------------------------------------------------------------
 
-    private static int[] parsePalette(JsonNode paletteNode) {
+    private static int[] parsePalette(List<String> paletteList) {
         var palette = new int[32];
-        if (paletteNode.isMissingNode()) return palette;
-        for (int i = 0; i < Math.min(paletteNode.size(), 32); i++) {
-            palette[i] = AmigaPalette.parseHexRgb(paletteNode.get(i).asText("#000"));
+        if (paletteList == null) return palette;
+        for (int i = 0; i < Math.min(paletteList.size(), 32); i++) {
+            palette[i] = AmigaPalette.parseHexRgb(paletteList.get(i));
         }
         return palette;
     }
-
 
     /** Parses a hex string like {@code "0x0000"} or {@code "0"} to an int. */
     private static int parseHex(String s) {

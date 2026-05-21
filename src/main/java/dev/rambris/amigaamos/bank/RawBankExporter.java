@@ -6,6 +6,8 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.amigaamos.dto.RawBankDto;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,18 +54,18 @@ public class RawBankExporter {
     public void export(AmosBank bank, Path dataPath) throws IOException {
         if (!(bank instanceof RawBank rb))
             throw new IllegalArgumentException("Not a Work or Data bank, got: " + bank.getClass().getSimpleName());
-        var payload = rb.data();
 
         Files.createDirectories(dataPath.toAbsolutePath().getParent());
-        Files.write(dataPath, payload);
+        Files.write(dataPath, rb.data());
 
-        var root = JSON.createObjectNode();
-        root.put("type",       bank.type().name());
-        root.put("bankNumber", bank.bankNumber() & 0xFFFF);
-        root.put("chipRam",    bank.chipRam());
-        root.put("dataFile",   dataPath.getFileName().toString());
+        var typeStr = bank.type() == AmosBank.Type.WORK ? RawBankDto.TYPE_WORK : RawBankDto.TYPE_DATA;
+        var dto = new RawBankDto(
+                typeStr,
+                bank.bankNumber() & 0xFFFF,
+                bank.chipRam(),
+                dataPath.getFileName().toString());
 
         var jsonPath = dataPath.resolveSibling(dataPath.getFileName() + ".json");
-        JSON.writeValue(jsonPath.toFile(), root);
+        JSON.writeValue(jsonPath.toFile(), dto);
     }
 }

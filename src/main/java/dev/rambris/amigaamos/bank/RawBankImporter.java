@@ -6,6 +6,8 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.amigaamos.dto.RawBankDto;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,15 +40,14 @@ public class RawBankImporter {
      * @throws IllegalArgumentException if the {@code type} field is not {@code WORK} or {@code DATA}
      */
     public RawBank importFrom(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
+        var dto = JSON.readValue(jsonPath.toFile(), RawBankDto.class);
 
-        var typeName     = root.path("type").asText("").toUpperCase();
-        short bankNumber = (short) root.path("bankNumber").asInt(1);
-        boolean chipRam  = root.path("chipRam").asBoolean(false);
-        var dataFile     = root.path("dataFile").asText();
+        var typeName = dto.type() != null ? dto.type().toUpperCase() : "";
+        var bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 1);
+        var chipRam = dto.chipRam() != null && dto.chipRam();
+        var dataFile = dto.dataFile() != null ? dto.dataFile() : "";
 
-        var dataPath = jsonPath.resolveSibling(dataFile);
-        var data     = Files.readAllBytes(dataPath);
+        var data = Files.readAllBytes(jsonPath.resolveSibling(dataFile));
 
         var type = switch (typeName) {
             case "WORK" -> AmosBank.Type.WORK;

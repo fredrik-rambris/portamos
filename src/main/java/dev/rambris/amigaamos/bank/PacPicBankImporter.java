@@ -6,10 +6,11 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import dev.rambris.amigaamos.dto.PacPicBankDto;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 import static dev.rambris.amigaamos.JsonConfig.JSON;
 
@@ -22,18 +23,16 @@ public class PacPicBankImporter {
 
 
     public PacPicBank importFrom(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
+        var dto = JSON.readValue(jsonPath.toFile(), PacPicBankDto.class);
 
-        var bankNumber = (short) root.path("bankNumber").asInt(15);
-        var chipRam = root.path("chipRam").asBoolean(true);
-        var srcX = root.path("srcX").asInt(0);
-        var srcY = root.path("srcY").asInt(0);
-        var planes = root.path("planes").asInt(1);
-        var spack = root.path("spack").asBoolean(false);
+        var bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 15);
+        var chipRam = dto.chipRam() == null || dto.chipRam();
+        var srcX = dto.srcX();
+        var srcY = dto.srcY();
+        var planes = dto.planes();
+        var spack = dto.spack();
 
-        var imageFile = root.has("imageFile")
-                ? root.path("imageFile").asText()
-                : root.path("pngFile").asText(defaultImageFilename(jsonPath));
+        var imageFile = dto.imageFile() != null ? dto.imageFile() : defaultImageFilename(jsonPath);
         var imagePath = jsonPath.resolveSibling(imageFile);
 
         var image = IndexedPngWriter.readPixels(imagePath);
@@ -45,21 +44,21 @@ public class PacPicBankImporter {
         var picData = PacPicEncoder.compress(image.pixels(), srcX, srcY, planes);
 
         PacPicBank.ScreenHeader screenHeader = null;
-        if (spack) {
-            var s = root.path("screen");
-            var palette = parsePalette(s.path("palette"));
+        if (spack && dto.screen() != null) {
+            var s = dto.screen();
+            var palette = parsePalette(s.palette());
             screenHeader = new PacPicBank.ScreenHeader(
-                    s.path("width").asInt(image.width()),
-                    s.path("height").asInt(image.height()),
-                    s.path("hardX").asInt(0),
-                    s.path("hardY").asInt(0),
-                    s.path("displayWidth").asInt(image.width()),
-                    s.path("displayHeight").asInt(image.height()),
-                    s.path("offsetX").asInt(0),
-                    s.path("offsetY").asInt(0),
-                    s.path("bplCon0").asInt(0),
-                    s.path("numColors").asInt(1 << planes),
-                    s.path("numPlanes").asInt(planes),
+                    s.width() != 0 ? s.width() : image.width(),
+                    s.height() != 0 ? s.height() : image.height(),
+                    s.hardX(),
+                    s.hardY(),
+                    s.displayWidth() != 0 ? s.displayWidth() : image.width(),
+                    s.displayHeight() != 0 ? s.displayHeight() : image.height(),
+                    s.offsetX(),
+                    s.offsetY(),
+                    s.bplCon0(),
+                    s.numColors() != 0 ? s.numColors() : (1 << planes),
+                    s.numPlanes() != 0 ? s.numPlanes() : planes,
                     palette
             );
         }
@@ -75,11 +74,11 @@ public class PacPicBankImporter {
         return "image.png";
     }
 
-    private static int[] parsePalette(JsonNode paletteNode) {
+    private static int[] parsePalette(List<String> paletteList) {
         var palette = new int[32];
-        if (paletteNode.isMissingNode()) return palette;
-        for (int i = 0; i < Math.min(32, paletteNode.size()); i++) {
-            palette[i] = AmigaPalette.parseHexRgb(paletteNode.get(i).asText("#000"));
+        if (paletteList == null) return palette;
+        for (int i = 0; i < Math.min(32, paletteList.size()); i++) {
+            palette[i] = AmigaPalette.parseHexRgb(paletteList.get(i));
         }
         return palette;
     }
@@ -90,4 +89,3 @@ public class PacPicBankImporter {
         return Math.max(planes, 1);
     }
 }
-

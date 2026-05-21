@@ -6,8 +6,7 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.rambris.amigaamos.dto.MenuBankDto;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -73,81 +72,58 @@ public class MenuBankExporter {
     public void export(MenuBank bank, Path outDir) throws IOException {
         Files.createDirectories(outDir);
 
-        var root = JSON.createObjectNode();
-        root.put("type", "Menu");
-        root.put("bankNumber", bank.bankNumber() & 0xFFFF);
-        root.put("chipRam", bank.chipRam());
-        root.set("items", buildArray(bank.items(), 0));
+        var dto = new MenuBankDto(
+                MenuBankDto.TYPE,
+                bank.bankNumber() & 0xFFFF,
+                bank.chipRam(),
+                buildItemDtos(bank.items(), 0));
 
         var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), root);
+        JSON.writeValue(dest.toFile(), dto);
         System.out.printf("Written %s (%d top-level items)%n", dest, bank.items().size());
     }
 
-    private ArrayNode buildArray(List<MenuNode> items, int depth) {
-        var arr = JSON.createArrayNode();
-        for (var node : items) {
-            arr.add(buildItem(node, depth));
-        }
-        return arr;
+    private List<MenuBankDto.MenuItemDto> buildItemDtos(List<MenuNode> items, int depth) {
+        return items.stream().map(node -> buildItemDto(node, depth)).toList();
     }
 
-    private ObjectNode buildItem(MenuNode node, int depth) {
-        var obj = JSON.createObjectNode();
+    private MenuBankDto.MenuItemDto buildItemDto(MenuNode node, int depth) {
         int flags = node.flags();
 
-        // ── style (omit when it matches the depth-appropriate default) ──
         boolean isBar   = (flags & FL_BAR)   != 0;
         boolean isTotal = (flags & FL_TOTAL)  != 0;
         var style = isBar ? "bar" : isTotal ? "tline" : "line";
         var defaultStyle = (depth == 0) ? "tline" : "bar";
-        if (!style.equals(defaultStyle)) obj.put("style", style);
 
-        // ── behaviour flags (omit when default/false) ──
-        if ((flags & FL_SEP)    != 0) obj.put("separate",    true);
-        if ((flags & FL_OFF)    != 0) obj.put("inactive",    true);
-        if ((flags & FL_TBOUGE) == 0) obj.put("static",      true);  // default is movable
-        if ((flags & FL_BOUGE)  != 0) obj.put("itemMovable", true);
+        var children = buildItemDtos(node.children(), depth + 1);
 
-        // ── position (omit when zero) ──
-        putNonZero(obj, "x", node.x());
-        putNonZero(obj, "y", node.y());
-
-        // ── keyboard shortcut (omit when unused) ──
-        putNonZero(obj, "keyFlag",     node.keyFlag());
-        putNonZero(obj, "keyAscii",    node.keyAscii());
-        putNonZero(obj, "keyScancode", node.keyScancode());
-        putNonZero(obj, "keyShift",    node.keyShift());
-
-        // ── display objects ──
-        putDecoded(obj, "font",            node.fontObject());
-        putDecoded(obj, "normal",          node.normalObject());
-        putDecoded(obj, "selected",        node.selectedObject());
-        putDecoded(obj, "inactiveDisplay", node.inactiveObject());
-
-        // ── default ink colours (pen/paper/outline for normal and selected state) ──
-        putNonZero(obj, "pen",           node.inkA1());
-        putNonZero(obj, "paper",         node.inkB1());
-        putNonZero(obj, "outline",       node.inkC1());
-        putNonZero(obj, "penSel",        node.inkA2());
-        putNonZero(obj, "paperSel",      node.inkB2());
-        putNonZero(obj, "outlineSel",    node.inkC2());
-
-        // ── children ──
-        var children = buildArray(node.children(), depth + 1);
-        if (!children.isEmpty()) obj.set("items", children);
-
-        return obj;
+        return new MenuBankDto.MenuItemDto(
+                null,                                               // flags (never serialised)
+                style.equals(defaultStyle) ? null : style,
+                (flags & FL_SEP) != 0 ? true : null,
+                (flags & FL_OFF) != 0 ? true : null,
+                (flags & FL_TBOUGE) == 0 ? true : null,            // static = not movable
+                (flags & FL_BOUGE) != 0 ? true : null,
+                node.x() != 0 ? node.x() : null,
+                node.y() != 0 ? node.y() : null,
+                node.keyFlag() != 0 ? node.keyFlag() : null,
+                node.keyAscii() != 0 ? node.keyAscii() : null,
+                node.keyScancode() != 0 ? node.keyScancode() : null,
+                node.keyShift() != 0 ? node.keyShift() : null,
+                decoded(node.fontObject()),
+                decoded(node.normalObject()),
+                decoded(node.selectedObject()),
+                decoded(node.inactiveObject()),
+                node.inkA1() != 0 ? node.inkA1() : null,
+                node.inkB1() != 0 ? node.inkB1() : null,
+                node.inkC1() != 0 ? node.inkC1() : null,
+                node.inkA2() != 0 ? node.inkA2() : null,
+                node.inkB2() != 0 ? node.inkB2() : null,
+                node.inkC2() != 0 ? node.inkC2() : null,
+                children.isEmpty() ? null : children);
     }
 
-    /** Decodes a blob to a string and adds it to the object; omits the key if null. */
-    private static void putDecoded(ObjectNode obj, String key, byte[] blob) {
-        var decoded = MenuObjectDecoder.decode(blob);
-        if (decoded != null) obj.put(key, decoded);
-    }
-
-    /** Adds an integer field only when it is non-zero. */
-    private static void putNonZero(ObjectNode obj, String key, int value) {
-        if (value != 0) obj.put(key, value);
+    private static String decoded(byte[] blob) {
+        return MenuObjectDecoder.decode(blob);
     }
 }

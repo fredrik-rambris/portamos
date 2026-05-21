@@ -6,9 +6,14 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.amigaamos.dto.ResourceBankDto;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import static dev.rambris.amigaamos.JsonConfig.JSON;
@@ -140,54 +145,45 @@ public class ResourceBankExporter {
     // Metadata JSON
     // -------------------------------------------------------------------------
 
-    private void exportMetadata(ResourceBank bank, Path outDir, String spritesheetFilename) throws IOException {
-        var root = JSON.createObjectNode();
-        root.put("type", "Resource");
-        root.put("bankNumber", bank.bankNumber());
-        root.put("chipRam", bank.chipRam());
-        root.put("screenMode", "0x%04X".formatted(bank.screenMode()));
-        root.put("imagePath", bank.imagePath());
-        root.put("spritesheet", spritesheetFilename);
-        root.put("numColours", bank.getNumCols());
+    private void exportMetadata(ResourceBank bank, Path outDir, String spritesheetFilename)
+            throws IOException {
+        var paletteList = Arrays.stream(bank.palette())
+                .mapToObj(AmigaPalette::toHexRgb)
+                .toList();
 
-        var paletteNode = root.putArray("palette");
-
-        for (int color : bank.palette()) {
-            paletteNode.add(AmigaPalette.toHexRgb(color));
-        }
-
-        var elementsNode = root.putArray("elements");
+        var elementDtos = new ArrayList<ResourceBankDto.ElementDto>();
         for (var el : bank.elements()) {
-            var en = elementsNode.addObject();
-            if (el.name() != null) en.put("name", el.name());
-            if (el.type() != null) en.put("type", el.type());
-
-            var imagesNode = en.putArray("images");
-            for (var img : el.images()) {
-                var imgNode = imagesNode.addObject();
-                imgNode.put("x", img.x());
-                imgNode.put("y", img.y());
-                imgNode.put("width", img.width());
-                imgNode.put("height", img.height());
-            }
+            var imageDtos = el.images().stream()
+                    .map(img -> new ResourceBankDto.ImageDto(img.x(), img.y(), img.width(), img.height()))
+                    .toList();
+            elementDtos.add(new ResourceBankDto.ElementDto(el.name(), el.type(), imageDtos));
         }
 
-        var textsNode = root.putArray("texts");
+        var textDtos = new ArrayList<ResourceBankDto.TextDto>();
         for (int i = 0; i < bank.texts().size(); i++) {
-            var tn = textsNode.addObject();
-            tn.put("index", i);
-            tn.put("text", bank.texts().get(i));
+            textDtos.add(new ResourceBankDto.TextDto(i, bank.texts().get(i)));
         }
 
-        var programsNode = root.putArray("programs");
+        var programDtos = new ArrayList<ResourceBankDto.ProgramDto>();
         for (int i = 0; i < bank.programs().size(); i++) {
-            var pn = programsNode.addObject();
-            pn.put("index", i);
-            pn.put("file", "program_%03d.amui".formatted(i));
+            programDtos.add(new ResourceBankDto.ProgramDto(i, "program_%03d.amui".formatted(i)));
         }
+
+        var dto = new ResourceBankDto(
+                ResourceBankDto.TYPE,
+                (int) bank.bankNumber(),
+                bank.chipRam(),
+                "0x%04X".formatted(bank.screenMode()),
+                bank.imagePath(),
+                spritesheetFilename,
+                bank.getNumCols(),
+                paletteList,
+                List.copyOf(elementDtos),
+                List.copyOf(textDtos),
+                List.copyOf(programDtos));
 
         var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), root);
+        JSON.writeValue(dest.toFile(), dto);
         System.out.printf("Written %s%n", dest);
     }
 }

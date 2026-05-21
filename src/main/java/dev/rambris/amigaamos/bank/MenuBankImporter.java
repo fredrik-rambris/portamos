@@ -6,7 +6,7 @@
 
 package dev.rambris.amigaamos.bank;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import dev.rambris.amigaamos.dto.MenuBankDto;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,69 +54,67 @@ public class MenuBankImporter {
     private static final int FL_BOUGE    = 1 << 15;
 
     public MenuBank importFrom(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
+        var dto = JSON.readValue(jsonPath.toFile(), MenuBankDto.class);
 
-        var bankNumber = (short) root.path("bankNumber").asInt(1);
-        var chipRam    = root.path("chipRam").asBoolean(false);
+        var bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 1);
+        var chipRam = dto.chipRam() != null && dto.chipRam();
 
-        var items = readItems(root.path("items"), jsonPath.getParent(), 0);
+        var items = readItems(dto.items(), jsonPath.getParent(), 0);
 
         return new MenuBank(bankNumber, chipRam, List.copyOf(items));
     }
 
-    private static List<MenuNode> readItems(JsonNode arr, Path dir, int depth) throws IOException {
+    private static List<MenuNode> readItems(
+            List<MenuBankDto.MenuItemDto> dtos, Path dir, int depth) throws IOException {
         var result = new ArrayList<MenuNode>();
-        if (arr == null || arr.isMissingNode()) return result;
+        if (dtos == null) return result;
         int idx = 0;
-        for (var element : arr) {
-            result.add(readNode(element, dir, depth, idx == 0, idx + 1));
+        for (var d : dtos) {
+            result.add(readNode(d, dir, depth, idx == 0, idx + 1));
             idx++;
         }
         return result;
     }
 
-    private static MenuNode readNode(JsonNode n, Path dir, int depth, boolean firstInGroup,
-                                     int itemNumber) throws IOException {
+    private static MenuNode readNode(
+            MenuBankDto.MenuItemDto d, Path dir, int depth, boolean firstInGroup,
+            int itemNumber) throws IOException {
 
         // ── flags ──────────────────────────────────────────────────────────────
         int flags;
-        var rawFlags = n.path("flags");
-        if (!rawFlags.isMissingNode() && rawFlags.isNumber()) {
+        if (d.flags() != null) {
             // Legacy JSON with a raw flags integer — use it directly.
-            flags = rawFlags.asInt(0);
+            flags = d.flags();
         } else {
-            flags = reconstructFlags(n, depth, firstInGroup);
+            flags = reconstructFlags(d, depth, firstInGroup);
         }
 
         // ── position ────────────────────────────────────────────────────────────
-        int x = n.path("x").asInt(0);
-        int y = n.path("y").asInt(0);
+        int x = d.x() != null ? d.x() : 0;
+        int y = d.y() != null ? d.y() : 0;
 
         // ── keyboard shortcut ───────────────────────────────────────────────────
-        int keyFlag     = n.path("keyFlag").asInt(0);
-        int keyAscii    = n.path("keyAscii").asInt(0);
-        int keyScancode = n.path("keyScancode").asInt(0);
-        int keyShift    = n.path("keyShift").asInt(0);
+        int keyFlag = d.keyFlag() != null ? d.keyFlag() : 0;
+        int keyAscii = d.keyAscii() != null ? d.keyAscii() : 0;
+        int keyScancode = d.keyScancode() != null ? d.keyScancode() : 0;
+        int keyShift = d.keyShift() != null ? d.keyShift() : 0;
 
         // ── display objects ─────────────────────────────────────────────────────
-        var fontObject     = readBlob(n.path("font"),            dir);
-        var normalObject   = readBlob(n.path("normal"),          dir);
-        var selectedObject = readBlob(n.path("selected"),        dir);
-        var inactiveObject = readBlob(n.path("inactiveDisplay"), dir);
+        var fontObject = readBlob(d.font(), dir);
+        var normalObject = readBlob(d.normal(), dir);
+        var selectedObject = readBlob(d.selected(), dir);
+        var inactiveObject = readBlob(d.inactiveDisplay(), dir);
 
         // ── inks ────────────────────────────────────────────────────────────────
-        int inkA1 = n.path("pen").asInt(0);
-        int inkB1 = n.path("paper").asInt(0);
-        int inkC1 = n.path("outline").asInt(0);
-        int inkA2 = n.path("penSel").asInt(0);
-        int inkB2 = n.path("paperSel").asInt(0);
-        int inkC2 = n.path("outlineSel").asInt(0);
+        int inkA1 = d.pen() != null ? d.pen() : 0;
+        int inkB1 = d.paper() != null ? d.paper() : 0;
+        int inkC1 = d.outline() != null ? d.outline() : 0;
+        int inkA2 = d.penSel() != null ? d.penSel() : 0;
+        int inkB2 = d.paperSel() != null ? d.paperSel() : 0;
+        int inkC2 = d.outlineSel() != null ? d.outlineSel() : 0;
 
         // ── children ────────────────────────────────────────────────────────────
-        // Accept both "items" (new schema) and "children" (legacy schema).
-        var childArr = n.path("items");
-        if (childArr.isMissingNode()) childArr = n.path("children");
-        var children = readItems(childArr, dir, depth + 1);
+        var children = readItems(d.items(), dir, depth + 1);
 
         return new MenuNode(
                 itemNumber, flags,
@@ -135,17 +133,17 @@ public class MenuBankImporter {
     // Flag reconstruction
     // -------------------------------------------------------------------------
 
-    private static int reconstructFlags(JsonNode n, int depth, boolean firstInGroup) {
+    private static int reconstructFlags(MenuBankDto.MenuItemDto d, int depth, boolean firstInGroup) {
         int flags = 0;
 
         // Structural bits – auto-derived
-        if (firstInGroup)                        flags |= FL_FLAT;   // head of lateral chain
-        if (n.path("x").asInt(0) != 0
-         || n.path("y").asInt(0) != 0)           flags |= FL_FIXED;  // manually positioned
+        if (firstInGroup) flags |= FL_FLAT;
+        if ((d.x() != null && d.x() != 0)
+            || (d.y() != null && d.y() != 0)) flags |= FL_FIXED;
 
         // Style: "bar" | "line" | "tline"; default depends on depth
         var defaultStyle = (depth == 0) ? "tline" : "bar";
-        var style = n.path("style").asText(defaultStyle);
+        var style = d.style() != null ? d.style() : defaultStyle;
         switch (style) {
             case "bar"   -> flags |= FL_BAR;
             case "tline" -> flags |= FL_TOTAL;
@@ -153,10 +151,10 @@ public class MenuBankImporter {
         }
 
         // Behaviour bits
-        if (n.path("separate").asBoolean(false))   flags |= FL_SEP;
-        if (n.path("inactive").asBoolean(false))   flags |= FL_OFF;
-        if (!n.path("static").asBoolean(false))    flags |= FL_TBOUGE; // movable by default
-        if (n.path("itemMovable").asBoolean(false)) flags |= FL_BOUGE;
+        if (Boolean.TRUE.equals(d.separate())) flags |= FL_SEP;
+        if (Boolean.TRUE.equals(d.inactive())) flags |= FL_OFF;
+        if (!Boolean.TRUE.equals(d.isStatic())) flags |= FL_TBOUGE; // movable by default
+        if (Boolean.TRUE.equals(d.itemMovable())) flags |= FL_BOUGE;
 
         return flags;
     }
@@ -170,9 +168,7 @@ public class MenuBankImporter {
      * raw file; otherwise it is treated as an embedded-command string and encoded by
      * {@link MenuObjectEncoder}.
      */
-    private static byte[] readBlob(JsonNode node, Path dir) throws IOException {
-        if (node == null || node.isNull() || node.isMissingNode()) return null;
-        var value = node.asText(null);
+    private static byte[] readBlob(String value, Path dir) throws IOException {
         if (value == null || value.isEmpty()) return null;
 
         if (value.endsWith(".bin")) {
