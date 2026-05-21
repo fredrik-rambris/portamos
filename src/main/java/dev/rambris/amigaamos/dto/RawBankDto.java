@@ -15,6 +15,6 @@ public record RawBankDto(
         Boolean chipRam,
         String dataFile
 ) implements AmosBankDto {
-    public static final String TYPE_WORK = "WORK";
-    public static final String TYPE_DATA = "DATA";
+    public static final String TYPE_WORK = "Work";
+    public static final String TYPE_DATA = "Data";
 }

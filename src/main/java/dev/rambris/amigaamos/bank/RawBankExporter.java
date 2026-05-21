@@ -30,7 +30,7 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  * <p>JSON format:
  * <pre>
  * {
- *   "type":       "WORK" | "DATA",
+ *   "type":       "Work" | "Data",
  *   "bankNumber": 10,
  *   "chipRam":    false,
  *   "dataFile":   "MyData.dat"   ← filename only (no directory component)
