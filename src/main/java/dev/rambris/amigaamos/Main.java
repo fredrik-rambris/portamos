@@ -6,7 +6,9 @@
 
 package dev.rambris.amigaamos;
 
-import dev.rambris.amigaamos.bank.*;
+import dev.rambris.amigaamos.bank.AmosBank;
+import dev.rambris.amigaamos.bank.AmosBankService;
+import dev.rambris.amigaamos.bank.RawBank;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigExporter;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigImporter;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigReader;
@@ -18,7 +20,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -27,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 @Command(
         name = "portamos",
@@ -172,9 +172,10 @@ public class Main implements Callable<Integer> {
                 banks.add(AmosBank.read(bankPath));
             }
 
+            var bankService = new AmosBankService();
             for (var jsonPath : importBanks) {
                 System.out.println("Importing bank from " + jsonPath);
-                banks.add(importBankFromJson(jsonPath));
+                banks.add(bankService.importBank(jsonPath));
             }
 
             if (!banks.isEmpty()) {
@@ -334,30 +335,10 @@ public class Main implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             System.out.printf("Reading %s%n", input.getFileName());
-            var bank = AmosBank.read(input);
-            Files.createDirectories(outDir);
-            var stem = stem(input);
+            var service = new AmosBankService();
+            var bank = service.readBank(input);
             System.out.printf("Bank type: %s%n", bank.type());
-
-            switch (bank) {
-                case SpriteBank sb -> new SpriteBankExporter().export(sb, outDir, ilbm);
-                case ResourceBank rb -> new ResourceBankExporter().export(rb, outDir, ilbm);
-                case AmalBank ab -> new AmalBankExporter().export(ab, outDir);
-                case MenuBank mb -> new MenuBankExporter().export(mb, outDir);
-                case MusicBank mb -> new MusicBankExporter().export(mb, outDir, svx8);
-                case SampleBank sb -> new SampleBankExporter().export(sb, outDir, svx8);
-                case TrackerBank tb -> new TrackerBankExporter().export(tb, outDir);
-                case PacPicBank pb -> {
-                    var ext = ilbm ? ".iff" : ".png";
-                    new PacPicBankExporter().export(pb, outDir.resolve(stem + ext), ilbm);
-                }
-                case RawBank rb ->
-                        new RawBankExporter().export(rb, outDir.resolve(stem + ".bin"));
-                default -> {
-                    System.err.println("Unsupported bank type: " + bank.type());
-                    return 1;
-                }
-            }
+            service.exportBank(bank, outDir, stem(input), ilbm, svx8);
             return 0;
         }
     }
@@ -387,9 +368,10 @@ public class Main implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             System.out.printf("Importing bank from %s%n", json.getFileName());
-            var bank = importBankFromJson(json);
+            var service = new AmosBankService();
+            var bank = service.importBank(json);
             System.out.printf("Bank type: %s, writing %s%n", bank.type(), output.getFileName());
-            bank.writer().write(bank, output);
+            service.writeBank(bank, output);
             System.out.printf("Written %s%n", output);
             return 0;
         }
@@ -615,27 +597,6 @@ public class Main implements Callable<Integer> {
     // =========================================================================
     // Shared helpers
     // =========================================================================
-
-    /** Auto-detects bank type from the {@code "type"} field in the JSON and imports the bank. */
-    static AmosBank importBankFromJson(Path jsonPath) throws IOException {
-        var root = JSON.readTree(jsonPath.toFile());
-        var type = root.path("type").asText("");
-        return switch (type.toLowerCase()) {
-            case "resource" -> new ResourceBankImporter().importFrom(jsonPath);
-            case "sprite", "sprites" -> new SpriteBankImporter().importFrom(jsonPath);
-            case "icon", "icons" -> new SpriteBankImporter().importFrom(jsonPath);
-            case "pacpic" -> new PacPicBankImporter().importFrom(jsonPath);
-            case "work", "data" -> new RawBankImporter().importFrom(jsonPath);
-            case "amal" -> new AmalBankImporter().importFrom(jsonPath);
-            case "menu" -> new MenuBankImporter().importFrom(jsonPath);
-            case "samples" -> new SampleBankImporter().importFrom(jsonPath);
-            case "tracker" -> new TrackerBankImporter().importFrom(jsonPath);
-            case "music" -> new MusicBankImporter().importFrom(jsonPath);
-            default -> throw new IllegalArgumentException(
-                    "Unknown bank type in JSON: \"" + type + "\". "
-                            + "Expected: resource, sprite, icon, pacpic, work, data");
-        };
-    }
 
     /** Returns the filename stem (everything before the last dot). */
     static String stem(Path path) {
