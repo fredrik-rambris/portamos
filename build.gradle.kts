@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "dev.rambris"
-version = "0.0.1-beta.13"
+version = "0.0.1-beta.14"
 
 java {
     toolchain {
