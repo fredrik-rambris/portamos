@@ -105,21 +105,21 @@ class SampleBankTest {
     @Test
     void export_wav_createsExpectedFiles(@TempDir Path outDir) throws Exception {
         var bank = SampleBankReader.read(SAMPLES_ABK);
-        new SampleBankExporter().export(bank, outDir);
+        new SampleBankExporter().export(bank, outDir.resolve("bank.json"));
         assertTrue(Files.exists(outDir.resolve("bank.json")));
-        assertTrue(Files.exists(outDir.resolve("sample_000.wav")));
-        assertTrue(Files.exists(outDir.resolve("sample_005.wav")));
+        assertTrue(Files.exists(outDir.resolve("bank-sample000.wav")));
+        assertTrue(Files.exists(outDir.resolve("bank-sample005.wav")));
     }
 
     @Test
     void export_wav_bankJsonHasCorrectStructure(@TempDir Path outDir) throws Exception {
         var bank = SampleBankReader.read(SAMPLES_ABK);
-        new SampleBankExporter().export(bank, outDir);
+        new SampleBankExporter().export(bank, outDir.resolve("bank.json"));
         var json = Files.readString(outDir.resolve("bank.json"));
         assertTrue(json.contains("\"type\" : \"Samples\""));
         assertTrue(json.contains("\"samples\""));
         assertTrue(json.contains("\"frequencyHz\""));
-        assertTrue(json.contains("sample_000.wav"));
+        assertTrue(json.contains("bank-sample000.wav"));
     }
 
     // -------------------------------------------------------------------------
@@ -129,17 +129,17 @@ class SampleBankTest {
     @Test
     void export_svx8_createsSvx8Files(@TempDir Path outDir) throws Exception {
         var bank = SampleBankReader.read(SAMPLES_ABK);
-        new SampleBankExporter().export(bank, outDir, true);
+        new SampleBankExporter().export(bank, outDir.resolve("bank.json"), true);
         assertTrue(Files.exists(outDir.resolve("bank.json")));
-        assertTrue(Files.exists(outDir.resolve("sample_000.8svx")));
+        assertTrue(Files.exists(outDir.resolve("bank-sample000.8svx")));
     }
 
     @Test
     void export_svx8_bankJsonReferencesSvxFiles(@TempDir Path outDir) throws Exception {
         var bank = SampleBankReader.read(SAMPLES_ABK);
-        new SampleBankExporter().export(bank, outDir, true);
+        new SampleBankExporter().export(bank, outDir.resolve("bank.json"), true);
         var json = Files.readString(outDir.resolve("bank.json"));
-        assertTrue(json.contains("sample_000.8svx"));
+        assertTrue(json.contains("bank-sample000.8svx"));
     }
 
     // -------------------------------------------------------------------------
@@ -149,7 +149,7 @@ class SampleBankTest {
     @Test
     void importer_wav_roundTrip_preservesSample0(@TempDir Path outDir) throws Exception {
         var original = SampleBankReader.read(SAMPLES_ABK);
-        new SampleBankExporter().export(original, outDir);
+        new SampleBankExporter().export(original, outDir.resolve("bank.json"));
         var imported = new SampleBankImporter().importFrom(outDir.resolve("bank.json"));
         var orig = original.samples().get(0);
         var imp  = imported.samples().get(0);
@@ -161,7 +161,7 @@ class SampleBankTest {
     @Test
     void importer_wav_thenWriter_fullRoundTrip(@TempDir Path outDir) throws Exception {
         var original = SampleBankReader.read(SAMPLES_ABK);
-        new SampleBankExporter().export(original, outDir);
+        new SampleBankExporter().export(original, outDir.resolve("bank.json"));
         var imported = new SampleBankImporter().importFrom(outDir.resolve("bank.json"));
         var reread   = SampleBankReader.read(imported.writer().toBytes(imported));
         assertEquals(original.samples().get(0).name(), reread.samples().get(0).name());
@@ -175,7 +175,7 @@ class SampleBankTest {
     @Test
     void importer_svx8_roundTrip_preservesSample0(@TempDir Path outDir) throws Exception {
         var original = SampleBankReader.read(SAMPLES_ABK);
-        new SampleBankExporter().export(original, outDir, true);
+        new SampleBankExporter().export(original, outDir.resolve("bank.json"), true);
         var imported = new SampleBankImporter().importFrom(outDir.resolve("bank.json"));
         var orig = original.samples().get(0);
         var imp  = imported.samples().get(0);
@@ -187,7 +187,7 @@ class SampleBankTest {
     @Test
     void importer_svx8_thenWriter_fullRoundTrip(@TempDir Path outDir) throws Exception {
         var original = SampleBankReader.read(SAMPLES_ABK);
-        new SampleBankExporter().export(original, outDir, true);
+        new SampleBankExporter().export(original, outDir.resolve("bank.json"), true);
         var imported = new SampleBankImporter().importFrom(outDir.resolve("bank.json"));
         var reread   = SampleBankReader.read(imported.writer().toBytes(imported));
         assertArrayEquals(original.samples().get(0).pcmData(), reread.samples().get(0).pcmData());

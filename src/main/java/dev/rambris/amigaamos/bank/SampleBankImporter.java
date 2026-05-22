@@ -7,7 +7,6 @@
 package dev.rambris.amigaamos.bank;
 
 import dev.rambris.amigaamos.dto.SampleBankDto;
-import dev.rambris.iff.codec.Svx8Codec;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -39,15 +38,16 @@ public class SampleBankImporter {
         var samples = new ArrayList<SampleBank.Sample>();
         if (dto.samples() != null) {
             for (var s : dto.samples()) {
-                var name = s.name() != null ? s.name() : "";
                 var freq = s.frequencyHz() != 0 ? s.frequencyHz() : 8363;
 
-                if (Boolean.TRUE.equals(s.empty()) || s.file() == null) {
+                if (s.file() == null) {
+                    var name = resolveName(s.name(), null);
                     samples.add(new SampleBank.Sample(name, freq, new byte[0]));
                     continue;
                 }
 
-                var pcm = readAudio(jsonPath.resolveSibling(s.file()), freq);
+                var name = resolveName(s.name(), s.file());
+                var pcm = readAudio(jsonPath.resolveSibling(s.file()));
                 samples.add(new SampleBank.Sample(name, freq, pcm));
             }
         }
@@ -56,48 +56,49 @@ public class SampleBankImporter {
     }
 
     // -------------------------------------------------------------------------
+    // Name resolution
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns the sample name to use: the explicit name from the DTO if non-blank,
+     * otherwise the stem of the audio filename. Truncates to 8 characters with a warning.
+     */
+    private static String resolveName(String dtoName, String filename) {
+        var name = (dtoName != null && !dtoName.isBlank())
+                ? dtoName
+                : (filename != null ? AmosBankService.stem(Path.of(filename)) : "");
+        if (name.length() > 8) {
+            var truncated = name.substring(0, 8);
+            System.err.printf("Warning: sample name \"%s\" exceeds 8 characters, truncating to \"%s\"%n",
+                    name, truncated);
+            name = truncated;
+        }
+        return name;
+    }
+
+    // -------------------------------------------------------------------------
     // Audio reading
     // -------------------------------------------------------------------------
 
-    private static byte[] readAudio(Path path, int hintFreq) throws IOException {
-        var name = path.getFileName().toString().toLowerCase();
-        if (name.endsWith(".8svx") || name.endsWith(".svx")) {
-            return readSvx8(path);
-        }
-        return readWav(path);
-    }
-
-    private static byte[] readWav(Path path) throws IOException {
+    private static byte[] readAudio(Path path) throws IOException {
         try (var ais = AudioSystem.getAudioInputStream(path.toFile())) {
             var fmt = ais.getFormat();
-            validateMono(fmt, path);
+            if (fmt.getChannels() != 1) {
+                throw new IOException("Sample must be mono: " + path
+                        + " (got " + fmt.getChannels() + " channels)");
+            }
             if (fmt.getSampleSizeInBits() != 8) {
-                throw new IOException("WAV must be 8-bit mono: " + path
+                throw new IOException("Sample must be 8-bit: " + path
                         + " (got " + fmt.getSampleSizeInBits() + "-bit)");
             }
-            var unsigned = ais.readAllBytes();
+            var pcm = ais.readAllBytes();
+            // WAV 8-bit uses unsigned encoding; convert to signed. 8SVX, AIFF, etc. are already signed.
             if (fmt.getEncoding() == AudioFormat.Encoding.PCM_UNSIGNED) {
-                return SampleBankExporter.signedToUnsigned(unsigned); // same XOR converts back
+                return SampleBankExporter.signedToUnsigned(pcm);
             }
-            // PCM_SIGNED 8-bit — already correct, though unusual for WAV
-            return unsigned;
+            return pcm;
         } catch (UnsupportedAudioFileException e) {
             throw new IOException("Unsupported audio file: " + path + " — " + e.getMessage(), e);
-        }
-    }
-
-    private static byte[] readSvx8(Path path) throws IOException {
-        var sound = Svx8Codec.read(path);
-        if (sound.stereo()) {
-            throw new IOException("8SVX must be mono: " + path);
-        }
-        return sound.pcmData();
-    }
-
-    private static void validateMono(AudioFormat fmt, Path path) throws IOException {
-        if (fmt.getChannels() != 1) {
-            throw new IOException("Audio must be mono: " + path
-                    + " (got " + fmt.getChannels() + " channels)");
         }
     }
 }

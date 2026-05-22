@@ -21,10 +21,8 @@ public record SampleBankDto(
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record SampleDto(
-            int index,
             String name,
             int frequencyHz,
-            Boolean empty,
             String file
     ) {
     }

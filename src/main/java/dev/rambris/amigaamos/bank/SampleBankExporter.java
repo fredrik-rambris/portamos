@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import static dev.rambris.amigaamos.JsonConfig.JSON;
 
@@ -28,7 +30,7 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  *
  * <p>Output files:
  * <ul>
- *   <li>{@code bank.json} — metadata: bank info and per-sample index.</li>
+ *   <li>{@code bank.json} — metadata: bank info and per-sample filenames.</li>
  *   <li>{@code sample_NNN.wav} — RIFF WAVE, 8-bit unsigned mono PCM (default).</li>
  *   <li>{@code sample_NNN.8svx} — IFF 8SVX, 8-bit signed mono PCM (with {@code svx8=true}).</li>
  * </ul>
@@ -40,51 +42,85 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
 public class SampleBankExporter {
 
 
-    /** Exports to WAV (default). */
-    public void export(SampleBank bank, Path outDir) throws IOException {
-        export(bank, outDir, false);
+    /** Exports to WAV with index-based filenames (default). */
+    public void export(SampleBank bank, Path jsonPath) throws IOException {
+        export(bank, jsonPath, false, false);
+    }
+
+    /** Exports with index-based filenames. */
+    public void export(SampleBank bank, Path jsonPath, boolean svx8) throws IOException {
+        export(bank, jsonPath, svx8, false);
     }
 
     /**
-     * Exports the sample bank to {@code outDir}.
+     * Exports the sample bank to {@code jsonPath}.
      *
-     * @param bank   the sample bank to export
-     * @param outDir target directory
-     * @param svx8   if {@code true}, write samples as IFF 8SVX; otherwise RIFF WAVE
+     * @param bank      the sample bank to export
+     * @param jsonPath  destination JSON metadata file; data files are written as siblings
+     * @param svx8      if {@code true}, write samples as IFF 8SVX; otherwise RIFF WAVE
+     * @param useNames  if {@code true}, derive audio filenames from sample names;
+     *                  otherwise use a zero-padded index (e.g. {@code stem-sample000.wav})
      * @throws IOException if any file cannot be written
      */
-    public void export(SampleBank bank, Path outDir, boolean svx8) throws IOException {
-        Files.createDirectories(outDir);
+    public void export(SampleBank bank, Path jsonPath, boolean svx8, boolean useNames)
+            throws IOException {
+        var dir = jsonPath.toAbsolutePath().getParent();
+        var stem = AmosBankService.stem(jsonPath);
+        Files.createDirectories(dir);
 
         var sampleDtos = new ArrayList<SampleBankDto.SampleDto>();
+        var usedFilenames = new HashSet<String>();
 
         for (int i = 0; i < bank.samples().size(); i++) {
             var sample = bank.samples().get(i);
+            var ext = svx8 ? ".8svx" : ".wav";
 
             if (sample.isEmpty()) {
-                sampleDtos.add(new SampleBankDto.SampleDto(i, sample.name(), sample.frequencyHz(), true, null));
+                sampleDtos.add(new SampleBankDto.SampleDto(sample.name(), sample.frequencyHz(), null));
             } else {
-                var filename = svx8
-                        ? "sample_%03d.8svx".formatted(i)
-                        : "sample_%03d.wav".formatted(i);
+                var filename = useNames
+                        ? nameBasedFilename(sample.name(), i, stem, ext, usedFilenames)
+                        : stem + "-sample%03d%s".formatted(i, ext);
 
                 if (svx8) {
-                    writeSvx8(sample, outDir.resolve(filename));
+                    writeSvx8(sample, dir.resolve(filename));
                 } else {
-                    writeWav(sample, outDir.resolve(filename));
+                    writeWav(sample, dir.resolve(filename));
                 }
                 System.out.printf("  sample_%03d: %s, %dHz, %d bytes%n",
                         i, sample.name(), sample.frequencyHz(), sample.pcmData().length);
 
-                sampleDtos.add(new SampleBankDto.SampleDto(i, sample.name(), sample.frequencyHz(), null, filename));
+                sampleDtos.add(new SampleBankDto.SampleDto(sample.name(), sample.frequencyHz(), filename));
             }
         }
 
         var dto = new SampleBankDto(SampleBankDto.TYPE, bank.bankNumber() & 0xFFFF, bank.chipRam(), sampleDtos);
 
-        var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), dto);
-        System.out.printf("Written %s (%d samples)%n", dest, bank.samples().size());
+        JSON.writeValue(jsonPath.toFile(), dto);
+        System.out.printf("Written %s (%d samples)%n", jsonPath, bank.samples().size());
+    }
+
+    /**
+     * Derives a filename from the sample name: sanitizes to alphanumeric-plus-underscore,
+     * then falls back to index-based naming if the name is blank or would collide.
+     */
+    private static String nameBasedFilename(String name, int index, String stem, String ext,
+                                             Set<String> used) {
+        var sanitized = name.trim()
+                .replaceAll("[^A-Za-z0-9_.-]", "_")
+                .replaceAll("_+", "_")
+                .replaceAll("^_+|_+$", "");
+        if (sanitized.isEmpty()) {
+            return stem + "-sample%03d%s".formatted(index, ext);
+        }
+        var candidate = stem + "-" + sanitized + ext;
+        if (used.add(candidate)) {
+            return candidate;
+        }
+        // Collision: append index to disambiguate
+        candidate = stem + "-" + sanitized + "-%03d%s".formatted(index, ext);
+        used.add(candidate);
+        return candidate;
     }
 
     // -------------------------------------------------------------------------
@@ -140,4 +176,5 @@ public class SampleBankExporter {
         }
         return out;
     }
+
 }
