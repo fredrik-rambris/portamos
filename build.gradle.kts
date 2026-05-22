@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "dev.rambris"
-version = "0.0.1-beta.16"
+version = "0.0.1-beta.17"
 
 java {
     toolchain {
@@ -96,6 +96,7 @@ graalvmNative {
     binaries {
         named("main") {
             imageName = "portamos"
+            sharedLibrary.set(false)
             buildArgs.addAll("--no-fallback", "-H:+ReportExceptionStackTraces")
             resources {
                 // Embed all JSON definition files into the native binary.
