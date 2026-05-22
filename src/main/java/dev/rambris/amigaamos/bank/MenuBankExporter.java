@@ -69,8 +69,8 @@ public class MenuBankExporter {
     private static final int FL_TBOUGE   = 1 << 14;
     private static final int FL_BOUGE    = 1 << 15;
 
-    public void export(MenuBank bank, Path outDir) throws IOException {
-        Files.createDirectories(outDir);
+    public void export(MenuBank bank, Path jsonPath) throws IOException {
+        Files.createDirectories(jsonPath.toAbsolutePath().getParent());
 
         var dto = new MenuBankDto(
                 MenuBankDto.TYPE,
@@ -78,9 +78,8 @@ public class MenuBankExporter {
                 bank.chipRam(),
                 buildItemDtos(bank.items(), 0));
 
-        var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), dto);
-        System.out.printf("Written %s (%d top-level items)%n", dest, bank.items().size());
+        JSON.writeValue(jsonPath.toFile(), dto);
+        System.out.printf("Written %s (%d top-level items)%n", jsonPath, bank.items().size());
     }
 
     private List<MenuBankDto.MenuItemDto> buildItemDtos(List<MenuNode> items, int depth) {

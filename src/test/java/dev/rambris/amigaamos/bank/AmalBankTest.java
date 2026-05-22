@@ -185,7 +185,7 @@ class AmalBankTest {
     @Test
     void importer_roundTrip_preservesProgram(@TempDir Path outDir) throws Exception {
         var original = AmalBankReader.read(AMAL_ABK);
-        new AmalBankExporter().export(original, outDir);
+        new AmalBankExporter().export(original, outDir.resolve("bank.json"));
         var imported = new AmalBankImporter().importFrom(outDir.resolve("bank.json"));
         assertEquals(original.programs().get(0), imported.programs().get(0));
     }
@@ -193,7 +193,7 @@ class AmalBankTest {
     @Test
     void importer_roundTrip_preservesEnvironment(@TempDir Path outDir) throws Exception {
         var original = AmalBankReader.read(AMAL_ABK);
-        new AmalBankExporter().export(original, outDir);
+        new AmalBankExporter().export(original, outDir.resolve("bank.json"));
         var imported = new AmalBankImporter().importFrom(outDir.resolve("bank.json"));
         assertEquals(original.environment(), imported.environment());
     }
@@ -201,7 +201,7 @@ class AmalBankTest {
     @Test
     void importer_roundTrip_preservesMovements(@TempDir Path outDir) throws Exception {
         var original = AmalBankReader.read(AMAL_ABK);
-        new AmalBankExporter().export(original, outDir);
+        new AmalBankExporter().export(original, outDir.resolve("bank.json"));
         var imported = new AmalBankImporter().importFrom(outDir.resolve("bank.json"));
         var origMov = original.movements().get(0);
         var impMov  = imported.movements().get(0);
@@ -213,7 +213,7 @@ class AmalBankTest {
     @Test
     void importer_thenWriter_fullRoundTrip(@TempDir Path outDir) throws Exception {
         var original = AmalBankReader.read(AMAL_ABK);
-        new AmalBankExporter().export(original, outDir);
+        new AmalBankExporter().export(original, outDir.resolve("bank.json"));
         var imported = new AmalBankImporter().importFrom(outDir.resolve("bank.json"));
         byte[] bytes = imported.writer().toBytes(imported);
         var reread = AmalBankReader.read(bytes);
@@ -229,20 +229,20 @@ class AmalBankTest {
     @Test
     void export_createsExpectedFiles(@TempDir Path outDir) throws Exception {
         var bank = AmalBankReader.read(AMAL_ABK);
-        new AmalBankExporter().export(bank, outDir);
+        new AmalBankExporter().export(bank, outDir.resolve("bank.json"));
 
         assertTrue(Files.exists(outDir.resolve("bank.json")));
-        assertTrue(Files.exists(outDir.resolve("movement_000.json")));
-        assertTrue(Files.exists(outDir.resolve("program_000.amal")));
-        assertTrue(Files.exists(outDir.resolve("environment.amal")));
+        assertTrue(Files.exists(outDir.resolve("bank-movement000.json")));
+        assertTrue(Files.exists(outDir.resolve("bank-program000.amal")));
+        assertTrue(Files.exists(outDir.resolve("bank-environment.amal")));
     }
 
     @Test
     void export_environment_tildeSeparatorReplacedWithNewline(@TempDir Path outDir) throws Exception {
         var bank = AmalBankReader.read(AMAL_ABK);
-        new AmalBankExporter().export(bank, outDir);
+        new AmalBankExporter().export(bank, outDir.resolve("bank.json"));
 
-        String text = Files.readString(outDir.resolve("environment.amal"));
+        String text = Files.readString(outDir.resolve("bank-environment.amal"));
         assertFalse(text.contains("~"), "exported environment should not contain ~");
         assertTrue(text.contains("\n"), "exported environment should use newlines");
         assertTrue(text.contains("Screen 0"), "environment content should be preserved");
@@ -251,9 +251,9 @@ class AmalBankTest {
     @Test
     void export_program_tildeSeparatorReplacedWithNewline(@TempDir Path outDir) throws Exception {
         var bank = AmalBankReader.read(AMAL_ABK);
-        new AmalBankExporter().export(bank, outDir);
+        new AmalBankExporter().export(bank, outDir.resolve("bank.json"));
 
-        String text = Files.readString(outDir.resolve("program_000.amal"));
+        String text = Files.readString(outDir.resolve("bank-program000.amal"));
         assertFalse(text.contains("~"), "exported program should not contain ~");
         assertTrue(text.contains("\n"), "exported program should use newlines");
         assertTrue(text.contains("Begin:"), "program content should be preserved");
@@ -262,9 +262,9 @@ class AmalBankTest {
     @Test
     void export_movement_json_hasCorrectStructure(@TempDir Path outDir) throws Exception {
         var bank = AmalBankReader.read(AMAL_ABK);
-        new AmalBankExporter().export(bank, outDir);
+        new AmalBankExporter().export(bank, outDir.resolve("bank.json"));
 
-        String json = Files.readString(outDir.resolve("movement_000.json"));
+        String json = Files.readString(outDir.resolve("bank-movement000.json"));
         assertTrue(json.contains("\"name\""));
         assertTrue(json.contains("\"speed\""));
         assertTrue(json.contains("\"instructions\""));
@@ -275,7 +275,7 @@ class AmalBankTest {
     @Test
     void export_bankJson_hasCorrectStructure(@TempDir Path outDir) throws Exception {
         var bank = AmalBankReader.read(AMAL_ABK);
-        new AmalBankExporter().export(bank, outDir);
+        new AmalBankExporter().export(bank, outDir.resolve("bank.json"));
 
         String json = Files.readString(outDir.resolve("bank.json"));
         assertTrue(json.contains("\"type\" : \"Amal\""));

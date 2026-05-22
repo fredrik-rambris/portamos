@@ -305,10 +305,11 @@ Key behaviors to know:
 ./gradlew run --args="build source.Asc output.AMOS --add-bank sprites.Abk"
 ./gradlew run --args="build source.Asc output.AMOS --import-bank sprites/bank.json"
 
-# Disassemble a bank to JSON + data files
-./gradlew run --args="disasm input.Abk output-dir/"
-./gradlew run --args="disasm --svx8 Music.abk music-out/"   # 8SVX samples instead of WAV
-./gradlew run --args="disasm --ilbm Sprites.Abk sprites/"   # IFF ILBM instead of PNG
+# Disassemble a bank to a JSON metadata file (data files written alongside it using stem as prefix)
+./gradlew run --args="disasm input.Abk output/mybank.json"
+./gradlew run --args="disasm --svx8 Music.abk music/music.json"          # 8SVX samples instead of WAV
+./gradlew run --args="disasm --ilbm Sprites.Abk sprites/sprites.json"    # IFF ILBM instead of PNG
+./gradlew run --args="disasm --sample-names Samples.abk sounds/bank.json" # name files after sample names
 
 # Assemble a bank from JSON + data files
 ./gradlew run --args="asm bank.json output.Abk"

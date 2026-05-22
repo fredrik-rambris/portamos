@@ -9,6 +9,7 @@ package dev.rambris.amigaamos.bank;
 import dev.rambris.amigaamos.dto.PacPicBankDto;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -16,31 +17,38 @@ import java.util.List;
 import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
- * Exports a {@link PacPicBank} to a PNG and sidecar JSON metadata.
+ * Exports a {@link PacPicBank} to a JSON metadata file and a sibling image file.
  *
  * <p>API contract:
  * <ul>
- *   <li>Writes image to {@code imagePath}</li>
- *   <li>Writes metadata to {@code imagePath + ".json"}</li>
- *   <li>Does not create directories</li>
+ *   <li>Writes metadata to {@code jsonPath}</li>
+ *   <li>Writes image to {@code stem(jsonPath).png} (or {@code .iff}) alongside the JSON</li>
+ *   <li>Creates the containing directory if absent</li>
  * </ul>
  */
 public class PacPicBankExporter {
 
 
-    public void export(PacPicBank bank, Path imagePath) throws IOException {
-        export(bank, imagePath, false);
+    public void export(PacPicBank bank, Path jsonPath) throws IOException {
+        export(bank, jsonPath, false);
     }
 
     /**
-     * Exports the PacPic bank to {@code imagePath}.
+     * Exports the PacPic bank to {@code jsonPath}.
      *
-     * @param bank      the PacPic bank to export
-     * @param imagePath destination image file path (extension should match {@code ilbm})
-     * @param ilbm      if {@code true}, write as IFF ILBM; otherwise PNG
+     * @param bank     the PacPic bank to export
+     * @param jsonPath destination JSON metadata file; image is written as a sibling
+     * @param ilbm     if {@code true}, write image as IFF ILBM; otherwise PNG
      * @throws IOException if any file cannot be written
      */
-    public void export(PacPicBank bank, Path imagePath, boolean ilbm) throws IOException {
+    public void export(PacPicBank bank, Path jsonPath, boolean ilbm) throws IOException {
+        var dir = jsonPath.toAbsolutePath().getParent();
+        var stem = AmosBankService.stem(jsonPath);
+        Files.createDirectories(dir);
+
+        var imageFilename = stem + (ilbm ? ".iff" : ".png");
+        var imagePath = dir.resolve(imageFilename);
+
         var pixels = PacPicDecoder.decompress(bank.picData());
         var height = pixels.length;
         var width = height > 0 ? pixels[0].length : 0;
@@ -75,14 +83,14 @@ public class PacPicBankExporter {
                 PacPicBankDto.TYPE,
                 bank.bankNumber() & 0xFFFF,
                 bank.chipRam(),
-                imagePath.getFileName().toString(),
+                imageFilename,
                 readSrcX(bank.picData()),
                 readSrcY(bank.picData()),
                 planes,
                 bank.isSpack(),
                 screenDto);
 
-        JSON.writeValue(Path.of(imagePath + ".json").toFile(), dto);
+        JSON.writeValue(jsonPath.toFile(), dto);
     }
 
     private static int maxIndex(int[][] pixels) {

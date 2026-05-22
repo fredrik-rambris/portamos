@@ -25,19 +25,18 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  */
 public class TrackerBankExporter {
 
-    private static final String MOD_FILE = "track.mod";
+    public void export(TrackerBank bank, Path jsonPath) throws IOException {
+        var dir = jsonPath.toAbsolutePath().getParent();
+        var stem = AmosBankService.stem(jsonPath);
+        Files.createDirectories(dir);
 
+        var modFilename = stem + ".mod";
+        Files.write(dir.resolve(modFilename), bank.modData());
+        System.out.printf("Written %s (%d bytes)%n", dir.resolve(modFilename), bank.modData().length);
 
-    public void export(TrackerBank bank, Path outDir) throws IOException {
-        Files.createDirectories(outDir);
+        var dto = new TrackerBankDto(TrackerBankDto.TYPE, bank.bankNumber() & 0xFFFF, bank.chipRam(), modFilename);
 
-        Files.write(outDir.resolve(MOD_FILE), bank.modData());
-        System.out.printf("Written %s (%d bytes)%n", outDir.resolve(MOD_FILE), bank.modData().length);
-
-        var dto = new TrackerBankDto(TrackerBankDto.TYPE, bank.bankNumber() & 0xFFFF, bank.chipRam(), MOD_FILE);
-
-        var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), dto);
-        System.out.printf("Written %s%n", dest);
+        JSON.writeValue(jsonPath.toFile(), dto);
+        System.out.printf("Written %s%n", jsonPath);
     }
 }

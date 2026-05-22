@@ -15,16 +15,15 @@ import java.nio.file.Path;
 import static dev.rambris.amigaamos.JsonConfig.JSON;
 
 /**
- * Exports a {@link RawBank} to a data file and a sidecar
- * JSON metadata file.
+ * Exports a {@link RawBank} to a JSON metadata file and a sibling data file.
  *
- * <p>Usage: call {@link #export(AmosBank, Path)} with the desired path for the
- * raw data content.  The metadata JSON is written to {@code dataPath + ".json"}.
+ * <p>Usage: call {@link #export(AmosBank, Path)} with the desired JSON output path.
+ * The raw payload is written to a sibling file using the JSON file's stem with {@code .bin}.
  *
- * <p>Example — given {@code dataPath = "path/to/MyData.dat"}:
+ * <p>Example — given {@code jsonPath = "path/to/mydata.json"}:
  * <pre>
- *   path/to/MyData.dat       ← raw payload bytes (no AmBk header)
- *   path/to/MyData.dat.json  ← metadata
+ *   path/to/mydata.json  ← metadata
+ *   path/to/mydata.bin   ← raw payload bytes (no AmBk header)
  * </pre>
  *
  * <p>JSON format:
@@ -33,7 +32,7 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  *   "type":       "Work" | "Data",
  *   "bankNumber": 10,
  *   "chipRam":    false,
- *   "dataFile":   "MyData.dat"   ← filename only (no directory component)
+ *   "dataFile":   "mydata.bin"   ← filename only (no directory component)
  * }
  * </pre>
  *
@@ -45,27 +44,30 @@ public class RawBankExporter {
 
 
     /**
-     * Exports {@code bank} to {@code dataPath} (raw payload) and {@code dataPath + ".json"} (metadata).
+     * Exports {@code bank} to {@code jsonPath} (metadata) and a sibling {@code stem.bin} (payload).
      *
      * @param bank     the Work or Data bank to export
-     * @param dataPath destination path for the raw payload bytes
+     * @param jsonPath destination JSON metadata file
      * @throws IllegalArgumentException if {@code bank} is not a {@link RawBank}
      */
-    public void export(AmosBank bank, Path dataPath) throws IOException {
+    public void export(AmosBank bank, Path jsonPath) throws IOException {
         if (!(bank instanceof RawBank rb))
             throw new IllegalArgumentException("Not a Work or Data bank, got: " + bank.getClass().getSimpleName());
 
-        Files.createDirectories(dataPath.toAbsolutePath().getParent());
-        Files.write(dataPath, rb.data());
+        var dir = jsonPath.toAbsolutePath().getParent();
+        var stem = AmosBankService.stem(jsonPath);
+        Files.createDirectories(dir);
+
+        var dataFilename = stem + ".bin";
+        Files.write(dir.resolve(dataFilename), rb.data());
 
         var typeStr = bank.type() == AmosBank.Type.WORK ? RawBankDto.TYPE_WORK : RawBankDto.TYPE_DATA;
         var dto = new RawBankDto(
                 typeStr,
                 bank.bankNumber() & 0xFFFF,
                 bank.chipRam(),
-                dataPath.getFileName().toString());
+                dataFilename);
 
-        var jsonPath = dataPath.resolveSibling(dataPath.getFileName() + ".json");
         JSON.writeValue(jsonPath.toFile(), dto);
     }
 }

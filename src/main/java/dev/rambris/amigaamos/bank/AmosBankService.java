@@ -9,7 +9,6 @@ package dev.rambris.amigaamos.bank;
 import dev.rambris.amigaamos.dto.*;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static dev.rambris.amigaamos.JsonConfig.JSON;
@@ -27,10 +26,10 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  *
  * // Binary Abk → JSON + data files
  * AmosBank bank = svc.readBank(Path.of("Sprites.Abk"));
- * svc.exportBank(bank, Path.of("sprites-out/"), "Sprites");
+ * svc.exportBank(bank, Path.of("sprites-out/mysprites.json"));
  *
  * // JSON + data files → binary Abk
- * AmosBank bank = svc.importBank(Path.of("sprites-out/sprites.json"));
+ * AmosBank bank = svc.importBank(Path.of("sprites-out/mysprites.json"));
  * svc.writeBank(bank, Path.of("Sprites.Abk"));
  * }</pre>
  */
@@ -99,48 +98,66 @@ public class AmosBankService {
     // -------------------------------------------------------------------------
 
     /**
-     * Exports a bank to {@code outDir} using default options (PNG images, WAVE audio).
+     * Exports a bank to {@code jsonPath} using default options (PNG images, WAVE audio).
      *
-     * @param bank   the bank to export
-     * @param outDir destination directory (created if absent)
-     * @param stem   filename stem used for banks that produce a single output file
-     *               (PacPic writes {@code stem.png}; Raw writes {@code stem.bin})
+     * @param bank     the bank to export
+     * @param jsonPath destination JSON metadata file (data files written alongside it)
      * @throws IOException if any file cannot be written
      */
-    public void exportBank(AmosBank bank, Path outDir, String stem) throws IOException {
-        exportBank(bank, outDir, stem, false, false);
+    public void exportBank(AmosBank bank, Path jsonPath) throws IOException {
+        exportBank(bank, jsonPath, false, false, false);
     }
 
     /**
-     * Exports a bank to {@code outDir}.
+     * Exports a bank to {@code jsonPath}.
      *
-     * @param bank   the bank to export
-     * @param outDir destination directory (created if absent)
-     * @param stem   filename stem used for banks that produce a single output file
-     *               (PacPic writes {@code stem.png} or {@code stem.iff};
-     *               Raw writes {@code stem.bin})
-     * @param ilbm   export sprite/icon spritesheets and PacPic images as IFF ILBM
-     *               instead of PNG
-     * @param svx8   export instrument/sample audio as IFF 8SVX instead of RIFF WAVE
+     * <p>All associated data files are written as siblings of the JSON file, using
+     * the JSON file's stem as a filename prefix.
+     *
+     * @param bank     the bank to export
+     * @param jsonPath destination JSON metadata file (data files written alongside it)
+     * @param ilbm     export sprite/icon spritesheets and PacPic images as IFF ILBM
+     *                 instead of PNG
+     * @param svx8     export instrument/sample audio as IFF 8SVX instead of RIFF WAVE
      * @throws IOException if any file cannot be written
      */
-    public void exportBank(AmosBank bank, Path outDir, String stem, boolean ilbm, boolean svx8)
+    public void exportBank(AmosBank bank, Path jsonPath, boolean ilbm, boolean svx8)
             throws IOException {
-        Files.createDirectories(outDir);
+        exportBank(bank, jsonPath, ilbm, svx8, false);
+    }
+
+    /**
+     * Exports a bank to {@code jsonPath}.
+     *
+     * @param bank      the bank to export
+     * @param jsonPath  destination JSON metadata file (data files written alongside it)
+     * @param ilbm      export sprite/icon spritesheets and PacPic images as IFF ILBM
+     *                  instead of PNG
+     * @param svx8      export instrument/sample audio as IFF 8SVX instead of RIFF WAVE
+     * @param useNames  for sample banks: derive audio filenames from sample names
+     *                  instead of zero-padded indices
+     * @throws IOException if any file cannot be written
+     */
+    public void exportBank(AmosBank bank, Path jsonPath, boolean ilbm, boolean svx8,
+                           boolean useNames) throws IOException {
         switch (bank) {
-            case SpriteBank sb -> new SpriteBankExporter().export(sb, outDir, ilbm);
-            case ResourceBank rb -> new ResourceBankExporter().export(rb, outDir, ilbm);
-            case AmalBank ab -> new AmalBankExporter().export(ab, outDir);
-            case MenuBank mb -> new MenuBankExporter().export(mb, outDir);
-            case MusicBank mb -> new MusicBankExporter().export(mb, outDir, svx8);
-            case SampleBank sb -> new SampleBankExporter().export(sb, outDir, svx8);
-            case TrackerBank tb -> new TrackerBankExporter().export(tb, outDir);
-            case PacPicBank pb -> {
-                var ext = ilbm ? ".iff" : ".png";
-                new PacPicBankExporter().export(pb, outDir.resolve(stem + ext), ilbm);
-            }
-            case RawBank rb -> new RawBankExporter().export(rb, outDir.resolve(stem + ".bin"));
+            case SpriteBank sb   -> new SpriteBankExporter().export(sb, jsonPath, ilbm);
+            case ResourceBank rb -> new ResourceBankExporter().export(rb, jsonPath, ilbm);
+            case AmalBank ab     -> new AmalBankExporter().export(ab, jsonPath);
+            case MenuBank mb     -> new MenuBankExporter().export(mb, jsonPath);
+            case MusicBank mb    -> new MusicBankExporter().export(mb, jsonPath, svx8);
+            case SampleBank sb   -> new SampleBankExporter().export(sb, jsonPath, svx8, useNames);
+            case TrackerBank tb  -> new TrackerBankExporter().export(tb, jsonPath);
+            case PacPicBank pb   -> new PacPicBankExporter().export(pb, jsonPath, ilbm);
+            case RawBank rb      -> new RawBankExporter().export(rb, jsonPath);
             default -> throw new IllegalArgumentException("Unsupported bank type: " + bank.type());
         }
+    }
+
+    /** Returns the filename stem (everything before the last dot). */
+    static String stem(Path path) {
+        var name = path.getFileName().toString();
+        var dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
     }
 }

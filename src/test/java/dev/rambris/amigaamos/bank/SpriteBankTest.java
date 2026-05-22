@@ -84,9 +84,9 @@ class SpriteBankTest {
     @Test
     void exportIcons(@TempDir Path tmp) throws Exception {
         var bank = SpriteBankReader.read(ICONS_ABK);
-        new SpriteBankExporter().export(bank, tmp);
-        assertTrue(tmp.resolve("spritesheet.png").toFile().exists(), "spritesheet.png");
-        assertTrue(tmp.resolve("sprites.json").toFile().exists(),    "sprites.json");
+        new SpriteBankExporter().export(bank, tmp.resolve("icons.json"));
+        assertTrue(tmp.resolve("icons.png").toFile().exists(),  "icons.png");
+        assertTrue(tmp.resolve("icons.json").toFile().exists(), "icons.json");
     }
 
     @Test
@@ -145,20 +145,20 @@ class SpriteBankTest {
     @Test
     void export(@TempDir Path tmp) throws Exception {
         var bank = SpriteBankReader.read(SPRITES_ABK);
-        new SpriteBankExporter().export(bank, tmp);
+        new SpriteBankExporter().export(bank, tmp.resolve("sprites.json"));
 
-        assertTrue(tmp.resolve("spritesheet.png").toFile().exists(), "spritesheet.png");
-        assertTrue(tmp.resolve("sprites.json").toFile().exists(),    "sprites.json");
+        assertTrue(tmp.resolve("sprites.png").toFile().exists(),  "sprites.png");
+        assertTrue(tmp.resolve("sprites.json").toFile().exists(), "sprites.json");
     }
 
     @Test
     void importExportRoundTripSprites(@TempDir Path tmp) throws Exception {
         var original = SpriteBankReader.read(SPRITES_ABK);
 
-        var exportDir = tmp.resolve("sprites-export");
-        new SpriteBankExporter().export(original, exportDir);
+        var jsonPath = tmp.resolve("sprites-export/sprites.json");
+        new SpriteBankExporter().export(original, jsonPath);
 
-        var imported = new SpriteBankImporter().importFrom(exportDir.resolve("sprites.json"));
+        var imported = new SpriteBankImporter().importFrom(jsonPath);
 
         assertEquals(original.type(), imported.type());
         assertEquals(original.sprites().size(), imported.sprites().size());
@@ -180,10 +180,10 @@ class SpriteBankTest {
     void importExportRoundTripIcons(@TempDir Path tmp) throws Exception {
         var original = SpriteBankReader.read(ICONS_ABK);
 
-        var exportDir = tmp.resolve("icons-export");
-        new SpriteBankExporter().export(original, exportDir);
+        var jsonPath = tmp.resolve("icons-export/icons.json");
+        new SpriteBankExporter().export(original, jsonPath);
 
-        var imported = new SpriteBankImporter().importFrom(exportDir.resolve("sprites.json"));
+        var imported = new SpriteBankImporter().importFrom(jsonPath);
 
         assertEquals(AmosBank.Type.ICONS, imported.type());
         assertEquals(2, imported.bankNumber());

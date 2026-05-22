@@ -1,0 +1,6 @@
+[
+  {"name": "dev.rambris.iff.audio.Svx8AudioFileReader",   "allDeclaredConstructors": true},
+  {"name": "dev.rambris.iff.audio.Svx8AudioFileWriter",   "allDeclaredConstructors": true},
+  {"name": "dev.rambris.iff.imageio.IlbmImageReaderSpi",  "allDeclaredConstructors": true},
+  {"name": "dev.rambris.iff.imageio.IlbmImageWriterSpi",  "allDeclaredConstructors": true}
+]

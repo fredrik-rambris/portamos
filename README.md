@@ -106,24 +106,26 @@ procedure flags byte). Without this flag, procedures are saved in the unfolded s
 ### `disasm` — export a bank to files
 
 ```bash
-portamos disasm input.Abk output-dir/
-portamos disasm --ilbm input.Abk output-dir/    # sprite sheet as IFF ILBM instead of PNG
-portamos disasm --svx8 input.Abk output-dir/    # samples as IFF 8SVX instead of WAV
+portamos disasm input.Abk output/mybank.json
+portamos disasm --ilbm input.Abk output/sprites.json          # sprite sheet as IFF ILBM instead of PNG
+portamos disasm --svx8 input.Abk output/music.json            # samples as IFF 8SVX instead of WAV
+portamos disasm --sample-names input.Abk output/samples.json  # name audio files after sample names
 ```
 
-Exports the contents of any supported bank type to a directory. The output always includes a
-`bank.json` metadata file plus type-specific data files:
+Exports the contents of any supported bank type to a JSON metadata file. All associated data files
+are written as siblings of the JSON file, using its stem as a filename prefix (e.g. stem `mybank`
+produces `mybank.png`, `mybank-sample000.wav`, etc.):
 
-| Bank type   | Data files                                        |
-|-------------|---------------------------------------------------|
-| Resource    | `spritesheet.png` (or `.iff`), `program_NNN.amui` |
-| Sprite/Icon | `spritesheet.png` (or `.iff`)                     |
-| Pac.Pic     | `<name>.png` (or `.iff`)                          |
-| Music       | `instrument_NNN.wav` (or `.8svx`)                 |
-| Sample      | `sample_NNN.wav` (or `.8svx`)                     |
-| Tracker     | `<name>.mod`                                      |
-| AMAL        | `script_NNN.amal`                                 |
-| Work/Data   | `<name>.bin`                                      |
+| Bank type   | Data files (stem = JSON basename without extension)                                    |
+|-------------|----------------------------------------------------------------------------------------|
+| Resource    | `<stem>.png` (or `.iff`), `<stem>-program000.amui` …                                  |
+| Sprite/Icon | `<stem>.png` (or `.iff`)                                                               |
+| Pac.Pic     | `<stem>.png` (or `.iff`)                                                               |
+| Music       | `<stem>-instrument000.wav` (or `.8svx`) …                                              |
+| Sample      | `<stem>-sample000.wav` (or `.8svx`) …                                                  |
+| Tracker     | `<stem>.mod`                                                                           |
+| AMAL        | `<stem>-program000.amal` …, `<stem>-movement000.json` …, `<stem>-environment.amal`    |
+| Work/Data   | `<stem>.bin`                                                                           |
 
 ### `asm` — assemble a bank from files
 
@@ -131,8 +133,9 @@ Exports the contents of any supported bank type to a directory. The output alway
 portamos asm bank.json output.Abk
 ```
 
-Reads the `bank.json` produced by `disasm` and reassembles the binary `.Abk` file. The `"type"`
-field in the JSON determines which importer is used.
+Reads the JSON metadata file produced by `disasm` and reassembles the binary `.Abk` file. The
+`"type"` field in the JSON determines which importer is used. Data files are resolved relative to
+the JSON file's directory.
 
 ### `raw` — wrap a raw file into a bank
 
@@ -174,7 +177,7 @@ All bank JSON files have a `"type"` field that identifies the bank and drives `a
       "volume": 45,
       "loopStart": 112,
       "loopLength": 3247,
-      "sample": "instrument_000.wav"
+      "sample": "mybank-instrument000.wav"
     }
   ],
   "songs": [
@@ -263,16 +266,13 @@ determined by the note periods at runtime.
   "chipRam": true,
   "samples": [
     {
-      "index": 0,
       "name": "BanjoSyn",
       "frequencyHz": 8363,
-      "file": "sample_000.wav"
+      "file": "mybank-sample000.wav"
     },
     {
-      "index": 1,
       "name": "Empty",
-      "frequencyHz": 8363,
-      "empty": true
+      "frequencyHz": 8363
     }
   ]
 }

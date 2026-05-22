@@ -35,29 +35,31 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
 public class SpriteBankExporter {
 
     /**
-     * Exports the sprite bank to {@code outDir} as a PNG spritesheet (default).
+     * Exports the sprite bank to {@code jsonPath} (PNG spritesheet alongside, default).
      *
-     * @param bank   the sprite bank to export
-     * @param outDir target directory
+     * @param bank     the sprite bank to export
+     * @param jsonPath destination JSON metadata file; data files are written as siblings
      * @throws IOException if any file cannot be written
      */
-    public void export(SpriteBank bank, Path outDir) throws IOException {
-        export(bank, outDir, false);
+    public void export(SpriteBank bank, Path jsonPath) throws IOException {
+        export(bank, jsonPath, false);
     }
 
     /**
-     * Exports the sprite bank to {@code outDir}.
+     * Exports the sprite bank to {@code jsonPath}.
      *
-     * @param bank   the sprite bank to export
-     * @param outDir target directory
-     * @param ilbm   if {@code true}, write the spritesheet as an IFF ILBM; otherwise PNG
+     * @param bank     the sprite bank to export
+     * @param jsonPath destination JSON metadata file; data files are written as siblings
+     * @param ilbm     if {@code true}, write the spritesheet as an IFF ILBM; otherwise PNG
      * @throws IOException if any file cannot be written
      */
-    public void export(SpriteBank bank, Path outDir, boolean ilbm) throws IOException {
-        Files.createDirectories(outDir);
-        var spritesheetName = ilbm ? "spritesheet.iff" : "spritesheet.png";
-        exportSpritesheet(bank, outDir.resolve(spritesheetName), ilbm);
-        exportMetadata(bank, outDir, spritesheetName);
+    public void export(SpriteBank bank, Path jsonPath, boolean ilbm) throws IOException {
+        var dir = jsonPath.toAbsolutePath().getParent();
+        Files.createDirectories(dir);
+        var stem = AmosBankService.stem(jsonPath);
+        var spritesheetName = stem + (ilbm ? ".iff" : ".png");
+        exportSpritesheet(bank, dir.resolve(spritesheetName), ilbm);
+        exportMetadata(bank, jsonPath, spritesheetName);
     }
 
     // -------------------------------------------------------------------------
@@ -136,7 +138,7 @@ public class SpriteBankExporter {
     // Metadata JSON
     // -------------------------------------------------------------------------
 
-    private void exportMetadata(SpriteBank bank, Path outDir, String spritesheetName)
+    private void exportMetadata(SpriteBank bank, Path jsonPath, String spritesheetName)
             throws IOException {
         var maxPlanes = bank.sprites().stream()
                 .filter(s -> !s.isEmpty())
@@ -174,8 +176,7 @@ public class SpriteBankExporter {
                 paletteList,
                 List.copyOf(spriteDtos));
 
-        var dest = outDir.resolve("sprites.json");
-        JSON.writeValue(dest.toFile(), dto);
-        System.out.printf("Written %s%n", dest);
+        JSON.writeValue(jsonPath.toFile(), dto);
+        System.out.printf("Written %s%n", jsonPath);
     }
 }

@@ -98,9 +98,9 @@ class MusicBankTest {
         var original = Files.readAllBytes(MUSIC_ABK);
         var bank     = MusicBankReader.read(MUSIC_ABK);
 
-        new MusicBankExporter().export(bank, outDir);
+        new MusicBankExporter().export(bank, outDir.resolve("bank.json"));
         assertTrue(Files.exists(outDir.resolve("bank.json")));
-        assertTrue(Files.exists(outDir.resolve("instrument_000.wav")));
+        assertTrue(Files.exists(outDir.resolve("bank-instrument000.wav")));
 
         var imported  = new MusicBankImporter().importFrom(outDir.resolve("bank.json"));
         var rewritten = imported.writer().toBytes(imported);
@@ -112,9 +112,9 @@ class MusicBankTest {
         var original = Files.readAllBytes(MUSIC_ABK);
         var bank     = MusicBankReader.read(MUSIC_ABK);
 
-        new MusicBankExporter().export(bank, outDir, true);
+        new MusicBankExporter().export(bank, outDir.resolve("bank.json"), true);
         assertTrue(Files.exists(outDir.resolve("bank.json")));
-        assertTrue(Files.exists(outDir.resolve("instrument_000.8svx")));
+        assertTrue(Files.exists(outDir.resolve("bank-instrument000.8svx")));
 
         var imported  = new MusicBankImporter().importFrom(outDir.resolve("bank.json"));
         var rewritten = imported.writer().toBytes(imported);
@@ -124,7 +124,7 @@ class MusicBankTest {
     @Test
     void exportImport_preservesInstrumentCount(@TempDir Path outDir) throws Exception {
         var bank = MusicBankReader.read(MUSIC_ABK);
-        new MusicBankExporter().export(bank, outDir);
+        new MusicBankExporter().export(bank, outDir.resolve("bank.json"));
         var imported = new MusicBankImporter().importFrom(outDir.resolve("bank.json"));
         assertEquals(bank.instruments().size(), imported.instruments().size());
     }
@@ -132,7 +132,7 @@ class MusicBankTest {
     @Test
     void exportImport_preservesSongAndPatternCounts(@TempDir Path outDir) throws Exception {
         var bank = MusicBankReader.read(MUSIC_ABK);
-        new MusicBankExporter().export(bank, outDir);
+        new MusicBankExporter().export(bank, outDir.resolve("bank.json"));
         var imported = new MusicBankImporter().importFrom(outDir.resolve("bank.json"));
         assertEquals(bank.songs().size(),    imported.songs().size());
         assertEquals(bank.patterns().size(), imported.patterns().size());
@@ -141,7 +141,7 @@ class MusicBankTest {
     @Test
     void exportImport_preservesInstrument0Name(@TempDir Path outDir) throws Exception {
         var bank = MusicBankReader.read(MUSIC_ABK);
-        new MusicBankExporter().export(bank, outDir);
+        new MusicBankExporter().export(bank, outDir.resolve("bank.json"));
         var imported = new MusicBankImporter().importFrom(outDir.resolve("bank.json"));
         assertEquals(bank.instruments().get(0).name(), imported.instruments().get(0).name());
     }
@@ -149,7 +149,7 @@ class MusicBankTest {
     @Test
     void exportImport_preservesInstrument0SampleData(@TempDir Path outDir) throws Exception {
         var bank = MusicBankReader.read(MUSIC_ABK);
-        new MusicBankExporter().export(bank, outDir);
+        new MusicBankExporter().export(bank, outDir.resolve("bank.json"));
         var imported = new MusicBankImporter().importFrom(outDir.resolve("bank.json"));
         assertArrayEquals(bank.instruments().get(0).sampleData(),
                 imported.instruments().get(0).sampleData());

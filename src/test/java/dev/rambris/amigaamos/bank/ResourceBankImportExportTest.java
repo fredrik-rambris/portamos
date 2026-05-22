@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Round-trip test: read .Abk → export to directory → import back → write .Abk → read again.
+ * Round-trip test: read .Abk → export to JSON → import back → write .Abk → read again.
  */
 class ResourceBankImportExportTest {
 
@@ -26,12 +26,12 @@ class ResourceBankImportExportTest {
         // 1. Read the original bank
         var original = (ResourceBank) AmosBank.read(DEFAULT_BANK);
 
-        // 2. Export to a directory
-        Path exportDir = tmp.resolve("exported");
-        new ResourceBankExporter().export(original, exportDir);
+        // 2. Export to a JSON file (creates the containing directory)
+        Path jsonPath = tmp.resolve("exported/bank.json");
+        new ResourceBankExporter().export(original, jsonPath);
 
-        // 3. Import back from the bank.json file in the exported directory
-        var imported = new ResourceBankImporter().importFrom(exportDir.resolve("bank.json"));
+        // 3. Import back
+        var imported = new ResourceBankImporter().importFrom(jsonPath);
 
         // 4. Write the imported bank to a file and read it back
         Path written = tmp.resolve("reimported.Abk");

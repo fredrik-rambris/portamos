@@ -78,23 +78,22 @@ class PacPicBankTest {
     }
 
     @Test
-    void exportWritesPngAndSidecarJson(@TempDir Path tmp) throws Exception {
+    void exportWritesPngAndJson(@TempDir Path tmp) throws Exception {
         var bank = PacPicBankReader.read(SPACK_ABK);
-        var pngPath = tmp.resolve("spack.png");
+        var jsonPath = tmp.resolve("spack.json");
 
-        new PacPicBankExporter().export(bank, pngPath);
+        new PacPicBankExporter().export(bank, jsonPath);
 
-        assertTrue(pngPath.toFile().exists(), "png file");
-        assertTrue(Path.of(pngPath.toString() + ".json").toFile().exists(), "sidecar json");
+        assertTrue(jsonPath.toFile().exists(), "json file");
+        assertTrue(tmp.resolve("spack.png").toFile().exists(), "png sibling");
     }
 
     @Test
     void importFromJsonReconstructsPacPicBank(@TempDir Path tmp) throws Exception {
         var original = PacPicBankReader.read(SPACK_ABK);
-        var pngPath = tmp.resolve("spack.png");
+        var jsonPath = tmp.resolve("spack.json");
 
-        new PacPicBankExporter().export(original, pngPath);
-        var jsonPath = Path.of(pngPath.toString() + ".json");
+        new PacPicBankExporter().export(original, jsonPath);
 
         var imported = new PacPicBankImporter().importFrom(jsonPath);
 

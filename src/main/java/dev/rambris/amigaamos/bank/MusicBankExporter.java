@@ -46,30 +46,32 @@ public class MusicBankExporter {
 
 
     /** Exports samples as RIFF WAVE (default). */
-    public void export(MusicBank bank, Path outDir) throws IOException {
-        export(bank, outDir, false);
+    public void export(MusicBank bank, Path jsonPath) throws IOException {
+        export(bank, jsonPath, false);
     }
 
     /**
-     * Exports the music bank to {@code outDir}.
+     * Exports the music bank to {@code jsonPath}.
      *
-     * @param svx8 if {@code true}, write instrument samples as IFF 8SVX; otherwise RIFF WAVE
+     * @param jsonPath destination JSON metadata file; data files are written as siblings
+     * @param svx8     if {@code true}, write instrument samples as IFF 8SVX; otherwise RIFF WAVE
      */
-    public void export(MusicBank bank, Path outDir, boolean svx8) throws IOException {
-        Files.createDirectories(outDir);
+    public void export(MusicBank bank, Path jsonPath, boolean svx8) throws IOException {
+        var dir = jsonPath.toAbsolutePath().getParent();
+        var stem = AmosBankService.stem(jsonPath);
+        Files.createDirectories(dir);
 
         var dto = new MusicBankDto(
                 MusicBankDto.TYPE,
                 bank.bankNumber() & 0xFFFF,
                 bank.chipRam(),
-                buildInstrumentDtos(bank, outDir, svx8),
+                buildInstrumentDtos(bank, dir, stem, svx8),
                 buildSongDtos(bank),
                 buildPatternDtos(bank));
 
-        var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), dto);
+        JSON.writeValue(jsonPath.toFile(), dto);
         System.out.printf("Written %s (%d instruments, %d songs, %d patterns)%n",
-                dest, bank.instruments().size(), bank.songs().size(), bank.patterns().size());
+                jsonPath, bank.instruments().size(), bank.songs().size(), bank.patterns().size());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -77,17 +79,17 @@ public class MusicBankExporter {
     // ─────────────────────────────────────────────────────────────────────────
 
     private List<MusicBankDto.InstrumentDto> buildInstrumentDtos(
-            MusicBank bank, Path outDir, boolean svx8) throws IOException {
+            MusicBank bank, Path dir, String stem, boolean svx8) throws IOException {
         var result = new ArrayList<MusicBankDto.InstrumentDto>();
         for (int i = 0; i < bank.instruments().size(); i++) {
             var inst = bank.instruments().get(i);
             var ext      = svx8 ? ".8svx" : ".wav";
-            var filename = "instrument_%03d%s".formatted(i, ext);
+            var filename = stem + "-instrument%03d%s".formatted(i, ext);
 
             if (svx8) {
-                writeSvx8(inst, outDir.resolve(filename));
+                writeSvx8(inst, dir.resolve(filename));
             } else {
-                writeWav(inst, outDir.resolve(filename));
+                writeWav(inst, dir.resolve(filename));
             }
 
             result.add(new MusicBankDto.InstrumentDto(

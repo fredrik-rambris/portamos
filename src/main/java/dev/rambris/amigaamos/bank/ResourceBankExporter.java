@@ -36,26 +36,28 @@ public class ResourceBankExporter {
     private static final Pattern FILNAME_PATTERN = Pattern.compile(".*[/\\\\:](?<base>[^/\\\\:].+?)(\\.(?<ext>[^.]+))?$");
 
 
-    public void export(ResourceBank bank, Path outDir) throws IOException {
-        export(bank, outDir, false);
+    public void export(ResourceBank bank, Path jsonPath) throws IOException {
+        export(bank, jsonPath, false);
     }
 
     /**
-     * Exports the resource bank to {@code outDir}.
+     * Exports the resource bank to {@code jsonPath}.
      *
-     * @param bank   the resource bank to export
-     * @param outDir target directory
-     * @param ilbm   if {@code true}, write the spritesheet as an IFF ILBM; otherwise PNG
+     * @param bank     the resource bank to export
+     * @param jsonPath destination JSON metadata file; data files are written as siblings
+     * @param ilbm     if {@code true}, write the spritesheet as an IFF ILBM; otherwise PNG
      * @throws IOException if any file cannot be written
      */
-    public void export(ResourceBank bank, Path outDir, boolean ilbm) throws IOException {
+    public void export(ResourceBank bank, Path jsonPath, boolean ilbm) throws IOException {
+        var dir = jsonPath.toAbsolutePath().getParent();
+        var stem = AmosBankService.stem(jsonPath);
         var ext = ilbm ? "iff" : "png";
         var spritesheetFilename = normalizeFilename(bank.imagePath(), ext);
-        if (spritesheetFilename == null) spritesheetFilename = "spritesheet." + ext;
-        Files.createDirectories(outDir);
-        exportSpriteSheet(bank, outDir.resolve(spritesheetFilename), ilbm);
-        exportPrograms(bank, outDir);
-        exportMetadata(bank, outDir, spritesheetFilename);
+        if (spritesheetFilename == null) spritesheetFilename = stem + "." + ext;
+        Files.createDirectories(dir);
+        exportSpriteSheet(bank, dir.resolve(spritesheetFilename), ilbm);
+        exportPrograms(bank, dir, stem);
+        exportMetadata(bank, jsonPath, dir, stem, spritesheetFilename);
     }
 
     private String normalizeFilename(String filename, String ext) {
@@ -133,9 +135,9 @@ public class ResourceBankExporter {
     // Interface programs
     // -------------------------------------------------------------------------
 
-    private void exportPrograms(ResourceBank bank, Path outDir) throws IOException {
+    private void exportPrograms(ResourceBank bank, Path dir, String stem) throws IOException {
         for (int i = 0; i < bank.programs().size(); i++) {
-            var dest = outDir.resolve("program_%03d.amui".formatted(i));
+            var dest = dir.resolve(stem + "-program%03d.amui".formatted(i));
             Files.writeString(dest, bank.programs().get(i), java.nio.charset.StandardCharsets.UTF_8);
         }
         System.out.printf("Exported %d interface program(s)%n", bank.programs().size());
@@ -145,8 +147,8 @@ public class ResourceBankExporter {
     // Metadata JSON
     // -------------------------------------------------------------------------
 
-    private void exportMetadata(ResourceBank bank, Path outDir, String spritesheetFilename)
-            throws IOException {
+    private void exportMetadata(ResourceBank bank, Path jsonPath, Path dir, String stem,
+            String spritesheetFilename) throws IOException {
         var paletteList = Arrays.stream(bank.palette())
                 .mapToObj(AmigaPalette::toHexRgb)
                 .toList();
@@ -166,7 +168,7 @@ public class ResourceBankExporter {
 
         var programDtos = new ArrayList<ResourceBankDto.ProgramDto>();
         for (int i = 0; i < bank.programs().size(); i++) {
-            programDtos.add(new ResourceBankDto.ProgramDto(i, "program_%03d.amui".formatted(i)));
+            programDtos.add(new ResourceBankDto.ProgramDto(i, stem + "-program%03d.amui".formatted(i)));
         }
 
         var dto = new ResourceBankDto(
@@ -182,8 +184,7 @@ public class ResourceBankExporter {
                 List.copyOf(textDtos),
                 List.copyOf(programDtos));
 
-        var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), dto);
-        System.out.printf("Written %s%n", dest);
+        JSON.writeValue(jsonPath.toFile(), dto);
+        System.out.printf("Written %s%n", jsonPath);
     }
 }

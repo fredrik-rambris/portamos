@@ -32,17 +32,19 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
 public class AmalBankExporter {
 
 
-    public void export(AmalBank bank, Path outDir) throws IOException {
-        Files.createDirectories(outDir);
-        exportEnvironment(bank, outDir);
-        exportPrograms(bank, outDir);
-        exportMovements(bank, outDir);
-        exportMetadata(bank, outDir);
+    public void export(AmalBank bank, Path jsonPath) throws IOException {
+        var dir = jsonPath.toAbsolutePath().getParent();
+        var stem = AmosBankService.stem(jsonPath);
+        Files.createDirectories(dir);
+        exportEnvironment(bank, dir, stem);
+        exportPrograms(bank, dir, stem);
+        exportMovements(bank, dir, stem);
+        exportMetadata(bank, jsonPath, stem);
     }
 
-    private void exportEnvironment(AmalBank bank, Path outDir) throws IOException {
+    private void exportEnvironment(AmalBank bank, Path dir, String stem) throws IOException {
         if (bank.environment() == null || bank.environment().isEmpty()) return;
-        var dest = outDir.resolve("environment.amal");
+        var dest = dir.resolve(stem + "-environment.amal");
         Files.writeString(dest, bank.environment().replace("~", "\n"), StandardCharsets.UTF_8);
     }
 
@@ -50,12 +52,12 @@ public class AmalBankExporter {
     // AMAL programs
     // -------------------------------------------------------------------------
 
-    private void exportPrograms(AmalBank bank, Path outDir) throws IOException {
+    private void exportPrograms(AmalBank bank, Path dir, String stem) throws IOException {
         int exported = 0;
         for (int i = 0; i < bank.programs().size(); i++) {
             var program = bank.programs().get(i);
             if (program == null || program.isEmpty()) continue;
-            var dest = outDir.resolve("program_%03d.amal".formatted(i));
+            var dest = dir.resolve(stem + "-program%03d.amal".formatted(i));
             // AMAL uses ~ as a line separator; convert to newlines for human-readable text
             Files.writeString(dest, program.replace("~", "\n"), StandardCharsets.UTF_8);
             exported++;
@@ -68,12 +70,12 @@ public class AmalBankExporter {
     // Movement data
     // -------------------------------------------------------------------------
 
-    private void exportMovements(AmalBank bank, Path outDir) throws IOException {
+    private void exportMovements(AmalBank bank, Path dir, String stem) throws IOException {
         int exported = 0;
         for (int i = 0; i < bank.movements().size(); i++) {
             var mov = bank.movements().get(i);
             if (mov.isEmpty()) continue;
-            var dest = outDir.resolve("movement_%03d.json".formatted(i));
+            var dest = dir.resolve(stem + "-movement%03d.json".formatted(i));
             JSON.writeValue(dest.toFile(), buildMovementDto(mov));
             exported++;
         }
@@ -102,11 +104,11 @@ public class AmalBankExporter {
     // Metadata JSON
     // -------------------------------------------------------------------------
 
-    private void exportMetadata(AmalBank bank, Path outDir) throws IOException {
+    private void exportMetadata(AmalBank bank, Path jsonPath, String stem) throws IOException {
         var movementRefs = new ArrayList<AmalBankDto.MovementRefDto>();
         for (int i = 0; i < bank.movements().size(); i++) {
             var mov = bank.movements().get(i);
-            var file = mov.isEmpty() ? null : "movement_%03d.json".formatted(i);
+            var file = mov.isEmpty() ? null : stem + "-movement%03d.json".formatted(i);
             movementRefs.add(new AmalBankDto.MovementRefDto(i, mov.name(), file));
         }
 
@@ -114,11 +116,11 @@ public class AmalBankExporter {
         for (int i = 0; i < bank.programs().size(); i++) {
             var prog = bank.programs().get(i);
             if (prog == null || prog.isEmpty()) continue;
-            programRefs.add(new AmalBankDto.ProgramRefDto(i, "program_%03d.amal".formatted(i)));
+            programRefs.add(new AmalBankDto.ProgramRefDto(i, stem + "-program%03d.amal".formatted(i)));
         }
 
         var environment = (bank.environment() != null && !bank.environment().isEmpty())
-                ? "environment.amal" : null;
+                ? stem + "-environment.amal" : null;
 
         var dto = new AmalBankDto(
                 AmalBankDto.TYPE,
@@ -129,8 +131,7 @@ public class AmalBankExporter {
                 bank.programs().size(),
                 List.copyOf(programRefs));
 
-        var dest = outDir.resolve("bank.json");
-        JSON.writeValue(dest.toFile(), dto);
-        System.out.printf("Written %s%n", dest);
+        JSON.writeValue(jsonPath.toFile(), dto);
+        System.out.printf("Written %s%n", jsonPath);
     }
 }

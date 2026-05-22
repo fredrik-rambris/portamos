@@ -71,11 +71,11 @@ class RawBankRoundTripTest {
         var bank = RawBankReader.read(original);
 
         // Export
-        Path dataPath = tmp.resolve("payload.bin");
-        new RawBankExporter().export(bank, dataPath);
+        Path jsonPath = tmp.resolve("payload.json");
+        new RawBankExporter().export(bank, jsonPath);
 
-        Path jsonPath = tmp.resolve("payload.bin.json");
-        assertTrue(jsonPath.toFile().exists(), "JSON sidecar must exist");
+        assertTrue(jsonPath.toFile().exists(), "JSON must exist");
+        assertTrue(tmp.resolve("payload.bin").toFile().exists(), "data file must exist");
 
         // Import
         AmosBank imported = new RawBankImporter().importFrom(jsonPath);
@@ -87,16 +87,15 @@ class RawBankRoundTripTest {
 
     @Test
     void importResolvesDataFileRelativeToJson(@TempDir Path tmp) throws Exception {
-        // Export to one name, then manually edit JSON to reference a renamed data file
+        // Export, then manually edit JSON to reference a renamed data file
         var original = Path.of("src/test/resources/Work.Abk");
         var bank = RawBankReader.read(original);
 
-        Path dataPath = tmp.resolve("original.bin");
-        new RawBankExporter().export(bank, dataPath);
+        new RawBankExporter().export(bank, tmp.resolve("original.json"));
 
         // Rename the data file
         Path renamedData = tmp.resolve("renamed.dat");
-        dataPath.toFile().renameTo(renamedData.toFile());
+        tmp.resolve("original.bin").toFile().renameTo(renamedData.toFile());
 
         // Write a new JSON pointing to the renamed file
         Path newJson = tmp.resolve("work.json");

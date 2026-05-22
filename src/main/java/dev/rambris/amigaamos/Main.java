@@ -312,7 +312,10 @@ public class Main implements Callable<Integer> {
     @Command(
             name = "disasm",
             mixinStandardHelpOptions = true,
-            description = "Disassemble an AMOS bank file (Abk) to JSON + data files in a directory."
+            description = {
+                    "Disassemble an AMOS bank file (Abk) to a JSON metadata file.",
+                    "Associated data files are written alongside the JSON using its stem as prefix."
+            }
     )
     static class DisasmCommand implements Callable<Integer> {
 
@@ -320,9 +323,9 @@ public class Main implements Callable<Integer> {
                 description = "Input AMOS bank file (AmBk, AmSp, AmIc, …)")
         Path input;
 
-        @Parameters(index = "1", paramLabel = "<output-dir>",
-                description = "Output directory for JSON and data files")
-        Path outDir;
+        @Parameters(index = "1", paramLabel = "<output.json>",
+                description = "Output JSON metadata file (data files written alongside it with the same stem)")
+        Path jsonPath;
 
         @Option(names = "--ilbm",
                 description = "Export sprite/icon spritesheet as IFF ILBM instead of PNG")
@@ -332,13 +335,17 @@ public class Main implements Callable<Integer> {
                 description = "Export samples as IFF 8SVX instead of RIFF WAVE")
         boolean svx8 = false;
 
+        @Option(names = "--sample-names",
+                description = "Name exported sample audio files after sample names instead of index")
+        boolean useNames = false;
+
         @Override
         public Integer call() throws Exception {
             System.out.printf("Reading %s%n", input.getFileName());
             var service = new AmosBankService();
             var bank = service.readBank(input);
             System.out.printf("Bank type: %s%n", bank.type());
-            service.exportBank(bank, outDir, stem(input), ilbm, svx8);
+            service.exportBank(bank, jsonPath, ilbm, svx8, useNames);
             return 0;
         }
     }

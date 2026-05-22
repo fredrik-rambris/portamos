@@ -1,0 +1,10 @@
+{
+  "resources": {
+    "includes": [
+      {"pattern": "META-INF/services/javax.sound.sampled.spi.AudioFileReader"},
+      {"pattern": "META-INF/services/javax.sound.sampled.spi.AudioFileWriter"},
+      {"pattern": "META-INF/services/javax.imageio.spi.ImageReaderSpi"},
+      {"pattern": "META-INF/services/javax.imageio.spi.ImageWriterSpi"}
+    ]
+  }
+}
