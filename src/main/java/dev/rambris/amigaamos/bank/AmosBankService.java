@@ -9,7 +9,9 @@ package dev.rambris.amigaamos.bank;
 import dev.rambris.amigaamos.dto.*;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import static dev.rambris.amigaamos.JsonConfig.JSON;
 
@@ -129,35 +131,61 @@ public class AmosBankService {
     /**
      * Exports a bank to {@code jsonPath}.
      *
-     * @param bank      the bank to export
-     * @param jsonPath  destination JSON metadata file (data files written alongside it)
-     * @param ilbm      export sprite/icon spritesheets and PacPic images as IFF ILBM
-     *                  instead of PNG
-     * @param svx8      export instrument/sample audio as IFF 8SVX instead of RIFF WAVE
-     * @param useNames  for sample banks: derive audio filenames from sample names
-     *                  instead of zero-padded indices
+     * @param bank     the bank to export
+     * @param jsonPath destination JSON metadata file (data files written alongside it)
+     * @param ilbm     export sprite/icon spritesheets and PacPic images as IFF ILBM
+     *                 instead of PNG
+     * @param svx8     export instrument/sample audio as IFF 8SVX instead of RIFF WAVE
+     * @param useNames for sample banks: derive audio filenames from sample names
+     *                 instead of zero-padded indices
      * @throws IOException if any file cannot be written
      */
     public void exportBank(AmosBank bank, Path jsonPath, boolean ilbm, boolean svx8,
                            boolean useNames) throws IOException {
         switch (bank) {
-            case SpriteBank sb   -> new SpriteBankExporter().export(sb, jsonPath, ilbm);
+            case SpriteBank sb -> new SpriteBankExporter().export(sb, jsonPath, ilbm);
             case ResourceBank rb -> new ResourceBankExporter().export(rb, jsonPath, ilbm);
-            case AmalBank ab     -> new AmalBankExporter().export(ab, jsonPath);
-            case MenuBank mb     -> new MenuBankExporter().export(mb, jsonPath);
-            case MusicBank mb    -> new MusicBankExporter().export(mb, jsonPath, svx8);
-            case SampleBank sb   -> new SampleBankExporter().export(sb, jsonPath, svx8, useNames);
-            case TrackerBank tb  -> new TrackerBankExporter().export(tb, jsonPath);
-            case PacPicBank pb   -> new PacPicBankExporter().export(pb, jsonPath, ilbm);
-            case RawBank rb      -> new RawBankExporter().export(rb, jsonPath);
+            case AmalBank ab -> new AmalBankExporter().export(ab, jsonPath);
+            case MenuBank mb -> new MenuBankExporter().export(mb, jsonPath);
+            case MusicBank mb -> new MusicBankExporter().export(mb, jsonPath, svx8);
+            case SampleBank sb -> new SampleBankExporter().export(sb, jsonPath, svx8, useNames);
+            case TrackerBank tb -> new TrackerBankExporter().export(tb, jsonPath);
+            case PacPicBank pb -> new PacPicBankExporter().export(pb, jsonPath, ilbm);
+            case RawBank rb -> new RawBankExporter().export(rb, jsonPath);
             default -> throw new IllegalArgumentException("Unsupported bank type: " + bank.type());
         }
     }
 
-    /** Returns the filename stem (everything before the last dot). */
+    /**
+     * Returns the filename stem (everything before the last dot).
+     */
     static String stem(Path path) {
         var name = path.getFileName().toString();
         var dot = name.lastIndexOf('.');
         return dot > 0 ? name.substring(0, dot) : name;
+    }
+
+    public static Class identify(Path path) {
+        var extension = AmosBankService.fileExtension(path).toLowerCase();
+        try (var in = Files.newInputStream(path, StandardOpenOption.READ)) {
+            var hdr = in.readNBytes(AmosBank.MIN_HEADER_SIZE);
+            if (hdr[0] == '{' && extension.equals("json")) {
+                return JSON.readValue(path.toFile(), AmosBankDto.class).getClass();
+            } else return AmosBank.identify(hdr).bankClass();
+        } catch (IOException e) {
+            System.err.println("Failed to identify AMOS bank file: " + path + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    public static String fileExtension(Path path) {
+        if (path != null) {
+            var filename = path.getFileName().toString();
+            var dotIndex = filename.lastIndexOf('.');
+            if (dotIndex >= 0) {
+                return filename.substring(dotIndex + 1);
+            }
+        }
+        return "";
     }
 }

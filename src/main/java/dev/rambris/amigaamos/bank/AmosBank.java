@@ -21,27 +21,29 @@ public interface AmosBank {
     }
 
     enum Type {
-        MUSIC("Music   ", MusicBankReader::read),
-        TRACKER("Tracker ", TrackerBankReader::read),
-        AMAL("Amal    ", AmalBankReader::read),
-        MENU("Menu    ", MenuBankReader::read),
-        DATAS("Datas   ", RawBankReader::read),
-        DATA("Data    ", RawBankReader::read),
-        WORK("Work    ", RawBankReader::read),
-        ASM("Asm     ", RawBankReader::read),
-        CODE("Code    ", RawBankReader::read),
-        PACPIC("Pac.Pic.", PacPicBankReader::read),
-        RESOURCE("Resource", ResourceBankReader::read),
-        SAMPLES("Samples ", SampleBankReader::read),
-        SPRITES("Sprites ", RawBankReader::read),
-        ICONS("Icons   ", RawBankReader::read);
+        MUSIC("Music   ", MusicBankReader::read, MusicBank.class),
+        TRACKER("Tracker ", TrackerBankReader::read, TrackerBank.class),
+        AMAL("Amal    ", AmalBankReader::read, AmalBank.class),
+        MENU("Menu    ", MenuBankReader::read, MenuBank.class),
+        DATAS("Datas   ", RawBankReader::read, RawBank.class),
+        DATA("Data    ", RawBankReader::read, RawBank.class),
+        WORK("Work    ", RawBankReader::read, RawBank.class),
+        ASM("Asm     ", RawBankReader::read, RawBank.class),
+        CODE("Code    ", RawBankReader::read, RawBank.class),
+        PACPIC("Pac.Pic.", PacPicBankReader::read, PacPicBank.class),
+        RESOURCE("Resource", ResourceBankReader::read, ResourceBank.class),
+        SAMPLES("Samples ", SampleBankReader::read, SampleBank.class),
+        SPRITES("Sprites ", SpriteBankReader::read, SpriteBank.class),
+        ICONS("Icons   ", SpriteBankReader::read, SpriteBank.class);
 
         private final String identifier;
         private final AmBkReader amBkReader;
+        private final Class<? extends AmosBank> clazz;
 
-        Type(String identifier, AmBkReader amBkReader) {
+        Type(String identifier, AmBkReader amBkReader, Class<? extends AmosBank> clazz) {
             this.identifier = identifier;
             this.amBkReader = amBkReader;
+            this.clazz = clazz;
         }
 
         public String identifier() {
@@ -52,15 +54,15 @@ public interface AmosBank {
             return identifier().strip();
         }
 
-        public AmosBank readAmBk(byte[] data) throws IOException {
-            return amBkReader.read(data);
-        }
-
         public static Type fromIdentifier(String id) {
             for (var t : values()) {
                 if (t.identifier.equals(id)) return t;
             }
             throw new IllegalArgumentException("Unknown identifier \"" + id + "\"");
+        }
+
+        public Class<? extends AmosBank> bankClass() {
+            return clazz;
         }
     }
 
@@ -96,15 +98,23 @@ public interface AmosBank {
             throw new IOException("Too small to be an AMOS bank (" + data.length + " bytes)");
         }
 
+        var type = identify(data);
+        return type.amBkReader.read(data);
+    }
+
+    static AmosBank.Type identify(byte[] data) throws IOException {
+        if (data.length < 4) {
+            throw new IOException("Too small to be an AMOS bank (" + data.length + " bytes)");
+        }
+
         var magic = new String(data, 0, 4, StandardCharsets.US_ASCII);
 
         return switch (magic) {
-            case "AmSp", "AmIc" -> SpriteBankReader.read(data);
-            case "AmBk" -> {
-                var type = AmBkCodec.typeOf(data);
-                yield type.readAmBk(data);
-            }
+            case "AmSp" -> Type.SPRITES;
+            case "AmIc" -> Type.ICONS;
+            case "AmBk" -> AmBkCodec.typeOf(data);
             default -> throw new IOException("Not an AMOS bank file: magic=\"" + magic + "\"");
         };
+
     }
 }
