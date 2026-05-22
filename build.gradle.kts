@@ -2,7 +2,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 plugins {
-    java
+    `java-library`
     application
     `maven-publish`
     id("com.gradleup.shadow") version "8.3.6"
@@ -27,7 +27,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.21.3")
+    api("com.fasterxml.jackson.core:jackson-databind:2.21.3")
     implementation("info.picocli:picocli:4.7.6")
     annotationProcessor("info.picocli:picocli-codegen:4.7.6")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")

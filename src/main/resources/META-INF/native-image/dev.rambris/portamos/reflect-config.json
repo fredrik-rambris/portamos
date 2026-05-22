@@ -1,6 +1,180 @@
 [
-  {"name": "dev.rambris.iff.audio.Svx8AudioFileReader",   "allDeclaredConstructors": true},
-  {"name": "dev.rambris.iff.audio.Svx8AudioFileWriter",   "allDeclaredConstructors": true},
-  {"name": "dev.rambris.iff.imageio.IlbmImageReaderSpi",  "allDeclaredConstructors": true},
-  {"name": "dev.rambris.iff.imageio.IlbmImageWriterSpi",  "allDeclaredConstructors": true}
+  {
+    "name": "dev.rambris.iff.audio.Svx8AudioFileReader",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.rambris.iff.audio.Svx8AudioFileWriter",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.rambris.iff.imageio.IlbmImageReaderSpi",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.rambris.iff.imageio.IlbmImageWriterSpi",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.AmosBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.AmalBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.AmalBankDto$MovementRefDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.AmalBankDto$ProgramRefDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.AmalMovementDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.AmalMovementDto$MovementDataDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.AmalMovementDto$InstructionDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.MenuBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.MenuBankDto$MenuItemDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.MusicBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.MusicBankDto$InstrumentDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.MusicBankDto$SongDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.MusicBankDto$PatternDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.MusicBankDto$VoiceItemDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.PacPicBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.PacPicBankDto$ScreenHeaderDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.RawBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.ResourceBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.ResourceBankDto$ElementDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.ResourceBankDto$ImageDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.ResourceBankDto$TextDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.ResourceBankDto$ProgramDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.SampleBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.SampleBankDto$SampleDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.SpriteBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.SpriteBankDto$SpriteDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.rambris.amigaamos.dto.TrackerBankDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  }
 ]
