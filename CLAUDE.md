@@ -307,7 +307,7 @@ Key behaviors to know:
 
 # Disassemble a bank to a JSON metadata file (data files written alongside it using stem as prefix)
 ./gradlew run --args="disasm input.Abk output/mybank.json"
-./gradlew run --args="disasm --svx8 Music.abk music/music.json"          # 8SVX samples instead of WAV
+./gradlew run --args="disasm --8svx Music.abk music/music.json"          # 8SVX samples instead of WAV
 ./gradlew run --args="disasm --ilbm Sprites.Abk sprites/sprites.json"    # IFF ILBM instead of PNG
 ./gradlew run --args="disasm --sample-names Samples.abk sounds/bank.json" # name files after sample names
 

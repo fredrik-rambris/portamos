@@ -108,7 +108,7 @@ procedure flags byte). Without this flag, procedures are saved in the unfolded s
 ```bash
 portamos disasm input.Abk output/mybank.json
 portamos disasm --ilbm input.Abk output/sprites.json          # sprite sheet as IFF ILBM instead of PNG
-portamos disasm --svx8 input.Abk output/music.json            # samples as IFF 8SVX instead of WAV
+portamos disasm --8svx input.Abk output/music.json            # samples as IFF 8SVX instead of WAV
 portamos disasm --sample-names input.Abk output/samples.json  # name audio files after sample names
 ```
 

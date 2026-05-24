@@ -38,21 +38,20 @@ public class SampleBankImporter {
         var samples = new ArrayList<SampleBank.Sample>();
         if (dto.samples() != null) {
             for (var s : dto.samples()) {
-                var freq = s.frequencyHz() != 0 ? s.frequencyHz() : 8363;
-
-                if (s.file() == null) {
-                    var name = resolveName(s.name(), null);
-                    samples.add(new SampleBank.Sample(name, freq, new byte[0]));
-                    continue;
-                }
-
-                var name = resolveName(s.name(), s.file());
-                var pcm = readAudio(jsonPath.resolveSibling(s.file()));
-                samples.add(new SampleBank.Sample(name, freq, pcm));
+                if (s.file() == null || s.file().isBlank()) continue;
+                samples.add(importSample(s, jsonPath));
             }
         }
 
         return new SampleBank(bankNumber, List.copyOf(samples));
+    }
+
+    public SampleBank.Sample importSample(SampleBankDto.SampleDto s, Path jsonPath) throws IOException {
+        var freq = s.frequencyHz() != 0 ? s.frequencyHz() : 8363;
+        var name = resolveName(s.name(), s.file());
+        var pcm = readAudio(jsonPath.resolveSibling(s.file()));
+
+        return new SampleBank.Sample(name, freq, pcm);
     }
 
     // -------------------------------------------------------------------------
@@ -63,7 +62,7 @@ public class SampleBankImporter {
      * Returns the sample name to use: the explicit name from the DTO if non-blank,
      * otherwise the stem of the audio filename. Truncates to 8 characters with a warning.
      */
-    private static String resolveName(String dtoName, String filename) {
+    public static String resolveName(String dtoName, String filename) {
         var name = (dtoName != null && !dtoName.isBlank())
                 ? dtoName
                 : (filename != null ? AmosBankService.stem(Path.of(filename)) : "");
@@ -80,16 +79,16 @@ public class SampleBankImporter {
     // Audio reading
     // -------------------------------------------------------------------------
 
-    private static byte[] readAudio(Path path) throws IOException {
+    public static byte[] readAudio(Path path) throws IOException {
         try (var ais = AudioSystem.getAudioInputStream(path.toFile())) {
             var fmt = ais.getFormat();
             if (fmt.getChannels() != 1) {
                 throw new IOException("Sample must be mono: " + path
-                        + " (got " + fmt.getChannels() + " channels)");
+                                      + " (got " + fmt.getChannels() + " channels)");
             }
             if (fmt.getSampleSizeInBits() != 8) {
                 throw new IOException("Sample must be 8-bit: " + path
-                        + " (got " + fmt.getSampleSizeInBits() + "-bit)");
+                                      + " (got " + fmt.getSampleSizeInBits() + "-bit)");
             }
             var pcm = ais.readAllBytes();
             // WAV 8-bit uses unsigned encoding; convert to signed. 8SVX, AIFF, etc. are already signed.

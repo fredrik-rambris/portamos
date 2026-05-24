@@ -159,7 +159,7 @@ public class AmosBankService {
     /**
      * Returns the filename stem (everything before the last dot).
      */
-    static String stem(Path path) {
+    public static String stem(Path path) {
         var name = path.getFileName().toString();
         var dot = name.lastIndexOf('.');
         return dot > 0 ? name.substring(0, dot) : name;

@@ -169,7 +169,7 @@ public class SampleBankExporter {
     // -------------------------------------------------------------------------
 
     /** Converts signed 8-bit PCM to unsigned 8-bit by XOR-ing each byte with 0x80. */
-    static byte[] signedToUnsigned(byte[] signed) {
+    public static byte[] signedToUnsigned(byte[] signed) {
         var out = new byte[signed.length];
         for (int i = 0; i < signed.length; i++) {
             out[i] = (byte) (signed[i] ^ 0x80);

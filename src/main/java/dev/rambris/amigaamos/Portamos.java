@@ -49,25 +49,25 @@ import java.util.concurrent.Callable;
                 "<https://www.apache.org/licenses/LICENSE-2.0>"
         },
         subcommands = {
-                Main.BuildCommand.class,
-                Main.ListCommand.class,
-                Main.ValidateCommand.class,
-                Main.DisasmCommand.class,
-                Main.AsmCommand.class,
-                Main.RawCommand.class,
-                Main.DisasmConfigCommand.class,
-                Main.AsmConfigCommand.class,
-                Main.DevHelpCommand.class,
-                Main.DumpCommand.class,
-                Main.DiffCommand.class,
-                Main.GenExtJsonCommand.class,
+                Portamos.BuildCommand.class,
+                Portamos.ListCommand.class,
+                Portamos.ValidateCommand.class,
+                Portamos.DisasmCommand.class,
+                Portamos.AsmCommand.class,
+                Portamos.RawCommand.class,
+                Portamos.DisasmConfigCommand.class,
+                Portamos.AsmConfigCommand.class,
+                Portamos.DevHelpCommand.class,
+                Portamos.DumpCommand.class,
+                Portamos.DiffCommand.class,
+                Portamos.GenExtJsonCommand.class,
                 CommandLine.HelpCommand.class
         }
 )
-public class Main implements Callable<Integer> {
+public class Portamos implements Callable<Integer> {
 
     public static void main(String[] args) {
-        System.exit(new CommandLine(new Main()).execute(args));
+        System.exit(new CommandLine(new Portamos()).execute(args));
     }
 
     @Override
@@ -331,7 +331,7 @@ public class Main implements Callable<Integer> {
                 description = "Export sprite/icon spritesheet as IFF ILBM instead of PNG")
         boolean ilbm = false;
 
-        @Option(names = "--svx8",
+        @Option(names = "--8svx",
                 description = "Export samples as IFF 8SVX instead of RIFF WAVE")
         boolean svx8 = false;
 

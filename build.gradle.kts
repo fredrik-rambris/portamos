@@ -19,7 +19,7 @@ java {
 }
 
 application {
-    mainClass = "dev.rambris.amigaamos.Main"
+    mainClass = "dev.rambris.amigaamos.Portamos"
 }
 
 repositories {
