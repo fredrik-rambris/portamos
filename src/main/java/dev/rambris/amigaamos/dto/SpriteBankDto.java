@@ -28,6 +28,7 @@ public record SpriteBankDto(
             int index,
             Boolean empty,
             Integer x,
+            Integer y,
             Integer width,
             Integer height,
             Integer planes,

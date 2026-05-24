@@ -81,8 +81,9 @@ public class SpriteBankImporter {
             var hotspotX = s.hotspotX() != null ? s.hotspotX() : 0;
             var hotspotY = s.hotspotY() != null ? s.hotspotY() : 0;
             var x = s.x() != null ? s.x() : 0;
+            var y = s.y() != null ? s.y() : 0;
 
-            var data = extractPlanar(sheetPixels, x, 0, widthWords, height, planes);
+            var data = extractPlanar(sheetPixels, x, y, widthWords, height, planes);
             sprites.add(new SpriteBank.Sprite(widthWords, height, planes, hotspotX, hotspotY, data));
         }
 
