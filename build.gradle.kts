@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "dev.rambris"
-version = "0.0.1-beta.19"
+version = "0.0.1-beta.20"
 
 java {
     toolchain {
@@ -97,7 +97,7 @@ graalvmNative {
         named("main") {
             imageName = "portamos"
             sharedLibrary.set(false)
-            buildArgs.addAll("--no-fallback", "-H:+ReportExceptionStackTraces")
+            buildArgs.addAll("--no-fallback", "-H:+ReportExceptionStackTraces", "-J-Xmx5g")
             resources {
                 // Embed all JSON definition files into the native binary.
                 // getResourceAsStream("/amos/definitions/…") will work unchanged.
