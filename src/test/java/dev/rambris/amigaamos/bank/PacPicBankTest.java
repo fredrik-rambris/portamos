@@ -8,8 +8,11 @@ package dev.rambris.amigaamos.bank;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -86,6 +89,160 @@ class PacPicBankTest {
 
         assertTrue(jsonPath.toFile().exists(), "json file");
         assertTrue(tmp.resolve("spack.png").toFile().exists(), "png sibling");
+    }
+
+    // -------------------------------------------------------------------------
+    // Palette optimizer tests
+    // -------------------------------------------------------------------------
+
+    /**
+     * All PacPic Abk files available as test resources.
+     */
+    static Stream<Path> pacPicBankFiles() {
+        // Add more .Abk paths here as needed
+        return Stream.of(
+                Path.of("src/test/resources/Spack.Abk")
+        );
+    }
+
+    /**
+     * IFF ILBM images used for optimizer-from-image tests.
+     * Add more here as scene images are collected; they live in src/test/resources/.
+     */
+    static Stream<org.junit.jupiter.params.provider.Arguments> ilbmImageFiles() {
+        return Stream.of(
+                org.junit.jupiter.params.provider.Arguments.of(
+                        Path.of("src/test/resources/DefenderOfTheCrown2_Romantic_Fireplace.iff"), 5),
+                org.junit.jupiter.params.provider.Arguments.of(
+                        Path.of("src/test/resources/DeviousDesigns_Level01.iff"), 4),
+                org.junit.jupiter.params.provider.Arguments.of(
+                        Path.of("src/test/resources/DeviousDesigns_Level16.iff"), 4),
+                org.junit.jupiter.params.provider.Arguments.of(
+                        Path.of("src/test/resources/Spherical.iff"), 4)
+        );
+    }
+
+    @ParameterizedTest(name = "optimizer does not enlarge: {0}")
+    @MethodSource("pacPicBankFiles")
+    void paletteOptimizerNeverEnlargesOutput(Path abkPath) throws Exception {
+        var bank = PacPicBankReader.read(abkPath);
+        int planes = ((bank.picData()[PacPicFormat.OFF_PKPLAN] & 0xFF) << 8)
+                     | (bank.picData()[PacPicFormat.OFF_PKPLAN + 1] & 0xFF);
+        int srcX = ((bank.picData()[PacPicFormat.OFF_PKDX] & 0xFF) << 8)
+                   | (bank.picData()[PacPicFormat.OFF_PKDX + 1] & 0xFF);
+        srcX *= 8;
+        int srcY = ((bank.picData()[PacPicFormat.OFF_PKDY] & 0xFF) << 8)
+                   | (bank.picData()[PacPicFormat.OFF_PKDY + 1] & 0xFF);
+
+        var pixels = PacPicDecoder.decompress(bank.picData());
+        int numColors = 1 << planes;
+
+        int baseline = PacPicEncoder.compress(pixels, srcX, srcY, planes).length;
+        var result = PacPicPaletteOptimizer.optimize(pixels, numColors, srcX, srcY, planes);
+
+        System.out.printf("%s: baseline=%d  optimized=%d  saving=%d bytes (%.1f%%)%n",
+                abkPath.getFileName(), baseline, result.compressedSize(),
+                baseline - result.compressedSize(),
+                100.0 * (baseline - result.compressedSize()) / baseline);
+
+        assertTrue(result.compressedSize() <= baseline,
+                "Optimizer must not produce larger output than baseline");
+    }
+
+    @ParameterizedTest(name = "optimized pixels still decode identically: {0}")
+    @MethodSource("pacPicBankFiles")
+    void optimizedPixelsDecodeIdentically(Path abkPath) throws Exception {
+        var bank = PacPicBankReader.read(abkPath);
+        int planes = ((bank.picData()[PacPicFormat.OFF_PKPLAN] & 0xFF) << 8)
+                     | (bank.picData()[PacPicFormat.OFF_PKPLAN + 1] & 0xFF);
+        int srcXBytes = ((bank.picData()[PacPicFormat.OFF_PKDX] & 0xFF) << 8)
+                        | (bank.picData()[PacPicFormat.OFF_PKDX + 1] & 0xFF);
+        int srcX = srcXBytes * 8;
+        int srcY = ((bank.picData()[PacPicFormat.OFF_PKDY] & 0xFF) << 8)
+                   | (bank.picData()[PacPicFormat.OFF_PKDY + 1] & 0xFF);
+
+        var origPixels = PacPicDecoder.decompress(bank.picData());
+        int numColors = 1 << planes;
+
+        var result = PacPicPaletteOptimizer.optimize(origPixels, numColors, srcX, srcY, planes);
+        var recompressed = PacPicEncoder.compress(result.pixels(), srcX, srcY, planes);
+        var decoded = PacPicDecoder.decompress(recompressed);
+
+        assertEquals(origPixels.length, decoded.length, "height");
+        assertEquals(origPixels[0].length, decoded[0].length, "width");
+
+        // Every pixel in the decoded image must correspond to the same palette entry
+        // as the original (via the permutation).
+        var perm = result.permutation();
+        for (int y = 0; y < origPixels.length; y++) {
+            for (int x = 0; x < origPixels[y].length; x++) {
+                int origIdx = origPixels[y][x];
+                int newIdx = result.pixels()[y][x];
+                // perm[newIdx] == origIdx  (permutation maps new → original)
+                assertEquals(origIdx, perm[newIdx],
+                        String.format("pixel (%d,%d): perm[%d]=%d, expected %d",
+                                x, y, newIdx, perm[newIdx], origIdx));
+            }
+        }
+    }
+
+    @ParameterizedTest(name = "importer with --optimize produces valid bank: {0}")
+    @MethodSource("pacPicBankFiles")
+    void importerWithOptimizeProducesValidBank(Path abkPath, @TempDir Path tmp) throws Exception {
+        var original = PacPicBankReader.read(abkPath);
+        var jsonPath = tmp.resolve("bank.json");
+        new PacPicBankExporter().export(original, jsonPath);
+
+        var optimized = new PacPicBankImporter().withOptimize(true).importFrom(jsonPath);
+        var unoptimized = new PacPicBankImporter().importFrom(jsonPath);
+
+        assertEquals(AmosBank.Type.PACPIC, optimized.type());
+
+        // Optimized must not be larger than unoptimized
+        assertTrue(optimized.picData().length <= unoptimized.picData().length,
+                "Optimized picData (" + optimized.picData().length + ") should be ≤ unoptimized ("
+                + unoptimized.picData().length + ")");
+
+        // Must decode to same dimensions
+        var origPixels = PacPicDecoder.decompress(original.picData());
+        var optPixels = PacPicDecoder.decompress(optimized.picData());
+        assertEquals(origPixels.length, optPixels.length, "height");
+        assertEquals(origPixels[0].length, optPixels[0].length, "width");
+    }
+
+    private record IlbmFile(Path iffPath, int planes) {
+    }
+
+    ;
+
+
+    @Test
+    void paletteOptimizerSavingsFromIlbm() throws Exception {
+        System.out.println("| file                                          | width | height | colours | baseline | optimized | saving           | time");
+        System.out.println("+-----------------------------------------------+-------+--------+---------+----------+-----------+------------------+------");
+        for (var f : new IlbmFile[]{
+                new IlbmFile(Path.of("src/test/resources/DefenderOfTheCrown2_Romantic_Fireplace.iff"), 5),
+                new IlbmFile(Path.of("src/test/resources/DeviousDesigns_Level01.iff"), 4),
+                new IlbmFile(Path.of("src/test/resources/DeviousDesigns_Level16.iff"), 4),
+                new IlbmFile(Path.of("src/test/resources/Spherical.iff"), 4)
+        }) {
+            var image = IndexedPngWriter.readPixels(f.iffPath);
+            int numColors = 1 << f.planes;
+
+            int baseline = PacPicEncoder.compress(image.pixels(), 0, 0, f.planes).length;
+            var t = System.currentTimeMillis();
+            var result = PacPicPaletteOptimizer.optimize(image.pixels(), numColors, 0, 0, f.planes);
+            t = System.currentTimeMillis() - t;
+
+            int saving = baseline - result.compressedSize();
+            double pct = 100.0 * saving / baseline;
+
+            System.out.printf("| %-45s | %-5d | %-6d | %-7d | %-8d | %-9d | %-8d (%-4.1f%%) | %.2fs%n",
+                    f.iffPath.getFileName(), image.width(), image.height(), numColors, baseline, result.compressedSize(), saving, pct, t / 1000.0);
+
+            assertTrue(result.compressedSize() <= baseline,
+                    "Optimizer must not produce larger output than baseline");
+        }
     }
 
     @Test

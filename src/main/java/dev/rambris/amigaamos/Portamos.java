@@ -379,6 +379,13 @@ public class Portamos implements Callable<Integer> {
                 description = "Output AMOS bank file")
         Path output;
 
+        @Option(names = "--optimize", negatable = true,
+                description = "Pac.Pic. only: run a greedy pairwise-swap palette search before compression "
+                              + "to find the colour ordering that produces the smallest compressed output. "
+                              + "Overrides the 'optimize' field in the JSON when specified explicitly. "
+                              + "Use --no-optimize to force off even when the JSON requests it.")
+        Boolean optimize = null;  // null = not specified on CLI; defer to DTO
+
         @Override
         public Integer call() throws Exception {
             System.out.printf("Importing from %s%n", json.getFileName());
@@ -389,6 +396,16 @@ public class Portamos implements Callable<Integer> {
                 var bankSet = new BankSetImporter().importFrom(json);
                 System.out.printf("Bank set: %d banks, writing %s%n", bankSet.banks().size(), output.getFileName());
                 new BankSetWriter().write(bankSet, output);
+            } else if (dev.rambris.amigaamos.dto.PacPicBankDto.TYPE.equals(typeField)) {
+                // CLI flag takes priority; fall back to the DTO's optimize field
+                var dto = dev.rambris.amigaamos.JsonConfig.JSON.readValue(
+                        json.toFile(), dev.rambris.amigaamos.dto.PacPicBankDto.class);
+                boolean doOptimize = optimize != null ? optimize
+                        : (dto.optimize() != null && dto.optimize());
+                var bank = new PacPicBankImporter().withOptimize(doOptimize).importFrom(json);
+                System.out.printf("Bank type: %s%s, writing %s%n",
+                        bank.type(), doOptimize ? " (optimized)" : "", output.getFileName());
+                bank.writer().write(bank, output);
             } else {
                 var service = new AmosBankService();
                 var bank = service.importBank(json);

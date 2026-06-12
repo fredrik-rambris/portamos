@@ -30,5 +30,16 @@ public final class AmigaPalette {
         return (nibble & 0xF) * 17;
     }
 
+    /** Converts a 24-bit {@code 0x00RRGGBB} colour to an AMOS 12-bit {@code 0x0RGB} word (upper nibble of each channel). */
+    public static int from24Bit(int rgb24) {
+        return ((rgb24 >> 16 & 0xF0) << 4) | (rgb24 >> 8 & 0xF0) | (rgb24 >> 4 & 0x0F);
+    }
+
+    /** Returns true if every entry in the palette is zero. */
+    public static boolean isBlank(int[] palette) {
+        for (int c : palette) if (c != 0) return false;
+        return true;
+    }
+
 }
 

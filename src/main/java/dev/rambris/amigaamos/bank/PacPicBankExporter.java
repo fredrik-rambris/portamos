@@ -55,9 +55,7 @@ public class PacPicBankExporter {
 
         var planes = readPlanes(bank.picData());
         var maxColors = Math.max(1 << planes, maxIndex(pixels) + 1);
-        var palette = bank.isSpack()
-                ? bank.screenHeader().palette()
-                : new int[32];
+        var palette = bank.isSpack() ? bank.screenHeader().palette() : new int[32];
 
         if (ilbm) {
             IndexedPngWriter.writeIlbm(palette, planes, pixels, width, height, imagePath);
@@ -65,19 +63,31 @@ public class PacPicBankExporter {
             IndexedPngWriter.writePng(palette, maxColors, pixels, width, height, imagePath);
         }
 
-        PacPicBankDto.ScreenHeaderDto screenDto = null;
+        // Always emit a screen section so exported JSON can be edited to set palette/mode.
+        // Screen header present → spack bank on import; absent fields default on plain Pac.Pic banks.
+        List<String> paletteList;
+        int scrW, scrH, hardX, hardY, dispW, dispH, offX, offY, bplCon0, numColors, numPlanes;
         if (bank.isSpack()) {
             var sh = bank.screenHeader();
-            List<String> paletteList = Arrays.stream(sh.palette())
-                    .mapToObj(AmigaPalette::toHexRgb)
-                    .toList();
-            screenDto = new PacPicBankDto.ScreenHeaderDto(
-                    sh.width(), sh.height(), sh.hardX(), sh.hardY(),
-                    sh.displayWidth(), sh.displayHeight(),
-                    sh.offsetX(), sh.offsetY(),
-                    sh.bplCon0(), sh.numColors(), sh.numPlanes(),
-                    paletteList);
+            scrW = sh.width(); scrH = sh.height();
+            hardX = sh.hardX(); hardY = sh.hardY();
+            dispW = sh.displayWidth(); dispH = sh.displayHeight();
+            offX = sh.offsetX(); offY = sh.offsetY();
+            bplCon0 = sh.bplCon0();
+            numColors = sh.numColors(); numPlanes = sh.numPlanes();
+            paletteList = Arrays.stream(sh.palette()).mapToObj(AmigaPalette::toHexRgb).toList();
+        } else {
+            scrW = width; scrH = height;
+            hardX = 0; hardY = 0;
+            dispW = width; dispH = height;
+            offX = 0; offY = 0;
+            bplCon0 = planes << 12;
+            numColors = 1 << planes; numPlanes = planes;
+            paletteList = java.util.Collections.nCopies(32, "#000");
         }
+        var screenDto = new PacPicBankDto.ScreenHeaderDto(
+                scrW, scrH, hardX, hardY, dispW, dispH, offX, offY,
+                bplCon0, numColors, numPlanes, paletteList);
 
         var dto = new PacPicBankDto(
                 PacPicBankDto.TYPE,
@@ -87,8 +97,8 @@ public class PacPicBankExporter {
                 readSrcX(bank.picData()),
                 readSrcY(bank.picData()),
                 planes,
-                bank.isSpack(),
-                screenDto);
+                screenDto,
+                null);
 
         JSON.writeValue(jsonPath.toFile(), dto);
     }
