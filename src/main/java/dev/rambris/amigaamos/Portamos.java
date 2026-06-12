@@ -6,9 +6,8 @@
 
 package dev.rambris.amigaamos;
 
-import dev.rambris.amigaamos.bank.AmosBank;
-import dev.rambris.amigaamos.bank.AmosBankService;
-import dev.rambris.amigaamos.bank.RawBank;
+import dev.rambris.amigaamos.bank.*;
+import dev.rambris.amigaamos.dto.BankSetDto;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigExporter;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigImporter;
 import dev.rambris.amigaamos.interpreter.InterpreterConfigReader;
@@ -55,6 +54,7 @@ import java.util.concurrent.Callable;
                 Portamos.DisasmCommand.class,
                 Portamos.AsmCommand.class,
                 Portamos.RawCommand.class,
+                Portamos.ConcatCommand.class,
                 Portamos.DisasmConfigCommand.class,
                 Portamos.AsmConfigCommand.class,
                 Portamos.DevHelpCommand.class,
@@ -342,10 +342,17 @@ public class Portamos implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             System.out.printf("Reading %s%n", input.getFileName());
-            var service = new AmosBankService();
-            var bank = service.readBank(input);
-            System.out.printf("Bank type: %s%n", bank.type());
-            service.exportBank(bank, jsonPath, ilbm, svx8, useNames);
+            var ext = AmosBankService.fileExtension(input).toLowerCase();
+            if (ext.equals("abs")) {
+                var bankSet = BankSetReader.read(input);
+                System.out.printf("Bank set: %d banks%n", bankSet.banks().size());
+                new BankSetExporter().export(bankSet, jsonPath);
+            } else {
+                var service = new AmosBankService();
+                var bank = service.readBank(input);
+                System.out.printf("Bank type: %s%n", bank.type());
+                service.exportBank(bank, jsonPath, ilbm, svx8, useNames);
+            }
             return 0;
         }
     }
@@ -374,11 +381,20 @@ public class Portamos implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            System.out.printf("Importing bank from %s%n", json.getFileName());
-            var service = new AmosBankService();
-            var bank = service.importBank(json);
-            System.out.printf("Bank type: %s, writing %s%n", bank.type(), output.getFileName());
-            service.writeBank(bank, output);
+            System.out.printf("Importing from %s%n", json.getFileName());
+            // Peek at the type field to decide single-bank vs bank-set
+            var node = dev.rambris.amigaamos.JsonConfig.JSON.readTree(json.toFile());
+            var typeField = node.path("type").asText("");
+            if (BankSetDto.TYPE.equals(typeField)) {
+                var bankSet = new BankSetImporter().importFrom(json);
+                System.out.printf("Bank set: %d banks, writing %s%n", bankSet.banks().size(), output.getFileName());
+                new BankSetWriter().write(bankSet, output);
+            } else {
+                var service = new AmosBankService();
+                var bank = service.importBank(json);
+                System.out.printf("Bank type: %s, writing %s%n", bank.type(), output.getFileName());
+                service.writeBank(bank, output);
+            }
             System.out.printf("Written %s%n", output);
             return 0;
         }
@@ -433,6 +449,53 @@ public class Portamos implements Callable<Integer> {
             bank.writer().write(bank, output);
             System.out.printf("Written %s  (%s, %s RAM, bank %d, %d bytes)%n",
                     output, bankType, chip ? "chip" : "fast", bankNumber & 0xFFFF, data.length);
+            return 0;
+        }
+    }
+
+    // =========================================================================
+    // concat
+    // =========================================================================
+
+    @Command(
+            name = "concat",
+            mixinStandardHelpOptions = true,
+            description = {
+                    "Concatenate AMOS bank files into a single Bank Set (.Abs) file.",
+                    "Each input may be a single bank (.Abk, .AmSp, .AmIc) or an existing",
+                    "Bank Set (.Abs); banks from Bank Set inputs are merged in order.",
+                    "Example: portamos concat Output.Abs Sounds.Abk Sprites.Abk Music.Abk"
+            }
+    )
+    static class ConcatCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<output.Abs>",
+                description = "Output Bank Set file")
+        Path output;
+
+        @Parameters(index = "1..*", paramLabel = "<input>",
+                description = "Input bank files (.Abk) or bank set files (.Abs)")
+        List<Path> inputs;
+
+        @Override
+        public Integer call() throws Exception {
+            var banks = new java.util.ArrayList<AmosBank>();
+            for (var input : inputs) {
+                var ext = AmosBankService.fileExtension(input).toLowerCase();
+                if (ext.equals("abs")) {
+                    var set = BankSetReader.read(input);
+                    banks.addAll(set.banks());
+                    System.out.printf("  %s: %d banks%n", input.getFileName(), set.banks().size());
+                } else {
+                    var bank = AmosBank.read(input);
+                    banks.add(bank);
+                    System.out.printf("  %s: %s bank %d%n",
+                            input.getFileName(), bank.type(), bank.bankNumber() & 0xFFFF);
+                }
+            }
+            var bankSet = new BankSet(banks);
+            new BankSetWriter().write(bankSet, output);
+            System.out.printf("Written %s  (%d banks)%n", output, banks.size());
             return 0;
         }
     }
