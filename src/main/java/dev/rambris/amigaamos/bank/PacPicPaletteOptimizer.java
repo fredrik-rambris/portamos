@@ -18,6 +18,8 @@ package dev.rambris.amigaamos.bank;
  */
 public class PacPicPaletteOptimizer {
 
+    static boolean progress = true;
+
     /**
      * @param pixels     palette-index array {@code [y][x]} — not modified
      * @param numColors  number of palette entries that may be swapped (usually 1 &lt;&lt; planes)
@@ -32,11 +34,20 @@ public class PacPicPaletteOptimizer {
         var cur = deepCopy(pixels);
         var perm = identityPerm(numColors);  // perm[newIdx] = originalIdx
 
-        int bestSize = PacPicEncoder.compress(cur, srcX, srcY, planes).length;
+        if (progress) {
+            System.out.print("Optimizing ");
+            System.out.flush();
+        }
+        var bestSize = PacPicEncoder.compress(cur, srcX, srcY, planes).length;
+        var originalSize = bestSize;
 
         boolean improved = true;
         while (improved) {
             improved = false;
+            if (progress) {
+                System.out.print(".");
+                System.out.flush();
+            }
             outer:
             for (int i = 0; i < numColors - 1; i++) {
                 for (int j = i + 1; j < numColors; j++) {
@@ -53,6 +64,11 @@ public class PacPicPaletteOptimizer {
             }
         }
 
+        var gain = 100.0 * (originalSize - bestSize) / (float) originalSize;
+
+        if (progress) {
+            System.out.printf("%nOptimized. %d > %d (%.1f%%)%n", originalSize, bestSize, gain);
+        }
         return new Result(cur, perm, bestSize);
     }
 

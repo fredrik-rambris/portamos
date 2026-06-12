@@ -218,8 +218,9 @@ class PacPicBankTest {
 
     @Test
     void paletteOptimizerSavingsFromIlbm() throws Exception {
-        System.out.println("| file                                          | width | height | colours | baseline | optimized | saving           | time");
-        System.out.println("+-----------------------------------------------+-------+--------+---------+----------+-----------+------------------+------");
+        PacPicPaletteOptimizer.progress = false;
+        System.out.println("| file                                          | width | height | colours | IBLM size | baseline | optimized | saving           | time");
+        System.out.println("+-----------------------------------------------+-------+--------+---------+-----------+----------+-----------+------------------+------");
         for (var f : new IlbmFile[]{
                 new IlbmFile(Path.of("src/test/resources/DefenderOfTheCrown2_Romantic_Fireplace.iff"), 5),
                 new IlbmFile(Path.of("src/test/resources/DeviousDesigns_Level01.iff"), 4),
@@ -227,6 +228,7 @@ class PacPicBankTest {
                 new IlbmFile(Path.of("src/test/resources/Spherical.iff"), 4)
         }) {
             var image = IndexedPngWriter.readPixels(f.iffPath);
+            var ilbmsize = f.iffPath.toFile().length();
             int numColors = 1 << f.planes;
 
             int baseline = PacPicEncoder.compress(image.pixels(), 0, 0, f.planes).length;
@@ -237,8 +239,8 @@ class PacPicBankTest {
             int saving = baseline - result.compressedSize();
             double pct = 100.0 * saving / baseline;
 
-            System.out.printf("| %-45s | %-5d | %-6d | %-7d | %-8d | %-9d | %-8d (%-4.1f%%) | %.2fs%n",
-                    f.iffPath.getFileName(), image.width(), image.height(), numColors, baseline, result.compressedSize(), saving, pct, t / 1000.0);
+            System.out.printf("| %-45s | %-5d | %-6d | %-7d | %-9d | %-8d | %-9d | %-8d (%-4.1f%%) | %.2fs%n",
+                    f.iffPath.getFileName(), image.width(), image.height(), numColors, ilbmsize, baseline, result.compressedSize(), saving, pct, t / 1000.0);
 
             assertTrue(result.compressedSize() <= baseline,
                     "Optimizer must not produce larger output than baseline");

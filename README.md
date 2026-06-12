@@ -257,6 +257,56 @@ Known command names: `SET_VOLUME`, `STOP_EFFECT`, `REPEAT`, `FILTER_ON`, `FILTER
 Instrument samples are exported at 8363 Hz (Amiga standard tuning); actual playback pitch is
 determined by the note periods at runtime.
 
+### Pac.Pic bank
+
+```json
+{
+  "type": "pacpic",
+  "bankNumber": 1,
+  "imageFile": "myimage.iff",
+  "screen": {}
+}
+```
+
+**`"screen"`** — include this object whenever the bank should carry an SPACK screen header (i.e.
+the image is displayed with `UNPACK` directly to a screen). An empty object `{}` is sufficient when
+the source image file contains good metadata (ILBM CMAP palette, correct dimensions); the importer
+fills in the remaining fields automatically:
+
+| Field           | Auto-default when 0 / absent  | Notes                                                      |
+|-----------------|-------------------------------|------------------------------------------------------------|
+| `width`         | image width                   |                                                            |
+| `height`        | image height                  |                                                            |
+| `displayWidth`  | image width                   |                                                            |
+| `displayHeight` | image height                  |                                                            |
+| `numPlanes`     | derived from colour count     |                                                            |
+| `numColors`     | `1 << numPlanes`              |                                                            |
+| `bplCon0`       | `(numPlanes << 12) \| 0x0200` | Standard lores + COLOR flag; override for hires or dual-PF |
+| `hardX`         | `0x81` (129)                  | Standard AMOS lores screen start X                         |
+| `hardY`         | `0x32` (50)                   | Standard AMOS lores screen start Y                         |
+| `palette`       | CMAP from image file          |                                                            |
+
+Omit `"screen"` entirely for a plain PACK bank (no screen header; image loaded with `LOAD IFF`).
+
+**`"imageFile"`** — source image; IFF ILBM (`.iff`) or indexed PNG (`.png`). Defaults to the JSON
+filename stem with `.png` extension.
+
+**`"planes"`** — override the bit-depth (number of bitplanes). Normally inferred from the image's
+colour count.
+
+**`"optimize": true`** — run a greedy palette-reorder search before compressing. The optimiser
+tries pairwise palette-entry swaps to improve the Pac.Pic run-length encoding. It has no effect on
+image appearance but can significantly reduce the compressed size, at the cost of longer assembly
+time. You can also set this via command line option `--optimize` and `--no-optimize`. Benchmark
+results on representative Amiga images (320×200 lores unless noted):
+
+| File                                       | Width | Height | Colours | ILBM size | Baseline | Optimized | Saving       | Time   |
+|--------------------------------------------|-------|--------|---------|-----------|----------|-----------|--------------|--------|
+| DefenderOfTheCrown2_Romantic_Fireplace.iff | 320   | 200    | 32      | 40152     | 27416    | 18812     | 8604 (31.4%) | 14.32s |
+| DeviousDesigns_Level01.iff                 | 320   | 200    | 16      | 32104     | 17248    | 13242     | 4006 (23.2%) | 0.35s  |
+| DeviousDesigns_Level16.iff                 | 320   | 200    | 16      | 32104     | 15612    | 13454     | 2158 (13.8%) | 0.94s  |
+| Spherical.iff                              | 320   | 256    | 16      | 41064     | 12230    | 10226     | 2004 (16.4%) | 1.10s  |
+
 ### Sample bank
 
 ```json

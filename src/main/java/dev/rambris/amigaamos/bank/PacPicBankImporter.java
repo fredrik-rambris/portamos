@@ -77,18 +77,24 @@ public class PacPicBankImporter {
         if (dto.screen() != null) {
             var s = dto.screen();
             var palette = amosPalette != null ? amosPalette : parsePalette(s.palette());
+            // Standard AMOS lores screen hardware start positions
+            int hardX = s.hardX() != 0 ? s.hardX() : 0x81;
+            int hardY = s.hardY() != 0 ? s.hardY() : 0x32;
+            // bplCon0: (numPlanes << 12) | 0x0200 (COLOR bit) for standard lores screen
+            int effectivePlanes = s.numPlanes() != 0 ? s.numPlanes() : planes;
+            int bplCon0 = s.bplCon0() != 0 ? s.bplCon0() : (effectivePlanes << 12) | 0x0200;
             screenHeader = new PacPicBank.ScreenHeader(
                     s.width() != 0 ? s.width() : image.width(),
                     s.height() != 0 ? s.height() : image.height(),
-                    s.hardX(),
-                    s.hardY(),
+                    hardX,
+                    hardY,
                     s.displayWidth() != 0 ? s.displayWidth() : image.width(),
                     s.displayHeight() != 0 ? s.displayHeight() : image.height(),
                     s.offsetX(),
                     s.offsetY(),
-                    s.bplCon0(),
+                    bplCon0,
                     s.numColors() != 0 ? s.numColors() : (1 << planes),
-                    s.numPlanes() != 0 ? s.numPlanes() : planes,
+                    effectivePlanes,
                     palette
             );
         }

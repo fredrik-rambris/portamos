@@ -392,11 +392,11 @@ public class Portamos implements Callable<Integer> {
             // Peek at the type field to decide single-bank vs bank-set
             var node = dev.rambris.amigaamos.JsonConfig.JSON.readTree(json.toFile());
             var typeField = node.path("type").asText("");
-            if (BankSetDto.TYPE.equals(typeField)) {
+            if (BankSetDto.TYPE.equalsIgnoreCase(typeField)) {
                 var bankSet = new BankSetImporter().importFrom(json);
                 System.out.printf("Bank set: %d banks, writing %s%n", bankSet.banks().size(), output.getFileName());
                 new BankSetWriter().write(bankSet, output);
-            } else if (dev.rambris.amigaamos.dto.PacPicBankDto.TYPE.equals(typeField)) {
+            } else if (AmosBank.Type.PACPIC.name().equalsIgnoreCase(typeField)) {
                 // CLI flag takes priority; fall back to the DTO's optimize field
                 var dto = dev.rambris.amigaamos.JsonConfig.JSON.readValue(
                         json.toFile(), dev.rambris.amigaamos.dto.PacPicBankDto.class);
