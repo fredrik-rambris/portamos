@@ -55,13 +55,12 @@ It also adds support for working with IFF ILBM and IFF 8SVX files in standard Ja
 The latest release is **[{{ site.release_tag }}](https://github.com/fredrik-rambris/portamos/releases/tag/{{
 site.release_tag }})**.
 
-| Platform                | Download                                                                                                                                      |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| Linux (x86-64)          | [portamos-linux-amd64](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-linux-amd64)             |
-| macOS (ARM)             | [portamos-macos-arm64](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-macos-arm64)             |
-| macOS (Intel)           | [portamos-macos-amd64](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-macos-amd64)             |
-| Windows (x86-64)        | [portamos-windows-amd64.exe](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-windows-amd64.exe) |
-| Fat JAR (all platforms) | [portamos-all.jar](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-all.jar)                     |
+| Platform                    | Download                                                                                                                                                                   |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Linux (x86-64)              | [portamos-linux-amd64.tar.gz](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-{{ site.release_tag }}-linux-amd64.tar.gz)     |
+| macOS (ARM / Apple Silicon) | [portamos-macos-aarch64.tar.gz](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-{{ site.release_tag }}-macos-aarch64.tar.gz) |
+| Windows (x86-64)            | [portamos-windows-amd64.zip](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-{{ site.release_tag }}-windows-amd64.zip)       |
+| Fat JAR (all platforms)     | [portamos-all.jar](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-all.jar)                                                  |
 
 See the [Installing]({% link docs/installing.md %}) page for setup instructions.
 

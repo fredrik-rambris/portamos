@@ -13,35 +13,41 @@ site.release_tag }})**.
 
 Download the binary for your platform:
 
-| Platform                             | File                                                                                                                                          |
-|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| Linux (x86-64)                       | [portamos-linux-amd64](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-linux-amd64)             |
-| macOS (ARM / Apple Silicon)          | [portamos-macos-arm64](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-macos-arm64)             |
-| macOS (Intel)                        | [portamos-macos-amd64](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-macos-amd64)             |
-| Windows (x86-64)                     | [portamos-windows-amd64.exe](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-windows-amd64.exe) |
-| Fat JAR (any platform with Java 21+) | [portamos-all.jar](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-all.jar)                     |
+| Platform                             | File                                                                                                                                                                 |
+|--------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Linux (x86-64)                       | [portamos-linux-amd64](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-{{ site.release_tag }}-linux-amd64.tar.gz)      |
+| macOS (ARM / Apple Silicon)          | [portamos-macos-aarch64](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-{{ site.release_tag }}-macos-aarch64.tar.gz)  |
+| Windows (x86-64)                     | [portamos-windows-amd64.exe](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-{{ site.release_tag }}-windows-amd64.zip) |
+| Fat JAR (any platform with Java 21+) | [portamos-all.jar](https://github.com/fredrik-rambris/portamos/releases/download/{{ site.release_tag }}/portamos-all.jar)                                            |
 
 The native binaries are self-contained — no JVM installation is required. The fat JAR requires Java 21 or later; run it
 with `java -jar portamos-all.jar`.
 
-## Extension definitions (optional)
+## Archive contents
 
-The release archive also contains a `definitions/` directory with JSON definition files for known third-party AMOS
-extensions (e.g. `turboplus.json`). If you work with programs that use third-party extensions, place the `definitions/`
-folder alongside the binary.
+Each release archive contains:
+
+```
+portamos          (or portamos.exe on Windows)
+README.md
+definitions/
+  README.md
+  turboplus.json
+  amcaf.json
+```
+
+The `definitions/` directory contains JSON definition files for known third-party AMOS extensions. Place it alongside
+the binary so Portamos can find them with `--definition definitions/turboplus.json`.
 
 ## Installation
 
-The simplest approach is to place the binary (and optionally the `definitions/` folder) in a dedicated directory and add
-that directory to your `PATH`.
-
 ### Linux and macOS
+
+Extract the archive and place the contents in a dedicated directory:
 
 ```bash
 mkdir -p ~/portamos
-# Move the downloaded binary here and make it executable
-mv portamos-linux-amd64 ~/portamos/portamos      # adjust filename for your platform
-chmod +x ~/portamos/portamos
+tar -xzf portamos-*-linux-amd64.tar.gz -C ~/portamos   # adjust filename for your platform
 ```
 
 Add the directory to your `PATH` by appending this line to `~/.bashrc`, `~/.zshrc`, or your shell's equivalent:
@@ -59,7 +65,7 @@ portamos --version
 ### Windows
 
 1. Create a folder, for example `C:\portamos`.
-2. Move `portamos-windows-amd64.exe` into that folder and rename it to `portamos.exe`.
+2. Extract `portamos-*-windows-amd64.zip` into that folder.
 3. Open **System Properties** → **Advanced** → **Environment Variables**.
 4. Under **User variables**, select **Path** and click **Edit**.
 5. Click **New** and add `C:\portamos`.
