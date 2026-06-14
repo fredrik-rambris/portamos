@@ -217,7 +217,8 @@ jobs:
           working-directory: site
 
       - name: Write release config
-        run: printf 'release_tag: "%s"\n' "${{ env.TAG }}" > site/_config_release.yml
+        run: |
+          printf 'release_tag: "%s"\n' "${{ env.TAG }}" > site/_config_release.yml
 
       - name: Generate changelog data
         run: python3 scripts/generate_changelog.py
