@@ -14,6 +14,8 @@ on:
 permissions:
   contents: write
   packages: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -189,3 +191,47 @@ jobs:
             --title "$subject" \
             --notes-file release-notes.txt \
             $prerelease_flag
+
+  # ---------------------------------------------------------------------------
+  # Build and deploy documentation site to GitHub Pages
+  # ---------------------------------------------------------------------------
+  deploy-site:
+    needs: release
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Check out tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 1
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: site
+
+      - name: Write release config
+        run:
+          printf 'release_tag: "%s"\n' "${{ env.TAG }}" > site/_config_release.yml
+
+      - name: Generate changelog data
+        run: python3 scripts/generate_changelog.py
+
+      - name: Build site
+        run: bundle exec jekyll build --config _config.yml,_config_release.yml --destination _site
+        working-directory: site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/_site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -39,11 +39,11 @@ public record SampleBank(
     /**
      * One sample entry in the bank.
      *
-     * @param name         8-character ASCII name (trailing spaces/nulls stripped on read)
-     * @param frequencyHz  playback frequency in Hz
-     * @param pcmData      signed 8-bit mono PCM samples
+     * @param name          8-character ASCII name (trailing spaces/nulls stripped on read)
+     * @param playbackRate  playback rate in Hz
+     * @param pcmData       signed 8-bit mono PCM samples
      */
-    public record Sample(String name, int frequencyHz, byte[] pcmData) {
+    public record Sample(String name, int playbackRate, byte[] pcmData) {
         public boolean isEmpty() {
             return pcmData == null || pcmData.length == 0;
         }

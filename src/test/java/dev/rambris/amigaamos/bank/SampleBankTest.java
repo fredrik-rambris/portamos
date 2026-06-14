@@ -44,7 +44,7 @@ class SampleBankTest {
     @Test
     void read_sample0_frequency() throws Exception {
         var bank = SampleBankReader.read(SAMPLES_ABK);
-        assertEquals(8363, bank.samples().get(0).frequencyHz());
+        assertEquals(8363, bank.samples().get(0).playbackRate());
     }
 
     @Test
@@ -64,7 +64,7 @@ class SampleBankTest {
     void read_sample3_frequency_differs() throws Exception {
         var bank = SampleBankReader.read(SAMPLES_ABK);
         // LAAA is sampled at a different rate
-        assertEquals(14563, bank.samples().get(3).frequencyHz());
+        assertEquals(14563, bank.samples().get(3).playbackRate());
     }
 
     // -------------------------------------------------------------------------
@@ -85,7 +85,7 @@ class SampleBankTest {
         var orig = original.samples().get(0);
         var rt   = reread.samples().get(0);
         assertEquals(orig.name(), rt.name());
-        assertEquals(orig.frequencyHz(), rt.frequencyHz());
+        assertEquals(orig.playbackRate(), rt.playbackRate());
         assertArrayEquals(orig.pcmData(), rt.pcmData());
     }
 
@@ -118,7 +118,7 @@ class SampleBankTest {
         var json = Files.readString(outDir.resolve("bank.json"));
         assertTrue(json.contains("\"type\" : \"Samples\""));
         assertTrue(json.contains("\"samples\""));
-        assertTrue(json.contains("\"frequencyHz\""));
+        assertTrue(json.contains("\"playbackRate\""));
         assertTrue(json.contains("bank-sample000.wav"));
     }
 
@@ -154,7 +154,7 @@ class SampleBankTest {
         var orig = original.samples().get(0);
         var imp  = imported.samples().get(0);
         assertEquals(orig.name(), imp.name());
-        assertEquals(orig.frequencyHz(), imp.frequencyHz());
+        assertEquals(orig.playbackRate(), imp.playbackRate());
         assertArrayEquals(orig.pcmData(), imp.pcmData());
     }
 
@@ -180,7 +180,7 @@ class SampleBankTest {
         var orig = original.samples().get(0);
         var imp  = imported.samples().get(0);
         assertEquals(orig.name(), imp.name());
-        assertEquals(orig.frequencyHz(), imp.frequencyHz());
+        assertEquals(orig.playbackRate(), imp.playbackRate());
         assertArrayEquals(orig.pcmData(), imp.pcmData());
     }
 

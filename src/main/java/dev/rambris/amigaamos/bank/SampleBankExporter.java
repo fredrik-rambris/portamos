@@ -76,7 +76,7 @@ public class SampleBankExporter {
             var ext = svx8 ? ".8svx" : ".wav";
 
             if (sample.isEmpty()) {
-                sampleDtos.add(new SampleBankDto.SampleDto(sample.name(), sample.frequencyHz(), null));
+                sampleDtos.add(new SampleBankDto.SampleDto(sample.name(), sample.playbackRate(), null));
             } else {
                 var filename = useNames
                         ? nameBasedFilename(sample.name(), i, stem, ext, usedFilenames)
@@ -88,9 +88,9 @@ public class SampleBankExporter {
                     writeWav(sample, dir.resolve(filename));
                 }
                 System.out.printf("  sample_%03d: %s, %dHz, %d bytes%n",
-                        i, sample.name(), sample.frequencyHz(), sample.pcmData().length);
+                        i, sample.name(), sample.playbackRate(), sample.pcmData().length);
 
-                sampleDtos.add(new SampleBankDto.SampleDto(sample.name(), sample.frequencyHz(), filename));
+                sampleDtos.add(new SampleBankDto.SampleDto(sample.name(), sample.playbackRate(), filename));
             }
         }
 
@@ -132,11 +132,11 @@ public class SampleBankExporter {
         var unsigned = signedToUnsigned(sample.pcmData());
         var format = new AudioFormat(
                 AudioFormat.Encoding.PCM_UNSIGNED,
-                sample.frequencyHz(),
+                sample.playbackRate(),
                 8,          // bits per sample
                 1,          // mono
                 1,          // frame size = 1 byte
-                sample.frequencyHz(),
+                sample.playbackRate(),
                 false);     // little-endian (irrelevant for 8-bit)
         var stream = new AudioInputStream(new ByteArrayInputStream(unsigned), format, unsigned.length);
         try {
@@ -155,7 +155,7 @@ public class SampleBankExporter {
                 sample.pcmData().length,  // oneShotHiSamples = full length (one-shot)
                 0,                        // repeatHiSamples  = 0 (no loop)
                 0,                        // samplesPerHiCycle
-                sample.frequencyHz(),
+                sample.playbackRate(),
                 1,                        // octaves
                 VhdrChunk.COMPRESSION_NONE,
                 65536                     // volume = max (Amiga Fixed 16.16 = 1.0)

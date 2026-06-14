@@ -33,7 +33,7 @@ public class SampleBankImporter {
     public SampleBank importFrom(Path jsonPath) throws IOException {
         var dto = JSON.readValue(jsonPath.toFile(), SampleBankDto.class);
 
-        var bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 0);
+        var bankNumber = (short) (dto.bankNumber() != null ? dto.bankNumber() : 5);
 
         var samples = new ArrayList<SampleBank.Sample>();
         if (dto.samples() != null) {
@@ -47,11 +47,13 @@ public class SampleBankImporter {
     }
 
     public SampleBank.Sample importSample(SampleBankDto.SampleDto s, Path jsonPath) throws IOException {
-        var freq = s.frequencyHz() != 0 ? s.frequencyHz() : 8363;
         var name = resolveName(s.name(), s.file());
-        var pcm = readAudio(jsonPath.resolveSibling(s.file()));
-
-        return new SampleBank.Sample(name, freq, pcm);
+        var audioPath = jsonPath.resolveSibling(s.file());
+        var pcm = readAudio(audioPath);
+        var rate = (s.playbackRate() != null && s.playbackRate() != 0)
+                ? s.playbackRate()
+                : readSampleRate(audioPath);
+        return new SampleBank.Sample(name, rate, pcm);
     }
 
     // -------------------------------------------------------------------------
@@ -96,6 +98,14 @@ public class SampleBankImporter {
                 return SampleBankExporter.signedToUnsigned(pcm);
             }
             return pcm;
+        } catch (UnsupportedAudioFileException e) {
+            throw new IOException("Unsupported audio file: " + path + " — " + e.getMessage(), e);
+        }
+    }
+
+    public static int readSampleRate(Path path) throws IOException {
+        try (var ais = AudioSystem.getAudioInputStream(path.toFile())) {
+            return (int) ais.getFormat().getSampleRate();
         } catch (UnsupportedAudioFileException e) {
             throw new IOException("Unsupported audio file: " + path + " — " + e.getMessage(), e);
         }

@@ -1,0 +1,29 @@
+title: Portamos
+description: A portable toolkit for working with AMOS Professional files on modern systems.
+baseurl: ""
+url: ""
+github_username: fredrik-rambris
+github_repo: portamos
+
+theme: just-the-docs
+
+# Injected by the release workflow — override in _config_release.yml or via environment
+release_tag: "RELEASE_TAG"
+
+plugins:
+  - jekyll-seo-tag
+
+aux_links:
+  "GitHub":
+    - "https://github.com/fredrik-rambris/portamos"
+
+aux_links_new_tab: true
+
+footer_content: "Portamos is open-source software licensed under the Apache 2.0 License."
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - _posts/
+  - about.markdown
+  - 404.html

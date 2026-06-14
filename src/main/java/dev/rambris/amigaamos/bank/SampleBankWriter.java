@@ -64,7 +64,7 @@ public class SampleBankWriter implements BankWriter {
         // Write sample entries
         for (var sample : samples) {
             payload.put(paddedName(sample.name()));
-            payload.putShort((short) sample.frequencyHz());
+            payload.putShort((short) sample.playbackRate());
             payload.putInt(sample.pcmData().length);
             payload.put(sample.pcmData());
         }

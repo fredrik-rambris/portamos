@@ -22,7 +22,7 @@ public record SampleBankDto(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record SampleDto(
             String name,
-            int frequencyHz,
+            Integer playbackRate,
             String file
     ) {
     }
