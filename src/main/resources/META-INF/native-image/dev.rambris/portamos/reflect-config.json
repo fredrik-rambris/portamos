@@ -118,6 +118,12 @@
     "allDeclaredFields": true
   },
   {
+    "name": "dev.rambris.amigaamos.dto.BankSetDto",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "dev.rambris.amigaamos.dto.ResourceBankDto",
     "allDeclaredConstructors": true,
     "allDeclaredMethods": true,
