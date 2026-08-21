@@ -7,6 +7,8 @@
 package dev.rambris.amigaamos.bank;
 
 import dev.rambris.amigaamos.dto.PacPicBankDto;
+import dev.rambris.iff.codec.AmigaScreenMode;
+import dev.rambris.iff.codec.IlbmCodec;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -42,6 +44,18 @@ public class PacPicBankImporter {
         var planes = dto.planes();
         var imageFile = dto.imageFile() != null ? dto.imageFile() : defaultImageFilename(jsonPath);
         var imagePath = jsonPath.resolveSibling(imageFile);
+
+        var lowerImageFile = imageFile.toLowerCase();
+        if (lowerImageFile.endsWith(".iff") || lowerImageFile.endsWith(".ilbm")) {
+            var camgMode = IlbmCodec.read(imagePath).camgMode();
+            if (AmigaScreenMode.isHam(camgMode)) {
+                throw new NotSupportedException("Pac.Pic import of HAM images is not supported: " + imagePath);
+            }
+            if (AmigaScreenMode.isEhb(camgMode)) {
+                throw new NotSupportedException(
+                        "Pac.Pic import of Extra-HalfBrite images is not supported: " + imagePath);
+            }
+        }
 
         var image = IndexedPngWriter.readPixels(imagePath);
 
