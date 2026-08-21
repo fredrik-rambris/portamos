@@ -73,8 +73,29 @@ public class IlbmCodec {
         if (state.bmhd == null) {
             throw new IffParseException("Missing required BMHD chunk");
         }
+        warnIfUnsupportedMode(state.camgMode, state.bmhd.planes());
 
         return new IlbmImage(state.bmhd, state.palette, state.camgMode, state.body);
+    }
+
+    /**
+     * Prints a warning when the {@code CAMG} chunk indicates a display mode this codec doesn't
+     * decode meaningfully: HAM6, HAM8, or Extra-HalfBrite. In these modes the raw bitplane
+     * values are not literal palette indices (HAM pixels mix control bits and colour-channel
+     * deltas; EHB doubles the effective palette without a matching CMAP), so any caller that
+     * reads {@link IlbmImage#body()} as a plain chunky/planar image will get it wrong. Parsing
+     * still succeeds — the chunks and raw bytes are valid and preserved — this only warns.
+     */
+    private static void warnIfUnsupportedMode(int camgMode, int planes) {
+        if (AmigaScreenMode.isHam(camgMode)) {
+            String which = planes == 8 ? "HAM8" : planes == 6 ? "HAM6" : "HAM";
+            System.err.println("Warning: ILBM uses " + which
+                    + " (Hold-And-Modify) mode, which is not supported for pixel decoding.");
+        }
+        if (AmigaScreenMode.isEhb(camgMode)) {
+            System.err.println("Warning: ILBM uses Extra-HalfBrite mode, "
+                    + "which is not supported for pixel decoding.");
+        }
     }
 
     // -------------------------------------------------------------------------

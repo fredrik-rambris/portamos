@@ -8,6 +8,7 @@ package dev.rambris.amigaamos.bank;
 
 import dev.rambris.amigaamos.dto.PacPicBankDto;
 import dev.rambris.iff.codec.AmigaScreenMode;
+import dev.rambris.iff.codec.IlbmCodec;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -44,19 +45,22 @@ public class PacPicBankImporter {
         var imageFile = dto.imageFile() != null ? dto.imageFile() : defaultImageFilename(jsonPath);
         var imagePath = jsonPath.resolveSibling(imageFile);
 
-        // Raw pass-through: for HAM/EHB ILBM sources the bitplane values are not literal
-        // palette indices, but Pac.Pic compression only needs them reproduced bit-for-bit, so
-        // that's safe here — unlike IndexedPngWriter.readPixels(), which rejects HAM/EHB because
-        // it promises callers a literal chunky-index image.
-        var image = IndexedPngWriter.readPixelsRaw(imagePath);
-        boolean isHam = AmigaScreenMode.isHam(image.camgMode());
-        boolean isEhb = AmigaScreenMode.isEhb(image.camgMode());
+        var lowerImageFile = imageFile.toLowerCase();
+        if (lowerImageFile.endsWith(".iff") || lowerImageFile.endsWith(".ilbm")) {
+            var camgMode = IlbmCodec.read(imagePath).camgMode();
+            if (AmigaScreenMode.isHam(camgMode)) {
+                throw new NotSupportedException("Pac.Pic import of HAM images is not supported: " + imagePath);
+            }
+            if (AmigaScreenMode.isEhb(camgMode)) {
+                throw new NotSupportedException(
+                        "Pac.Pic import of Extra-HalfBrite images is not supported: " + imagePath);
+            }
+        }
+
+        var image = IndexedPngWriter.readPixels(imagePath);
 
         if (planes <= 0) {
-            // ILBM: use the source's actual bitplane count directly — for HAM/EHB this is more
-            // planes than log2(numColors) would suggest, since some planes are control bits
-            // rather than extra base colours.
-            planes = image.planes() > 0 ? image.planes() : colorModelToPlanes(image.numColors());
+            planes = colorModelToPlanes(image.numColors());
         }
 
         var pixels = image.pixels();
@@ -90,14 +94,9 @@ public class PacPicBankImporter {
             // Standard AMOS lores screen hardware start positions
             int hardX = s.hardX() != 0 ? s.hardX() : 0x81;
             int hardY = s.hardY() != 0 ? s.hardY() : 0x32;
-            // bplCon0: (numPlanes << 12) | 0x0200 (COLOR bit), plus the HAM/EHB mode bits taken
-            // from the source ILBM's own CAMG chunk — never guessed from the plane count, since
-            // a 6-plane image isn't necessarily HAM (and other modes can share a plane count too).
+            // bplCon0: (numPlanes << 12) | 0x0200 (COLOR bit) for standard lores screen
             int effectivePlanes = s.numPlanes() != 0 ? s.numPlanes() : planes;
-            int bplCon0 = s.bplCon0() != 0 ? s.bplCon0()
-                    : (effectivePlanes << 12) | 0x0200
-                            | (isHam ? AmigaScreenMode.HAM_BIT : 0)
-                            | (isEhb ? AmigaScreenMode.EHB_BIT : 0);
+            int bplCon0 = s.bplCon0() != 0 ? s.bplCon0() : (effectivePlanes << 12) | 0x0200;
             screenHeader = new PacPicBank.ScreenHeader(
                     s.width() != 0 ? s.width() : image.width(),
                     s.height() != 0 ? s.height() : image.height(),
@@ -108,7 +107,7 @@ public class PacPicBankImporter {
                     s.offsetX(),
                     s.offsetY(),
                     bplCon0,
-                    s.numColors() != 0 ? s.numColors() : (image.numColors() > 0 ? image.numColors() : (1 << planes)),
+                    s.numColors() != 0 ? s.numColors() : (1 << planes),
                     effectivePlanes,
                     palette
             );

@@ -7,6 +7,7 @@
 package dev.rambris.amigaamos.bank;
 
 import dev.rambris.amigaamos.dto.PacPicBankDto;
+import dev.rambris.iff.codec.AmigaScreenMode;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,6 +43,16 @@ public class PacPicBankExporter {
      * @throws IOException if any file cannot be written
      */
     public void export(PacPicBank bank, Path jsonPath, boolean ilbm) throws IOException {
+        if (bank.isSpack()) {
+            var bplCon0 = bank.screenHeader().bplCon0();
+            if (AmigaScreenMode.isHam(bplCon0)) {
+                throw new NotSupportedException("Pac.Pic export of HAM screens is not supported.");
+            }
+            if (AmigaScreenMode.isEhb(bplCon0)) {
+                throw new NotSupportedException("Pac.Pic export of Extra-HalfBrite screens is not supported.");
+            }
+        }
+
         var dir = jsonPath.toAbsolutePath().getParent();
         var stem = AmosBankService.stem(jsonPath);
         Files.createDirectories(dir);
