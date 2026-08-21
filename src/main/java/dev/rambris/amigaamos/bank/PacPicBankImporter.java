@@ -44,10 +44,19 @@ public class PacPicBankImporter {
         var imageFile = dto.imageFile() != null ? dto.imageFile() : defaultImageFilename(jsonPath);
         var imagePath = jsonPath.resolveSibling(imageFile);
 
-        var image = IndexedPngWriter.readPixels(imagePath);
+        // Raw pass-through: for HAM/EHB ILBM sources the bitplane values are not literal
+        // palette indices, but Pac.Pic compression only needs them reproduced bit-for-bit, so
+        // that's safe here — unlike IndexedPngWriter.readPixels(), which rejects HAM/EHB because
+        // it promises callers a literal chunky-index image.
+        var image = IndexedPngWriter.readPixelsRaw(imagePath);
+        boolean isHam = AmigaScreenMode.isHam(image.camgMode());
+        boolean isEhb = AmigaScreenMode.isEhb(image.camgMode());
 
         if (planes <= 0) {
-            planes = colorModelToPlanes(image.numColors());
+            // ILBM: use the source's actual bitplane count directly — for HAM/EHB this is more
+            // planes than log2(numColors) would suggest, since some planes are control bits
+            // rather than extra base colours.
+            planes = image.planes() > 0 ? image.planes() : colorModelToPlanes(image.numColors());
         }
 
         var pixels = image.pixels();
@@ -81,12 +90,14 @@ public class PacPicBankImporter {
             // Standard AMOS lores screen hardware start positions
             int hardX = s.hardX() != 0 ? s.hardX() : 0x81;
             int hardY = s.hardY() != 0 ? s.hardY() : 0x32;
-            // bplCon0: (numPlanes << 12) | 0x0200 (COLOR bit), plus the HAM bit for
-            // HAM6 screens (6 bitplanes hold-and-modify a 16-colour base palette;
-            // AMOS/the Amiga chipset need BPLCON0 bit 11 set to interpret them that way)
+            // bplCon0: (numPlanes << 12) | 0x0200 (COLOR bit), plus the HAM/EHB mode bits taken
+            // from the source ILBM's own CAMG chunk — never guessed from the plane count, since
+            // a 6-plane image isn't necessarily HAM (and other modes can share a plane count too).
             int effectivePlanes = s.numPlanes() != 0 ? s.numPlanes() : planes;
             int bplCon0 = s.bplCon0() != 0 ? s.bplCon0()
-                    : (effectivePlanes << 12) | 0x0200 | (effectivePlanes == 6 ? AmigaScreenMode.HAM_BIT : 0);
+                    : (effectivePlanes << 12) | 0x0200
+                            | (isHam ? AmigaScreenMode.HAM_BIT : 0)
+                            | (isEhb ? AmigaScreenMode.EHB_BIT : 0);
             screenHeader = new PacPicBank.ScreenHeader(
                     s.width() != 0 ? s.width() : image.width(),
                     s.height() != 0 ? s.height() : image.height(),
@@ -97,7 +108,7 @@ public class PacPicBankImporter {
                     s.offsetX(),
                     s.offsetY(),
                     bplCon0,
-                    s.numColors() != 0 ? s.numColors() : (1 << planes),
+                    s.numColors() != 0 ? s.numColors() : (image.numColors() > 0 ? image.numColors() : (1 << planes)),
                     effectivePlanes,
                     palette
             );

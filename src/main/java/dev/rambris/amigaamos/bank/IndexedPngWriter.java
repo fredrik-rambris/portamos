@@ -6,6 +6,7 @@
 
 package dev.rambris.amigaamos.bank;
 
+import dev.rambris.iff.codec.AmigaScreenMode;
 import dev.rambris.iff.codec.BmhdChunk;
 import dev.rambris.iff.codec.IlbmCodec;
 import dev.rambris.iff.codec.IlbmImage;
@@ -41,20 +42,61 @@ class IndexedPngWriter {
     /**
      * Decoded indexed image: per-row palette indices, PLTE/CMAP colors, and dimensions.
      *
+     * <p>For plain indexed images (PNG, or ILBM without HAM/EHB), {@code pixels[y][x]} is a
+     * literal index into {@code palette24}. For HAM/EHB ILBM images read via
+     * {@link #readPixelsRaw(Path)}, {@code pixels[y][x]} is instead the <em>raw</em> value of
+     * the source bitplanes at that pixel (control bits and all) — see {@code camgMode} to tell
+     * the two cases apart before treating {@code pixels} as colour indices.
+     *
      * @param width     image width in pixels
      * @param height    image height in pixels
      * @param numColors number of palette entries
-     * @param pixels    {@code pixels[y][x]} = palette index
+     * @param pixels    {@code pixels[y][x]} = palette index, or raw bitplane value for HAM/EHB
      * @param palette24 palette as 24-bit {@code 0x00RRGGBB} values (length = numColors)
+     * @param camgMode  Amiga viewport mode from the source {@code CAMG} chunk; {@code 0} for PNG
+     *                  or plain ILBM (no HAM/EHB)
+     * @param planes    physical bitplane count for ILBM sources; {@code 0} for PNG, where plane
+     *                  count is instead derived from {@code numColors}
      */
-    record PixelImage(int width, int height, int numColors, int[][] pixels, int[] palette24) {}
+    record PixelImage(int width, int height, int numColors, int[][] pixels, int[] palette24,
+                       int camgMode, int planes) {}
 
     /**
      * Reads an 8-bit indexed PNG or IFF ILBM image.
      * Format is auto-detected from the file extension ({@code .iff} / {@code .ilbm} → ILBM;
      * everything else → PNG).
+     *
+     * @throws UnsupportedOperationException if the ILBM source is HAM or Extra-HalfBrite — its
+     *         bitplane values are not literal palette indices, so this generic reader cannot
+     *         produce a meaningful chunky-index image for it. Callers that need the raw
+     *         bitplane values (e.g. Pac.Pic compression, which just needs the bits reproduced
+     *         losslessly, not colour-decoded) must use {@link #readPixelsRaw(Path)} instead.
      */
     static PixelImage readPixels(Path path) throws IOException {
+        var image = readPixelsDispatch(path);
+        if (AmigaScreenMode.isHam(image.camgMode()) || AmigaScreenMode.isEhb(image.camgMode())) {
+            throw new UnsupportedOperationException(
+                    "HAM/HalfBrite ILBM decoding is not supported by this indexed-pixel reader "
+                            + "(" + path + "): bitplane values are not literal palette indices "
+                            + "in these modes. Use readPixelsRaw() for a raw bitplane pass-through.");
+        }
+        return image;
+    }
+
+    /**
+     * Reads an 8-bit indexed PNG or IFF ILBM image without rejecting HAM/EHB ILBM sources.
+     *
+     * <p>For HAM/EHB images, {@code pixels} holds the raw bitplane values (not colour indices) —
+     * only callers that reproduce the bits verbatim (e.g. {@link PacPicEncoder}, which
+     * RLE-compresses the bitplanes bit-for-bit) may use this safely. Anything that needs actual
+     * colours out of the pixels must inspect {@link PixelImage#camgMode()} and decode HAM/EHB
+     * itself.
+     */
+    static PixelImage readPixelsRaw(Path path) throws IOException {
+        return readPixelsDispatch(path);
+    }
+
+    private static PixelImage readPixelsDispatch(Path path) throws IOException {
         var name = path.getFileName().toString().toLowerCase();
         if (name.endsWith(".iff") || name.endsWith(".ilbm")) {
             return readIlbmPixels(path);
@@ -133,18 +175,27 @@ class IndexedPngWriter {
             prior = row.clone();
         }
 
-        return new PixelImage(width, height, palette24.length, pixels, palette24);
+        return new PixelImage(width, height, palette24.length, pixels, palette24, 0, 0);
     }
 
+    /**
+     * Extracts raw per-pixel bitplane values from an ILBM's {@code BODY}.
+     *
+     * <p>For a plain indexed image this value is a literal palette index. For HAM/EHB it is
+     * <strong>not</strong> a colour index — it's the raw {@code planes}-bit value (control bits
+     * included), which is only meaningful bit-for-bit (e.g. round-tripped through a lossless
+     * bitplane compressor) or decoded by a HAM/EHB-aware consumer that also reads
+     * {@link PixelImage#camgMode()}. See {@link #readPixels(Path)} vs.
+     * {@link #readPixelsRaw(Path)} for which callers may use this.
+     */
     private static PixelImage readIlbmPixels(Path path) {
-        var image    = IlbmCodec.read(path);
-        var bmhd     = image.bmhd();
-        int width    = bmhd.width();
-        int height   = bmhd.height();
-        int planes   = bmhd.planes();
-        int numColors = 1 << planes;
+        var image     = IlbmCodec.read(path);
+        var bmhd      = image.bmhd();
+        int width     = bmhd.width();
+        int height    = bmhd.height();
+        int planes    = bmhd.planes();
         int rowBytes  = ((width + 15) / 16) * 2;
-        var body     = image.body();
+        var body      = image.body();
 
         var pixels = new int[height][width];
         for (int y = 0; y < height; y++) {
@@ -159,7 +210,9 @@ class IndexedPngWriter {
         }
 
         var pal = image.palette() != null ? image.palette() : new int[0];
-        return new PixelImage(width, height, numColors, pixels, pal);
+        // numColors is the CMAP's actual entry count, not 1<<planes: for HAM/EHB the extra
+        // planes are control bits, not more distinct base colours (CMAP stays 16 / 32 entries).
+        return new PixelImage(width, height, pal.length, pixels, pal, image.camgMode(), planes);
     }
 
     private static void applyFilter(int filter, byte[] row, byte[] prior, int width) {
