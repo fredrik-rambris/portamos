@@ -1,0 +1,7 @@
+{
+  "type": "pacpic",
+  "imageFile": "intro.iff",
+  "bank": 15,
+  "optimize": false,
+  "screen": {}
+}

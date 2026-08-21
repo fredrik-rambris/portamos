@@ -7,6 +7,7 @@
 package dev.rambris.amigaamos.bank;
 
 import dev.rambris.amigaamos.dto.PacPicBankDto;
+import dev.rambris.iff.codec.AmigaScreenMode;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -80,9 +81,12 @@ public class PacPicBankImporter {
             // Standard AMOS lores screen hardware start positions
             int hardX = s.hardX() != 0 ? s.hardX() : 0x81;
             int hardY = s.hardY() != 0 ? s.hardY() : 0x32;
-            // bplCon0: (numPlanes << 12) | 0x0200 (COLOR bit) for standard lores screen
+            // bplCon0: (numPlanes << 12) | 0x0200 (COLOR bit), plus the HAM bit for
+            // HAM6 screens (6 bitplanes hold-and-modify a 16-colour base palette;
+            // AMOS/the Amiga chipset need BPLCON0 bit 11 set to interpret them that way)
             int effectivePlanes = s.numPlanes() != 0 ? s.numPlanes() : planes;
-            int bplCon0 = s.bplCon0() != 0 ? s.bplCon0() : (effectivePlanes << 12) | 0x0200;
+            int bplCon0 = s.bplCon0() != 0 ? s.bplCon0()
+                    : (effectivePlanes << 12) | 0x0200 | (effectivePlanes == 6 ? AmigaScreenMode.HAM_BIT : 0);
             screenHeader = new PacPicBank.ScreenHeader(
                     s.width() != 0 ? s.width() : image.width(),
                     s.height() != 0 ? s.height() : image.height(),

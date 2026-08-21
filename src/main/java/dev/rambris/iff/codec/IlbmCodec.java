@@ -221,7 +221,10 @@ public class IlbmCodec {
         int expectedSize = bmhd.height() * bmhd.planes() * rowBytes;
         var out = new ByteArrayOutputStream(expectedSize);
         int i = 0;
-        while (i < compressed.length) {
+        // Stop once the expected planar size is reached: some encoders leave a
+        // trailing filler byte after the last real control code, which would
+        // otherwise be misread as one more control byte and overrun the buffer.
+        while (i < compressed.length && out.size() < expectedSize) {
             int n = compressed[i++];
             if (n >= 0) {
                 int count = n + 1;
