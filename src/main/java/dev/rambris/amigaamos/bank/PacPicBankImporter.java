@@ -22,7 +22,7 @@ import static dev.rambris.amigaamos.JsonConfig.JSON;
  * <p>File references inside the JSON are resolved relative to {@code jsonPath}.
  *
  * <p>When {@link #withOptimize(boolean) optimize} is enabled, a greedy pairwise-swap palette
- * search runs before compression; see {@link PacPicPaletteOptimizer} for details.
+ * search runs before compression; see {@link PaletteOptimizer} for details.
  */
 public class PacPicBankImporter {
 
@@ -78,10 +78,11 @@ public class PacPicBankImporter {
 
         if (optimize) {
             int numColors = Math.max(1, 1 << planes);
-            var result = PacPicPaletteOptimizer.optimize(pixels, numColors, srcX, srcY, planes);
+            var result = PaletteOptimizer.optimize(pixels, numColors,
+                    PaletteOptimizer.pacPicSize(srcX, srcY, planes));
             pixels = result.pixels();
             if (amosPalette != null) {
-                amosPalette = PacPicPaletteOptimizer.applyPermutation(amosPalette, result.permutation());
+                amosPalette = PaletteOptimizer.applyPermutation(amosPalette, result.permutation());
             }
         }
 

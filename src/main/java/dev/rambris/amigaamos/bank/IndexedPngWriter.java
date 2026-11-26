@@ -291,7 +291,7 @@ class IndexedPngWriter {
      * <p>For each row y, for each plane p, writes {@code rowBytes = ((width+15)/16)*2}
      * bytes where bit {@code (7-bit)} of byte b encodes bit p of pixel {@code pixels[y][b*8+bit]}.
      */
-    private static byte[] toInterleaved(int[][] pixels, int width, int height, int planes) {
+    static byte[] toInterleaved(int[][] pixels, int width, int height, int planes) {
         int rowBytes = ((width + 15) / 16) * 2;
         var body = new byte[height * planes * rowBytes];
         int pos = 0;

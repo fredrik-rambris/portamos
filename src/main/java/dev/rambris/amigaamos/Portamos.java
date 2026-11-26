@@ -54,6 +54,7 @@ import java.util.concurrent.Callable;
                 Portamos.DisasmCommand.class,
                 Portamos.AsmCommand.class,
                 Portamos.RawCommand.class,
+                Portamos.IlbmCommand.class,
                 Portamos.ConcatCommand.class,
                 Portamos.DisasmConfigCommand.class,
                 Portamos.AsmConfigCommand.class,
@@ -413,6 +414,47 @@ public class Portamos implements Callable<Integer> {
                 service.writeBank(bank, output);
             }
             System.out.printf("Written %s%n", output);
+            return 0;
+        }
+    }
+
+    // =========================================================================
+    // ilbm
+    // =========================================================================
+
+    @Command(
+            name = "ilbm",
+            mixinStandardHelpOptions = true,
+            description = {
+                    "Convert an indexed image (8-bit indexed PNG or IFF ILBM) to a ByteRun1-compressed IFF ILBM.",
+                    "HAM and Extra-HalfBrite source images are not supported."
+            }
+    )
+    static class IlbmCommand implements Callable<Integer> {
+
+        @Parameters(index = "0", paramLabel = "<input>",
+                description = "Source image: indexed .png, or .iff/.ilbm")
+        Path input;
+
+        @Parameters(index = "1", paramLabel = "<output.iff>",
+                description = "Output IFF ILBM file")
+        Path output;
+
+        @Option(names = "--optimize",
+                description = "Run a greedy pairwise-swap palette search to find the colour ordering "
+                              + "that produces the smallest ByteRun1-compressed BODY.")
+        boolean optimize;
+
+        @Option(names = "--planes", paramLabel = "<n>",
+                description = "Number of bitplanes (default: derived from the palette size)")
+        int planes;
+
+        @Override
+        public Integer call() throws Exception {
+            var result = new IlbmConverter().withOptimize(optimize).withPlanes(planes).convert(input, output);
+            System.out.printf("Written %s: %dx%d, %d planes, BODY %d bytes, file %d bytes%n",
+                    output, result.width(), result.height(), result.planes(),
+                    result.bodySize(), result.ilbm().length);
             return 0;
         }
     }

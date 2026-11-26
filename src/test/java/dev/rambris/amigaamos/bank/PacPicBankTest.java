@@ -218,7 +218,7 @@ class PacPicBankTest {
 
     @Test
     void paletteOptimizerSavingsFromIlbm() throws Exception {
-        PacPicPaletteOptimizer.progress = false;
+        PaletteOptimizer.progress = false;
         System.out.println("| file                                          | width | height | colours | IBLM size | baseline | optimized | saving           | time");
         System.out.println("+-----------------------------------------------+-------+--------+---------+-----------+----------+-----------+------------------+------");
         for (var f : new IlbmFile[]{
