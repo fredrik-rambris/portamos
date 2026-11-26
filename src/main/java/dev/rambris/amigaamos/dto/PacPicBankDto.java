@@ -21,7 +21,8 @@ public record PacPicBankDto(
         int srcY,
         int planes,
         ScreenHeaderDto screen,
-        @JsonInclude(JsonInclude.Include.NON_DEFAULT) Boolean optimize
+        @JsonInclude(JsonInclude.Include.NON_DEFAULT) Boolean optimize,
+        @JsonInclude(JsonInclude.Include.NON_DEFAULT) Boolean pad
 ) implements AmosBankDto {
     public static final String TYPE = "PacPic";
 

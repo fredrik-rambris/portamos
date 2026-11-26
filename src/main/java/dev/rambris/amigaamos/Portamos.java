@@ -387,6 +387,12 @@ public class Portamos implements Callable<Integer> {
                               + "Use --no-optimize to force off even when the JSON requests it.")
         Boolean optimize = null;  // null = not specified on CLI; defer to DTO
 
+        @Option(names = "--pad", negatable = true,
+                description = "Pac.Pic. only: after palette optimisation, try padding the picture by 1..16 pixels "
+                              + "in width and height and keep the padding if it compresses smaller. The screen "
+                              + "is enlarged to fit. Overrides the 'pad' field in the JSON when specified explicitly.")
+        Boolean pad = null;
+
         @Override
         public Integer call() throws Exception {
             System.out.printf("Importing from %s%n", json.getFileName());
@@ -403,9 +409,11 @@ public class Portamos implements Callable<Integer> {
                         json.toFile(), dev.rambris.amigaamos.dto.PacPicBankDto.class);
                 boolean doOptimize = optimize != null ? optimize
                         : (dto.optimize() != null && dto.optimize());
-                var bank = new PacPicBankImporter().withOptimize(doOptimize).importFrom(json);
-                System.out.printf("Bank type: %s%s, writing %s%n",
-                        bank.type(), doOptimize ? " (optimized)" : "", output.getFileName());
+                boolean doPad = pad != null ? pad : (dto.pad() != null && dto.pad());
+                var bank = new PacPicBankImporter().withOptimize(doOptimize).withPad(doPad).importFrom(json);
+                System.out.printf("Bank type: %s%s%s, writing %s%n",
+                        bank.type(), doOptimize ? " (optimized)" : "", doPad ? " (padded)" : "",
+                        output.getFileName());
                 bank.writer().write(bank, output);
             } else {
                 var service = new AmosBankService();

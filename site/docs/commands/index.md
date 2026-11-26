@@ -18,3 +18,4 @@ specific to a command.
 | [`asm`]({% link docs/commands/asm.md %})       | Assemble a bank from a JSON metadata file              |
 | [`raw`]({% link docs/commands/raw.md %})       | Wrap raw bytes in a bank envelope                      |
 | [`concat`]({% link docs/commands/concat.md %}) | Bundle multiple `.Abk` files into a `.Abs` bank set    |
+| [`ilbm`]({% link docs/commands/ilbm.md %})     | Convert an indexed PNG/ILBM to a compressed IFF ILBM   |

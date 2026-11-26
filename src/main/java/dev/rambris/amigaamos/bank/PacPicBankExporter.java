@@ -109,6 +109,7 @@ public class PacPicBankExporter {
                 readSrcY(bank.picData()),
                 planes,
                 screenDto,
+                null,
                 null);
 
         JSON.writeValue(jsonPath.toFile(), dto);

@@ -317,6 +317,12 @@ Key behaviors to know:
 # Wrap raw bytes in a bank envelope
 ./gradlew run --args="raw payload.bin output.Abk --type WORK"
 
+# Pac.Pic: palette optimizer, then padding search (PaletteOptimizer / PaddingOptimizer)
+./gradlew run --args="asm --optimize --pad picture.json Picture.Abk"
+
+# Convert an indexed PNG/ILBM to ByteRun1 ILBM, optionally palette-optimized
+./gradlew run --args="ilbm --optimize picture.png picture.iff"
+
 # Dump an AMOS binary as a human-readable token listing (dev command)
 ./gradlew run --args="dump file.AMOS"
 

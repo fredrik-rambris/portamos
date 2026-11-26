@@ -25,6 +25,14 @@ via `"optimize": true` in the JSON.
 `--no-optimize`
 : Disable the palette optimizer even if `"optimize": true` is set in the JSON.
 
+`--pad`
+: Pac.Pic only: after palette optimization, try padding the picture by 1–16 pixels in width and height and keep the
+padding if it compresses smaller. The screen is enlarged to fit the padded picture. Can also be set per-bank via
+`"pad": true` in the JSON. See [Pac.Pic bank]({% link docs/banks/pacpic.md %}#padding).
+
+`--no-pad`
+: Disable padding even if `"pad": true` is set in the JSON.
+
 ## Example
 
 ```bash

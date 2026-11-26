@@ -28,6 +28,9 @@ portamos asm output/picture.json Picture.Abk
 
 # Reassemble with palette optimizer (smaller file, slower build)
 portamos asm --optimize output/picture.json Picture.Abk
+
+# Palette optimizer + padding search
+portamos asm --optimize --pad output/picture.json Picture.Abk
 ```
 
 ## JSON schema
@@ -98,6 +101,7 @@ Omit `"screen"` entirely for a plain PACK bank.
 | `chipRam`    | boolean | `true` = chip RAM, `false` = fast RAM (default)                         |
 | `imageFile`  | string  | Path to PNG or IFF image file relative to the JSON                      |
 | `optimize`   | boolean | Run palette optimizer before compressing (slower build, smaller output) |
+| `pad`        | boolean | Try padding the picture by 1–16 pixels if it compresses smaller         |
 | `planes`     | integer | Override bit-depth (normally inferred from the image's colour count)    |
 
 ### `screen` object
@@ -127,3 +131,26 @@ It does not affect image appearance but can significantly reduce compressed size
 | 320×200 32-colour scene | 27 416 B | 18 812 B  | 31%    |
 | 320×200 16-colour level | 17 248 B | 13 242 B  | 23%    |
 | 320×256 16-colour game  | 12 230 B | 10 226 B  | 16%    |
+
+The same optimizer is available for IFF ILBM output through the [`ilbm`]({% link docs/commands/ilbm.md %}) command.
+
+## Padding
+
+The `--pad` flag (or `"pad": true` in the JSON) runs after the palette optimizer. It tries growing the picture by 1–16
+pixels to the right and, separately, 1–16 lines at the bottom, then the best of both together, and keeps whichever
+compresses smallest. Padding pixels repeat the nearest edge pixel.
+
+This helps because the Pac.Pic compressor splits the picture into horizontal strips ("lumps") whose height must divide
+the picture height evenly. A picture 79 lines tall can only use 1-line strips; at 80 lines much taller strips become
+possible.
+
+When padding is used, the screen header's `width` / `height` are enlarged so the padded picture still fits;
+`displayWidth` / `displayHeight` are unchanged. The extra lines cost chip RAM at runtime, so on standard-size screens the
+trade-off is usually not worth it.
+
+| Image                   | Optimized | Optimized + padded | Padding   | Total saving |
+|-------------------------|-----------|--------------------|-----------|--------------|
+| 208×79 picture          | 2 428 B   | 1 682 B (−31%)     | +1 line   | 37%          |
+| 320×200 32-colour scene | 18 812 B  | 18 716 B (−0.5%)   | +16 lines | 32%          |
+| 320×200 16-colour level | 13 242 B  | 12 986 B (−1.9%)   | +16 lines | 25%          |
+| 320×256 16-colour game  | 10 226 B  | 10 226 B           | none      | 16%          |

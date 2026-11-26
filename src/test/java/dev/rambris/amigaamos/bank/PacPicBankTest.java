@@ -268,6 +268,95 @@ class PacPicBankTest {
         assertEquals(exp.length, act.length, "height");
         assertEquals(exp[0].length, act[0].length, "width");
     }
+
+    @Test
+    void paddingNeverEnlargesAndKeepsOriginalPixels() throws Exception {
+        PaletteOptimizer.progress = false;
+        PaddingOptimizer.progress = false;
+
+        record Img(String name, int[][] pixels, int planes) {}
+        var images = new java.util.ArrayList<Img>();
+        var spack = PacPicBankReader.read(SPACK_ABK);
+        images.add(new Img(SPACK_ABK.getFileName().toString(), PacPicDecoder.decompress(spack.picData()),
+                ((spack.picData()[PacPicFormat.OFF_PKPLAN] & 0xFF) << 8) | (spack.picData()[PacPicFormat.OFF_PKPLAN + 1] & 0xFF)));
+        for (var f : new IlbmFile[]{
+                new IlbmFile(Path.of("src/test/resources/DefenderOfTheCrown2_Romantic_Fireplace.iff"), 5),
+                new IlbmFile(Path.of("src/test/resources/DeviousDesigns_Level01.iff"), 4),
+                new IlbmFile(Path.of("src/test/resources/DeviousDesigns_Level16.iff"), 4),
+                new IlbmFile(Path.of("src/test/resources/Spherical.iff"), 4)
+        }) {
+            images.add(new Img(f.iffPath.getFileName().toString(), IndexedPngWriter.readPixels(f.iffPath).pixels(), f.planes));
+        }
+
+        System.out.println("| file                                       | size    | baseline | optimized        | opt+padded       | pad     | total saving");
+        System.out.println("+--------------------------------------------+---------+----------+------------------+------------------+---------+------------------");
+        for (var img : images) {
+            int h = img.pixels().length, w = img.pixels()[0].length;
+            var sizer = PaletteOptimizer.pacPicSize(0, 0, img.planes());
+            int baseline = sizer.applyAsInt(img.pixels());
+            var opt = PaletteOptimizer.optimize(img.pixels(), 1 << img.planes(), sizer);
+            var padded = PaddingOptimizer.optimize(opt.pixels(), PacPicBankImporter.MAX_PAD, sizer);
+
+            System.out.printf("| %-42s | %3dx%-3d | %-8d | %-6d (%5.1f%%) | %-6d (%5.1f%%) | +%d,+%-3d | %-6d (%5.1f%%)%n",
+                    img.name(), w, h, baseline,
+                    opt.compressedSize(), pct(baseline, opt.compressedSize()),
+                    padded.compressedSize(), pct(opt.compressedSize(), padded.compressedSize()),
+                    padded.padX(), padded.padY(),
+                    baseline - padded.compressedSize(), pct(baseline, padded.compressedSize()));
+
+            assertTrue(padded.compressedSize() <= opt.compressedSize(), "padding must not enlarge output");
+            assertEquals(padded.compressedSize(), PacPicEncoder.compress(padded.pixels(), 0, 0, img.planes()).length);
+            var decoded = PacPicDecoder.decompress(PacPicEncoder.compress(padded.pixels(), 0, 0, img.planes()));
+            assertEquals(h + padded.padY(), decoded.length, "height");
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    assertEquals(opt.pixels()[y][x], decoded[y][x], "pixel (" + x + "," + y + ")");
+                }
+            }
+        }
+    }
+
+    private static double pct(int before, int after) {
+        return 100.0 * (before - after) / before;
+    }
+
+    @Test
+    void importerWithOptimizeAndPadProducesSmallerEquivalentBank(@TempDir Path tmp) throws Exception {
+        PaletteOptimizer.progress = false;
+        PaddingOptimizer.progress = false;
+        var original = PacPicBankReader.read(SPACK_ABK);
+        var jsonPath = tmp.resolve("spack.json");
+        new PacPicBankExporter().export(original, jsonPath);
+
+        var optimizedOnly = new PacPicBankImporter().withOptimize(true).importFrom(jsonPath);
+        var both = new PacPicBankImporter().withOptimize(true).withPad(true).importFrom(jsonPath);
+
+        // Spack is 208x79: padding to 80 lines unlocks larger lump heights
+        assertTrue(both.picData().length < optimizedOnly.picData().length,
+                "optimize+pad (" + both.picData().length + ") should be smaller than optimize alone ("
+                + optimizedOnly.picData().length + ")");
+
+        var origPixels = PacPicDecoder.decompress(original.picData());
+        var newPixels = PacPicDecoder.decompress(both.picData());
+        assertTrue(newPixels.length >= origPixels.length, "height must not shrink");
+        assertTrue(newPixels[0].length >= origPixels[0].length, "width must not shrink");
+
+        // Screen must hold the padded picture; the visible display is unchanged
+        var origScreen = original.screenHeader();
+        var screen = both.screenHeader();
+        assertTrue(screen.height() >= newPixels.length, "screen height fits padded picture");
+        assertTrue(screen.width() >= newPixels[0].length, "screen width fits padded picture");
+        assertEquals(origScreen.displayWidth(), screen.displayWidth(), "display width");
+        assertEquals(origScreen.displayHeight(), screen.displayHeight(), "display height");
+
+        // Every original pixel shows the same colour (palette reordered along with the pixels)
+        for (int y = 0; y < origPixels.length; y++) {
+            for (int x = 0; x < origPixels[y].length; x++) {
+                assertEquals(origScreen.palette()[origPixels[y][x]], screen.palette()[newPixels[y][x]],
+                        "colour at (" + x + "," + y + ")");
+            }
+        }
+    }
 }
 
 
